@@ -2,95 +2,121 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* ASCEND LC Design System
+   Enterprise Mining QMS Platform
+   Professional, trustworthy, safety-focused
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core brand colors - Deep navy for trust and reliability */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
 
+    /* Card surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 25% 15%;
 
+    /* Popover/Modal surfaces */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 25% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
+    /* Primary - Deep Navy Blue */
+    --primary: 213 50% 20%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Slate gray for secondary elements */
+    --secondary: 210 15% 94%;
+    --secondary-foreground: 215 25% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted - Subtle backgrounds */
+    --muted: 210 15% 96%;
+    --muted-foreground: 215 15% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - Industrial orange for CTAs and alerts */
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive - Red for errors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Status colors */
+    --status-open: 38 92% 50%;
+    --status-in-progress: 217 91% 60%;
+    --status-pending-review: 280 65% 60%;
+    --status-pending-verification: 45 93% 47%;
+    --status-closed: 142 71% 45%;
+    --status-rejected: 0 84% 60%;
+    --status-overdue: 0 84% 60%;
+
+    /* Severity colors */
+    --severity-critical: 0 84% 60%;
+    --severity-major: 38 92% 50%;
+    --severity-minor: 217 91% 60%;
+
+    /* Border and input */
+    --border: 214 20% 88%;
+    --input: 214 20% 88%;
+    --ring: 213 50% 20%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Sidebar */
+    --sidebar-background: 213 50% 15%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 24 95% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 213 45% 22%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 213 40% 25%;
+    --sidebar-ring: 24 95% 53%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Chart colors for analytics */
+    --chart-1: 213 50% 20%;
+    --chart-2: 24 95% 53%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 38 92% 50%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 215 25% 10%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 215 25% 12%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 215 25% 12%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary-foreground: 213 50% 20%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 215 20% 18%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 215 20% 18%;
+    --muted-foreground: 215 15% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62% 45%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 215 20% 22%;
+    --input: 215 20% 22%;
+    --ring: 210 40% 80%;
+
+    --sidebar-background: 215 25% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 24 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 215 20% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 215 20% 18%;
+    --sidebar-ring: 24 95% 53%;
   }
 }
 
@@ -100,6 +126,164 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Status badge variants */
+  .badge-open {
+    @apply bg-amber-100 text-amber-800 border-amber-200;
+  }
+  
+  .badge-in-progress {
+    @apply bg-blue-100 text-blue-800 border-blue-200;
+  }
+  
+  .badge-pending-review {
+    @apply bg-purple-100 text-purple-800 border-purple-200;
+  }
+  
+  .badge-pending-verification {
+    @apply bg-yellow-100 text-yellow-800 border-yellow-200;
+  }
+  
+  .badge-closed {
+    @apply bg-green-100 text-green-800 border-green-200;
+  }
+  
+  .badge-rejected {
+    @apply bg-red-100 text-red-800 border-red-200;
+  }
+  
+  .badge-overdue {
+    @apply bg-red-100 text-red-800 border-red-200 animate-pulse;
+  }
+
+  /* Severity indicators */
+  .severity-critical {
+    @apply text-red-600 font-semibold;
+  }
+  
+  .severity-major {
+    @apply text-amber-600 font-semibold;
+  }
+  
+  .severity-minor {
+    @apply text-blue-600 font-semibold;
+  }
+
+  /* Card hover effect */
+  .card-interactive {
+    @apply transition-all duration-200 hover:shadow-md hover:border-primary/20;
+  }
+
+  /* Dashboard KPI cards */
+  .kpi-card {
+    @apply relative overflow-hidden rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md;
+  }
+
+  .kpi-card::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity duration-200;
+  }
+
+  .kpi-card:hover::before {
+    @apply opacity-100;
+  }
+
+  /* Workflow progress indicator */
+  .workflow-step {
+    @apply flex items-center gap-2;
+  }
+
+  .workflow-step-active {
+    @apply text-primary font-medium;
+  }
+
+  .workflow-step-complete {
+    @apply text-green-600;
+  }
+
+  .workflow-step-pending {
+    @apply text-muted-foreground;
+  }
+
+  /* Form section styling */
+  .form-section {
+    @apply space-y-4 rounded-lg border bg-card p-6;
+  }
+
+  .form-section-header {
+    @apply text-lg font-semibold text-foreground mb-4 pb-2 border-b;
+  }
+
+  /* Table row hover */
+  .table-row-interactive {
+    @apply transition-colors hover:bg-muted/50 cursor-pointer;
+  }
+
+  /* Mining industry visual elements */
+  .industrial-border {
+    @apply border-l-4 border-l-primary;
+  }
+
+  /* Alert/notification styling */
+  .alert-overdue {
+    @apply bg-red-50 border-red-200 text-red-800;
+  }
+
+  .alert-warning {
+    @apply bg-amber-50 border-amber-200 text-amber-800;
+  }
+
+  .alert-success {
+    @apply bg-green-50 border-green-200 text-green-800;
+  }
+
+  /* Navigation active state */
+  .nav-item-active {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+  }
+
+  /* Mobile-friendly touch targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Loading skeleton with mining theme */
+  .skeleton-loading {
+    @apply animate-pulse bg-gradient-to-r from-muted via-muted/70 to-muted;
+  }
+}
+
+@layer utilities {
+  /* Text gradients */
+  .text-gradient-brand {
+    @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
+  }
+
+  /* Shadow utilities */
+  .shadow-card {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  }
+
+  .shadow-card-hover {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  }
+
+  /* Safe area for mobile */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
   }
 }
