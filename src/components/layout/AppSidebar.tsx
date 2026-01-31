@@ -72,9 +72,16 @@ const moderationNavItems: NavItem[] = [
   { title: 'My Queue', href: '/moderation/queue', icon: ListTodo },
 ];
 
+const courseEvalNavItems: NavItem[] = [
+  { title: 'All Evaluations', href: '/course-evaluations', icon: GraduationCap },
+  { title: 'Submit Evaluation', href: '/course-evaluations/submit', icon: ClipboardCheck },
+  { title: 'Evaluation Reports', href: '/course-evaluations/reports', icon: BarChart3 },
+];
+
 const adminNavItems: NavItem[] = [
   { title: 'Reports', href: '/reports', icon: BarChart3, roles: ['super_admin', 'site_admin', 'manager'] },
   { title: 'Users', href: '/users', icon: Users, roles: ['super_admin', 'site_admin'] },
+  { title: 'Branding', href: '/settings/branding', icon: Settings, roles: ['super_admin', 'site_admin'] },
   { title: 'QR Codes', href: '/qr-codes', icon: QrCode, roles: ['super_admin', 'site_admin'] },
 ];
 
@@ -83,6 +90,7 @@ export function AppSidebar() {
   const [ncOpen, setNcOpen] = useState(true);
   const [feedbackOpen, setFeedbackOpen] = useState(true);
   const [moderationOpen, setModerationOpen] = useState(true);
+  const [courseEvalOpen, setCourseEvalOpen] = useState(true);
   const location = useLocation();
   const { profile, roles, signOut } = useAuth();
   const { tenant } = useTenant();
@@ -243,6 +251,7 @@ export function AppSidebar() {
           </p>
         )}
         {renderCollapsibleGroup('Surveys', MessageSquareHeart, feedbackNavItems, feedbackOpen, setFeedbackOpen)}
+        {renderCollapsibleGroup('Course Evaluations', GraduationCap, courseEvalNavItems, courseEvalOpen, setCourseEvalOpen)}
 
         <Separator className="my-3 bg-sidebar-border" />
         

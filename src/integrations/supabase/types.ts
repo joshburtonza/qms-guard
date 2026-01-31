@@ -72,6 +72,133 @@ export type Database = {
           },
         ]
       }
+      course_facilitator_evaluations: {
+        Row: {
+          course_assessment_fair: number | null
+          course_content_relevant: number | null
+          course_end_date: string | null
+          course_exercises_valuable: number | null
+          course_id: string
+          course_materials_helpful: number | null
+          course_objectives_clear: number | null
+          course_pace_appropriate: number | null
+          course_start_date: string | null
+          created_at: string | null
+          employee_number: string | null
+          evaluation_id: string
+          facilitator_encouraged_questions: number | null
+          facilitator_engagement: number | null
+          facilitator_expertise: number | null
+          facilitator_explanations: number | null
+          facilitator_id: string
+          facilitator_presentation: number | null
+          facilitator_professionalism: number | null
+          feedback_additional: string | null
+          feedback_improvement: string | null
+          feedback_valuable: string | null
+          id: string
+          is_anonymous: boolean | null
+          learner_name: string | null
+          overall_course_rating: number | null
+          overall_facilitator_rating: number | null
+          source: string | null
+          tenant_id: string
+          venue: string | null
+          would_recommend_course: string | null
+          would_recommend_facilitator: string | null
+        }
+        Insert: {
+          course_assessment_fair?: number | null
+          course_content_relevant?: number | null
+          course_end_date?: string | null
+          course_exercises_valuable?: number | null
+          course_id: string
+          course_materials_helpful?: number | null
+          course_objectives_clear?: number | null
+          course_pace_appropriate?: number | null
+          course_start_date?: string | null
+          created_at?: string | null
+          employee_number?: string | null
+          evaluation_id: string
+          facilitator_encouraged_questions?: number | null
+          facilitator_engagement?: number | null
+          facilitator_expertise?: number | null
+          facilitator_explanations?: number | null
+          facilitator_id: string
+          facilitator_presentation?: number | null
+          facilitator_professionalism?: number | null
+          feedback_additional?: string | null
+          feedback_improvement?: string | null
+          feedback_valuable?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          learner_name?: string | null
+          overall_course_rating?: number | null
+          overall_facilitator_rating?: number | null
+          source?: string | null
+          tenant_id: string
+          venue?: string | null
+          would_recommend_course?: string | null
+          would_recommend_facilitator?: string | null
+        }
+        Update: {
+          course_assessment_fair?: number | null
+          course_content_relevant?: number | null
+          course_end_date?: string | null
+          course_exercises_valuable?: number | null
+          course_id?: string
+          course_materials_helpful?: number | null
+          course_objectives_clear?: number | null
+          course_pace_appropriate?: number | null
+          course_start_date?: string | null
+          created_at?: string | null
+          employee_number?: string | null
+          evaluation_id?: string
+          facilitator_encouraged_questions?: number | null
+          facilitator_engagement?: number | null
+          facilitator_expertise?: number | null
+          facilitator_explanations?: number | null
+          facilitator_id?: string
+          facilitator_presentation?: number | null
+          facilitator_professionalism?: number | null
+          feedback_additional?: string | null
+          feedback_improvement?: string | null
+          feedback_valuable?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          learner_name?: string | null
+          overall_course_rating?: number | null
+          overall_facilitator_rating?: number | null
+          source?: string | null
+          tenant_id?: string
+          venue?: string | null
+          would_recommend_course?: string | null
+          would_recommend_facilitator?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_facilitator_evaluations_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_facilitator_evaluations_facilitator_id_fkey"
+            columns: ["facilitator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_facilitator_evaluations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           active: boolean | null

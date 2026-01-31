@@ -22,6 +22,12 @@ import ModerationList from "./pages/moderation/ModerationList";
 import ModerationSubmit from "./pages/moderation/ModerationSubmit";
 import ModerationDetail from "./pages/moderation/ModerationDetail";
 import ModerationQueue from "./pages/moderation/ModerationQueue";
+// Phase 2: Course Evaluation pages
+import CourseEvaluationList from "./pages/course-evaluations/CourseEvaluationList";
+import CourseEvaluationSubmit from "./pages/course-evaluations/CourseEvaluationSubmit";
+import CourseEvaluationReports from "./pages/course-evaluations/CourseEvaluationReports";
+// Settings
+import BrandingSettings from "./pages/settings/BrandingSettings";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +47,7 @@ const App = () => (
               <Route path="/nc/:id" element={<NCDetail />} />
               <Route path="/tasks" element={<MyTasks />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/settings/branding" element={<BrandingSettings />} />
               {/* Phase 2: Customer Satisfaction Surveys */}
               <Route path="/surveys" element={<SurveyList />} />
               <Route path="/surveys/submit" element={<SurveySubmit />} />
@@ -50,6 +57,10 @@ const App = () => (
               <Route path="/moderation/submit" element={<ModerationSubmit />} />
               <Route path="/moderation/queue" element={<ModerationQueue />} />
               <Route path="/moderation/:id" element={<ModerationDetail />} />
+              {/* Phase 2: Course Evaluations */}
+              <Route path="/course-evaluations" element={<CourseEvaluationList />} />
+              <Route path="/course-evaluations/submit" element={<CourseEvaluationSubmit />} />
+              <Route path="/course-evaluations/reports" element={<CourseEvaluationReports />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TenantProvider>
