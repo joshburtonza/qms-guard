@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { TenantProvider } from "@/hooks/useTenant";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import ReportNC from "./pages/ReportNC";
@@ -12,6 +13,10 @@ import NCDetail from "./pages/NCDetail";
 import MyTasks from "./pages/MyTasks";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+// Phase 2: Survey pages
+import SurveyList from "./pages/surveys/SurveyList";
+import SurveySubmit from "./pages/surveys/SurveySubmit";
+import SurveyReports from "./pages/surveys/SurveyReports";
 
 const queryClient = new QueryClient();
 
@@ -22,16 +27,22 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/report" element={<ReportNC />} />
-            <Route path="/nc" element={<NCList />} />
-            <Route path="/nc/:id" element={<NCDetail />} />
-            <Route path="/tasks" element={<MyTasks />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <TenantProvider>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/report" element={<ReportNC />} />
+              <Route path="/nc" element={<NCList />} />
+              <Route path="/nc/:id" element={<NCDetail />} />
+              <Route path="/tasks" element={<MyTasks />} />
+              <Route path="/settings" element={<Settings />} />
+              {/* Phase 2: Customer Satisfaction Surveys */}
+              <Route path="/surveys" element={<SurveyList />} />
+              <Route path="/surveys/submit" element={<SurveySubmit />} />
+              <Route path="/surveys/reports" element={<SurveyReports />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TenantProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

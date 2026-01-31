@@ -24,6 +24,7 @@ export type Database = {
           root_cause: string
           submitted_at: string | null
           submitted_by: string | null
+          tenant_id: string | null
         }
         Insert: {
           completion_date?: string | null
@@ -34,6 +35,7 @@ export type Database = {
           root_cause: string
           submitted_at?: string | null
           submitted_by?: string | null
+          tenant_id?: string | null
         }
         Update: {
           completion_date?: string | null
@@ -44,6 +46,7 @@ export type Database = {
           root_cause?: string
           submitted_at?: string | null
           submitted_by?: string | null
+          tenant_id?: string | null
         }
         Relationships: [
           {
@@ -60,6 +63,170 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "corrective_actions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          active: boolean | null
+          code: string
+          created_at: string | null
+          credits: number | null
+          description: string | null
+          duration_days: number | null
+          id: string
+          nqf_level: number | null
+          tenant_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          code: string
+          created_at?: string | null
+          credits?: number | null
+          description?: string | null
+          duration_days?: number | null
+          id?: string
+          nqf_level?: number | null
+          tenant_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          code?: string
+          created_at?: string | null
+          credits?: number | null
+          description?: string | null
+          duration_days?: number | null
+          id?: string
+          nqf_level?: number | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_satisfaction_surveys: {
+        Row: {
+          course_id: string | null
+          created_at: string | null
+          department_id: string | null
+          facilitator_id: string | null
+          feedback_additional: string | null
+          feedback_improvement: string | null
+          feedback_positive: string | null
+          id: string
+          is_anonymous: boolean | null
+          rating_content: number | null
+          rating_facilitator_knowledge: number | null
+          rating_facilitator_presentation: number | null
+          rating_materials: number | null
+          rating_overall: number | null
+          rating_venue: number | null
+          respondent_email: string | null
+          respondent_name: string | null
+          service_date: string | null
+          service_type: string
+          source: string | null
+          survey_id: string
+          tenant_id: string
+          would_recommend: string | null
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string | null
+          department_id?: string | null
+          facilitator_id?: string | null
+          feedback_additional?: string | null
+          feedback_improvement?: string | null
+          feedback_positive?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          rating_content?: number | null
+          rating_facilitator_knowledge?: number | null
+          rating_facilitator_presentation?: number | null
+          rating_materials?: number | null
+          rating_overall?: number | null
+          rating_venue?: number | null
+          respondent_email?: string | null
+          respondent_name?: string | null
+          service_date?: string | null
+          service_type: string
+          source?: string | null
+          survey_id: string
+          tenant_id: string
+          would_recommend?: string | null
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string | null
+          department_id?: string | null
+          facilitator_id?: string | null
+          feedback_additional?: string | null
+          feedback_improvement?: string | null
+          feedback_positive?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          rating_content?: number | null
+          rating_facilitator_knowledge?: number | null
+          rating_facilitator_presentation?: number | null
+          rating_materials?: number | null
+          rating_overall?: number | null
+          rating_venue?: number | null
+          respondent_email?: string | null
+          respondent_name?: string | null
+          service_date?: string | null
+          service_type?: string
+          source?: string | null
+          survey_id?: string
+          tenant_id?: string
+          would_recommend?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_satisfaction_surveys_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_satisfaction_surveys_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_satisfaction_surveys_facilitator_id_fkey"
+            columns: ["facilitator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_satisfaction_surveys_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
         ]
       }
       departments: {
@@ -69,6 +236,7 @@ export type Database = {
           manager_id: string | null
           name: string
           site_location: string
+          tenant_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -77,6 +245,7 @@ export type Database = {
           manager_id?: string | null
           name: string
           site_location: string
+          tenant_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -85,9 +254,17 @@ export type Database = {
           manager_id?: string | null
           name?: string
           site_location?: string
+          tenant_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "departments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fk_departments_manager"
             columns: ["manager_id"]
@@ -105,6 +282,7 @@ export type Database = {
           nc_id: string
           performed_at: string | null
           performed_by: string | null
+          tenant_id: string | null
         }
         Insert: {
           action: string
@@ -113,6 +291,7 @@ export type Database = {
           nc_id: string
           performed_at?: string | null
           performed_by?: string | null
+          tenant_id?: string | null
         }
         Update: {
           action?: string
@@ -121,6 +300,7 @@ export type Database = {
           nc_id?: string
           performed_at?: string | null
           performed_by?: string | null
+          tenant_id?: string | null
         }
         Relationships: [
           {
@@ -137,6 +317,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "nc_activity_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
         ]
       }
       nc_attachments: {
@@ -147,6 +334,7 @@ export type Database = {
           file_type: string | null
           id: string
           nc_id: string
+          tenant_id: string | null
           uploaded_at: string | null
           uploaded_by: string | null
         }
@@ -157,6 +345,7 @@ export type Database = {
           file_type?: string | null
           id?: string
           nc_id: string
+          tenant_id?: string | null
           uploaded_at?: string | null
           uploaded_by?: string | null
         }
@@ -167,6 +356,7 @@ export type Database = {
           file_type?: string | null
           id?: string
           nc_id?: string
+          tenant_id?: string | null
           uploaded_at?: string | null
           uploaded_by?: string | null
         }
@@ -176,6 +366,13 @@ export type Database = {
             columns: ["nc_id"]
             isOneToOne: false
             referencedRelation: "non_conformances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nc_attachments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
           {
@@ -207,6 +404,7 @@ export type Database = {
           shift: string | null
           site_location: string | null
           status: Database["public"]["Enums"]["nc_status"]
+          tenant_id: string | null
           updated_at: string | null
           workflow_history: Json | null
         }
@@ -229,6 +427,7 @@ export type Database = {
           shift?: string | null
           site_location?: string | null
           status?: Database["public"]["Enums"]["nc_status"]
+          tenant_id?: string | null
           updated_at?: string | null
           workflow_history?: Json | null
         }
@@ -251,6 +450,7 @@ export type Database = {
           shift?: string | null
           site_location?: string | null
           status?: Database["public"]["Enums"]["nc_status"]
+          tenant_id?: string | null
           updated_at?: string | null
           workflow_history?: Json | null
         }
@@ -276,6 +476,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "non_conformances_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -288,6 +495,7 @@ export type Database = {
           is_active: boolean | null
           phone_number: string | null
           site_location: string | null
+          tenant_id: string
           updated_at: string | null
         }
         Insert: {
@@ -299,6 +507,7 @@ export type Database = {
           is_active?: boolean | null
           phone_number?: string | null
           site_location?: string | null
+          tenant_id: string
           updated_at?: string | null
         }
         Update: {
@@ -310,6 +519,7 @@ export type Database = {
           is_active?: boolean | null
           phone_number?: string | null
           site_location?: string | null
+          tenant_id?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -320,28 +530,109 @@ export type Database = {
             referencedRelation: "departments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      tenants: {
+        Row: {
+          accent_color: string | null
+          active: boolean | null
+          created_at: string | null
+          date_format: string | null
+          favicon_url: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          plan: string | null
+          platform_name: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          slug: string
+          support_email: string | null
+          support_phone: string | null
+          timezone: string | null
+          trial_ends_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          active?: boolean | null
+          created_at?: string | null
+          date_format?: string | null
+          favicon_url?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          plan?: string | null
+          platform_name?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug: string
+          support_email?: string | null
+          support_phone?: string | null
+          timezone?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          active?: boolean | null
+          created_at?: string | null
+          date_format?: string | null
+          favicon_url?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          plan?: string | null
+          platform_name?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug?: string
+          support_email?: string | null
+          support_phone?: string | null
+          timezone?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
           created_at: string | null
           id: string
           role: Database["public"]["Enums"]["app_role"]
+          tenant_id: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
           role: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workflow_approvals: {
         Row: {
@@ -352,6 +643,7 @@ export type Database = {
           id: string
           nc_id: string
           step: number
+          tenant_id: string | null
         }
         Insert: {
           action: string
@@ -361,6 +653,7 @@ export type Database = {
           id?: string
           nc_id: string
           step: number
+          tenant_id?: string | null
         }
         Update: {
           action?: string
@@ -370,6 +663,7 @@ export type Database = {
           id?: string
           nc_id?: string
           step?: number
+          tenant_id?: string | null
         }
         Relationships: [
           {
@@ -386,6 +680,13 @@ export type Database = {
             referencedRelation: "non_conformances"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "workflow_approvals_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -394,6 +695,7 @@ export type Database = {
     }
     Functions: {
       get_user_department: { Args: { _user_id: string }; Returns: string }
+      get_user_tenant: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
