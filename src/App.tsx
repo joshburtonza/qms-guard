@@ -17,6 +17,11 @@ import NotFound from "./pages/NotFound";
 import SurveyList from "./pages/surveys/SurveyList";
 import SurveySubmit from "./pages/surveys/SurveySubmit";
 import SurveyReports from "./pages/surveys/SurveyReports";
+// Phase 2: Moderation pages
+import ModerationList from "./pages/moderation/ModerationList";
+import ModerationSubmit from "./pages/moderation/ModerationSubmit";
+import ModerationDetail from "./pages/moderation/ModerationDetail";
+import ModerationQueue from "./pages/moderation/ModerationQueue";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +45,11 @@ const App = () => (
               <Route path="/surveys" element={<SurveyList />} />
               <Route path="/surveys/submit" element={<SurveySubmit />} />
               <Route path="/surveys/reports" element={<SurveyReports />} />
+              {/* Phase 2: Moderation Platform */}
+              <Route path="/moderation" element={<ModerationList />} />
+              <Route path="/moderation/submit" element={<ModerationSubmit />} />
+              <Route path="/moderation/queue" element={<ModerationQueue />} />
+              <Route path="/moderation/:id" element={<ModerationDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TenantProvider>

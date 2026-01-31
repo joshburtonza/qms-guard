@@ -66,6 +66,12 @@ const feedbackNavItems: NavItem[] = [
   { title: 'Survey Reports', href: '/surveys/reports', icon: BarChart3 },
 ];
 
+const moderationNavItems: NavItem[] = [
+  { title: 'All Moderations', href: '/moderation', icon: ClipboardCheck },
+  { title: 'Submit for Moderation', href: '/moderation/submit', icon: GraduationCap },
+  { title: 'My Queue', href: '/moderation/queue', icon: ListTodo },
+];
+
 const adminNavItems: NavItem[] = [
   { title: 'Reports', href: '/reports', icon: BarChart3, roles: ['super_admin', 'site_admin', 'manager'] },
   { title: 'Users', href: '/users', icon: Users, roles: ['super_admin', 'site_admin'] },
@@ -76,6 +82,7 @@ export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [ncOpen, setNcOpen] = useState(true);
   const [feedbackOpen, setFeedbackOpen] = useState(true);
+  const [moderationOpen, setModerationOpen] = useState(true);
   const location = useLocation();
   const { profile, roles, signOut } = useAuth();
   const { tenant } = useTenant();
@@ -236,6 +243,16 @@ export function AppSidebar() {
           </p>
         )}
         {renderCollapsibleGroup('Surveys', MessageSquareHeart, feedbackNavItems, feedbackOpen, setFeedbackOpen)}
+
+        <Separator className="my-3 bg-sidebar-border" />
+        
+        {/* Moderation Group */}
+        {!collapsed && (
+          <p className="px-3 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider mb-2">
+            Quality Assurance
+          </p>
+        )}
+        {renderCollapsibleGroup('Moderation', GraduationCap, moderationNavItems, moderationOpen, setModerationOpen)}
 
         {filteredAdminItems.length > 0 && (
           <>
