@@ -274,6 +274,187 @@ export type Database = {
           },
         ]
       }
+      moderation_attachments: {
+        Row: {
+          attachment_type: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          moderation_id: string
+          tenant_id: string
+          uploaded_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          attachment_type: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          moderation_id: string
+          tenant_id: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          attachment_type?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          moderation_id?: string
+          tenant_id?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderation_attachments_moderation_id_fkey"
+            columns: ["moderation_id"]
+            isOneToOne: false
+            referencedRelation: "moderation_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moderation_attachments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moderation_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moderation_requests: {
+        Row: {
+          areas_of_concern: string[] | null
+          assessment_date: string | null
+          assessment_result: string
+          assessment_type: string
+          assessor_comments: string | null
+          assigned_at: string | null
+          course_id: string | null
+          created_at: string | null
+          due_date: string | null
+          id: string
+          learner_id_number: string | null
+          learner_name: string
+          moderated_at: string | null
+          moderation_decision: string | null
+          moderation_feedback: string | null
+          moderation_id: string
+          moderator_acknowledged: boolean | null
+          moderator_acknowledged_at: string | null
+          moderator_id: string | null
+          recommendations: string | null
+          status: string
+          submitted_at: string | null
+          submitted_by: string
+          tenant_id: string
+          unit_standard_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          areas_of_concern?: string[] | null
+          assessment_date?: string | null
+          assessment_result: string
+          assessment_type: string
+          assessor_comments?: string | null
+          assigned_at?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          learner_id_number?: string | null
+          learner_name: string
+          moderated_at?: string | null
+          moderation_decision?: string | null
+          moderation_feedback?: string | null
+          moderation_id: string
+          moderator_acknowledged?: boolean | null
+          moderator_acknowledged_at?: string | null
+          moderator_id?: string | null
+          recommendations?: string | null
+          status?: string
+          submitted_at?: string | null
+          submitted_by: string
+          tenant_id: string
+          unit_standard_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          areas_of_concern?: string[] | null
+          assessment_date?: string | null
+          assessment_result?: string
+          assessment_type?: string
+          assessor_comments?: string | null
+          assigned_at?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          learner_id_number?: string | null
+          learner_name?: string
+          moderated_at?: string | null
+          moderation_decision?: string | null
+          moderation_feedback?: string | null
+          moderation_id?: string
+          moderator_acknowledged?: boolean | null
+          moderator_acknowledged_at?: string | null
+          moderator_id?: string | null
+          recommendations?: string | null
+          status?: string
+          submitted_at?: string | null
+          submitted_by?: string
+          tenant_id?: string
+          unit_standard_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderation_requests_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moderation_requests_moderator_id_fkey"
+            columns: ["moderator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moderation_requests_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moderation_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moderation_requests_unit_standard_id_fkey"
+            columns: ["unit_standard_id"]
+            isOneToOne: false
+            referencedRelation: "unit_standards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nc_activity_log: {
         Row: {
           action: string
@@ -602,6 +783,60 @@ export type Database = {
         }
         Relationships: []
       }
+      unit_standards: {
+        Row: {
+          active: boolean | null
+          code: string
+          course_id: string | null
+          created_at: string | null
+          credits: number | null
+          id: string
+          nqf_level: number | null
+          tenant_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          code: string
+          course_id?: string | null
+          created_at?: string | null
+          credits?: number | null
+          id?: string
+          nqf_level?: number | null
+          tenant_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          code?: string
+          course_id?: string | null
+          created_at?: string | null
+          credits?: number | null
+          id?: string
+          nqf_level?: number | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_standards_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unit_standards_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -713,6 +948,7 @@ export type Database = {
         | "supervisor"
         | "worker"
         | "verifier"
+        | "moderator"
       nc_category:
         | "training_documentation"
         | "competency_verification"
@@ -863,6 +1099,7 @@ export const Constants = {
         "supervisor",
         "worker",
         "verifier",
+        "moderator",
       ],
       nc_category: [
         "training_documentation",
