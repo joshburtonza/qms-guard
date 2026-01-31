@@ -17,8 +17,33 @@ export type NCCategory =
 
 export type Shift = 'day' | 'night' | 'general';
 
+export type ServiceType = 'training' | 'consultation' | 'audit' | 'other';
+
+export type RecommendationType = 'yes' | 'no' | 'maybe';
+
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  favicon_url: string | null;
+  primary_color: string;
+  secondary_color: string;
+  accent_color: string;
+  platform_name: string;
+  support_email: string | null;
+  support_phone: string | null;
+  timezone: string;
+  date_format: string;
+  plan: 'starter' | 'standard' | 'enterprise';
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Profile {
   id: string;
+  tenant_id: string;
   employee_id: string | null;
   full_name: string;
   department_id: string | null;
@@ -31,6 +56,7 @@ export interface Profile {
 
 export interface Department {
   id: string;
+  tenant_id: string | null;
   name: string;
   site_location: string;
   manager_id: string | null;
@@ -42,11 +68,27 @@ export interface UserRole {
   id: string;
   user_id: string;
   role: AppRole;
+  tenant_id: string | null;
   created_at: string;
+}
+
+export interface Course {
+  id: string;
+  tenant_id: string;
+  code: string;
+  title: string;
+  description: string | null;
+  duration_days: number | null;
+  nqf_level: number | null;
+  credits: number | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface NonConformance {
   id: string;
+  tenant_id: string | null;
   nc_number: string;
   reported_by: string;
   department_id: string | null;
@@ -70,6 +112,7 @@ export interface NonConformance {
 
 export interface CorrectiveAction {
   id: string;
+  tenant_id: string | null;
   nc_id: string;
   root_cause: string;
   corrective_action: string;
@@ -81,6 +124,7 @@ export interface CorrectiveAction {
 
 export interface WorkflowApproval {
   id: string;
+  tenant_id: string | null;
   nc_id: string;
   step: number;
   action: 'approved' | 'rejected' | 'closed' | 'returned';
@@ -91,6 +135,7 @@ export interface WorkflowApproval {
 
 export interface NCAttachment {
   id: string;
+  tenant_id: string | null;
   nc_id: string;
   file_name: string;
   file_path: string;
@@ -102,11 +147,39 @@ export interface NCAttachment {
 
 export interface NCActivityLog {
   id: string;
+  tenant_id: string | null;
   nc_id: string;
   action: string;
   details: object | null;
   performed_by: string | null;
   performed_at: string;
+}
+
+// Customer Satisfaction Survey types
+export interface CustomerSatisfactionSurvey {
+  id: string;
+  tenant_id: string;
+  survey_id: string;
+  respondent_name: string | null;
+  respondent_email: string | null;
+  is_anonymous: boolean;
+  department_id: string | null;
+  service_type: ServiceType;
+  course_id: string | null;
+  facilitator_id: string | null;
+  service_date: string | null;
+  rating_overall: number | null;
+  rating_content: number | null;
+  rating_facilitator_knowledge: number | null;
+  rating_facilitator_presentation: number | null;
+  rating_materials: number | null;
+  rating_venue: number | null;
+  would_recommend: RecommendationType | null;
+  feedback_positive: string | null;
+  feedback_improvement: string | null;
+  feedback_additional: string | null;
+  created_at: string;
+  source: 'web' | 'qr' | 'email_link';
 }
 
 // Extended types with relations
@@ -118,6 +191,12 @@ export interface NonConformanceWithRelations extends NonConformance {
   corrective_actions?: CorrectiveAction[];
   approvals?: WorkflowApproval[];
   activity_log?: NCActivityLog[];
+}
+
+export interface SurveyWithRelations extends CustomerSatisfactionSurvey {
+  course?: Course;
+  facilitator?: Profile;
+  department?: Department;
 }
 
 // Form types
@@ -135,6 +214,27 @@ export interface NCFormData {
   additional_stakeholders?: string[];
 }
 
+export interface SurveyFormData {
+  respondent_name?: string;
+  respondent_email?: string;
+  is_anonymous: boolean;
+  department_id?: string;
+  service_type: ServiceType;
+  course_id?: string;
+  facilitator_id?: string;
+  service_date?: string;
+  rating_overall: number;
+  rating_content?: number;
+  rating_facilitator_knowledge?: number;
+  rating_facilitator_presentation?: number;
+  rating_materials?: number;
+  rating_venue?: number;
+  would_recommend: RecommendationType;
+  feedback_positive?: string;
+  feedback_improvement?: string;
+  feedback_additional?: string;
+}
+
 // Dashboard statistics
 export interface DashboardStats {
   open: number;
@@ -143,6 +243,14 @@ export interface DashboardStats {
   pending_verification: number;
   closed: number;
   overdue: number;
+}
+
+export interface SurveyStats {
+  total_responses: number;
+  avg_overall_rating: number;
+  avg_content_rating: number;
+  avg_facilitator_rating: number;
+  recommendation_rate: number;
 }
 
 // Category labels for display
@@ -188,6 +296,14 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   supervisor: 'Supervisor',
   worker: 'Worker',
   verifier: 'Verifier',
+};
+
+// Service type labels
+export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
+  training: 'Training',
+  consultation: 'Consultation',
+  audit: 'Audit',
+  other: 'Other',
 };
 
 // Calculate due date based on severity
