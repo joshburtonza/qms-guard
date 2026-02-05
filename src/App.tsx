@@ -31,6 +31,8 @@ import CourseEvaluationSubmit from "./pages/course-evaluations/CourseEvaluationS
 import CourseEvaluationReports from "./pages/course-evaluations/CourseEvaluationReports";
 // Settings
 import BrandingSettings from "./pages/settings/BrandingSettings";
+// Activity Log
+import ActivityLog from "./pages/ActivityLog";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +53,7 @@ const App = () => (
                   <Route path="/nc" element={<NCList />} />
                   <Route path="/nc/:id" element={<NCDetail />} />
                   <Route path="/tasks" element={<MyTasks />} />
+                  <Route path="/activity" element={<ActivityLog />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/settings/branding" element={<BrandingSettings />} />
                   {/* Phase 2: Customer Satisfaction Surveys */}

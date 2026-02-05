@@ -4,10 +4,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
+import { useFieldLocking } from '@/hooks/useFieldLocking';
 import { supabase } from '@/integrations/supabase/client';
 import { QAClassificationForm } from './QAClassificationForm';
 import { ResponsiblePersonForm } from './ResponsiblePersonForm';
 import { ManagerApprovalForm } from './ManagerApprovalForm';
+import { CurrentRoleBadge, FieldLockSummary } from '../FieldLockIndicator';
 
 interface NCActionPanelProps {
   nc: any;
@@ -69,11 +71,24 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
     }
   }
 
+  // Use field locking hook
+  const fieldLocking = useFieldLocking({
+    currentStep: nc.current_step || 1,
+    status: nc.status,
+    reportedBy: nc.reported_by,
+    responsiblePerson: nc.responsible_person,
+    departmentId: nc.department_id,
+  });
+
   // Determine user's relationship to this NC
   const isQA = userRoles.includes('super_admin') || userRoles.includes('site_admin') || userRoles.includes('verifier');
   const isManager = userRoles.includes('manager') || userRoles.includes('super_admin') || userRoles.includes('site_admin');
   const isResponsiblePerson = nc.responsible_person === user?.id;
   const isInitiator = nc.reported_by === user?.id;
+
+  // Count editable fields
+  const editableFieldCount = Object.values(fieldLocking.fields).filter(f => f.editable).length;
+  const totalFieldCount = Object.keys(fieldLocking.fields).length;
 
   // Determine what action (if any) the current user can take
   const getActionableState = (): {
@@ -236,12 +251,24 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
 
   const { canAct, component, message, icon, variant } = getActionableState();
 
-  // If user can act, show the form
+  // If user can act, show the form with role badge
   if (canAct && component) {
-    return component;
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <CurrentRoleBadge userRole={fieldLocking.userRole} currentStep={nc.current_step || 1} />
+          <FieldLockSummary 
+            editableCount={editableFieldCount} 
+            totalCount={totalFieldCount} 
+            userRole={fieldLocking.userRole} 
+          />
+        </div>
+        {component}
+      </div>
+    );
   }
 
-  // Otherwise show status message
+  // Otherwise show status message with role badge
   const alertVariants: Record<string, string> = {
     success: 'border-green-200 bg-green-50',
     warning: 'border-amber-200 bg-amber-50',
@@ -250,14 +277,24 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
   };
 
   return (
-    <Alert className={alertVariants[variant]}>
-      <div className="flex items-center gap-2">
-        {icon}
-        <AlertTitle className="mb-0">Status</AlertTitle>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <CurrentRoleBadge userRole={fieldLocking.userRole} currentStep={nc.current_step || 1} />
+        <FieldLockSummary 
+          editableCount={editableFieldCount} 
+          totalCount={totalFieldCount} 
+          userRole={fieldLocking.userRole} 
+        />
       </div>
-      <AlertDescription className="mt-2">
-        {message}
-      </AlertDescription>
-    </Alert>
+      <Alert className={alertVariants[variant]}>
+        <div className="flex items-center gap-2">
+          {icon}
+          <AlertTitle className="mb-0">Status</AlertTitle>
+        </div>
+        <AlertDescription className="mt-2">
+          {message}
+        </AlertDescription>
+      </Alert>
+    </div>
   );
 }
