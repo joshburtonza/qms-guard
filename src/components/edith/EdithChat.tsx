@@ -1,17 +1,19 @@
-import { useRef, useEffect, KeyboardEvent } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { useRef, useEffect, KeyboardEvent, useState } from 'react';
+import { Send, Loader2, WifiOff, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useEdith } from '@/hooks/useEdith';
+import { EdithMessageActions } from './EdithMessageActions';
 import type { EdithMessage } from '@/types/edith';
 
 export function EdithChat() {
-  const { currentConversation, isLoading, sendMessage } = useEdith();
+  const { currentConversation, isLoading, sendMessage, error, clearError } = useEdith();
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const messages = currentConversation?.messages || [];
 
   // Auto-scroll to bottom
@@ -24,6 +26,20 @@ export function EdithChat() {
   // Focus input on mount
   useEffect(() => {
     inputRef.current?.focus();
+  }, []);
+
+  // Offline detection
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   const handleSubmit = () => {
@@ -69,8 +85,33 @@ export function EdithChat() {
               <span className="text-sm">Edith is thinking...</span>
             </div>
           )}
+
+          {/* Error state */}
+          {error && !isLoading && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
+              <WifiOff className="h-4 w-4 flex-shrink-0" />
+              <span className="text-sm flex-1">{error}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={clearError}
+              >
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Retry
+              </Button>
+            </div>
+          )}
         </div>
       </ScrollArea>
+
+      {/* Offline banner */}
+      {isOffline && (
+        <div className="px-4 py-2 bg-warning/10 border-t border-warning/20 text-warning-foreground flex items-center gap-2 text-xs">
+          <WifiOff className="h-3 w-3" />
+          You're offline. Edith needs an internet connection.
+        </div>
+      )}
 
       {/* Input area */}
       <div className="border-t p-4">
@@ -79,7 +120,7 @@ export function EdithChat() {
             ref={inputRef}
             placeholder="Ask Edith anything..."
             onKeyDown={handleKeyDown}
-            disabled={isLoading}
+            disabled={isLoading || isOffline}
             className="flex-1"
           />
           <Button
@@ -124,34 +165,40 @@ function MessageBubble({ message }: { message: EdithMessage }) {
         {isUser ? (
           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
         ) : (
-          <div className="prose prose-sm dark:prose-invert max-w-none">
-            <ReactMarkdown
-              components={{
-                // Custom styling for markdown elements
-                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                ul: ({ children }) => <ul className="mb-2 ml-4 list-disc">{children}</ul>,
-                ol: ({ children }) => <ol className="mb-2 ml-4 list-decimal">{children}</ol>,
-                li: ({ children }) => <li className="mb-1">{children}</li>,
-                code: ({ className, children }) => {
-                  const isInline = !className;
-                  return isInline ? (
-                    <code className="bg-muted-foreground/20 px-1 py-0.5 rounded text-xs">{children}</code>
-                  ) : (
-                    <code className="block bg-muted-foreground/20 p-2 rounded text-xs overflow-x-auto">{children}</code>
-                  );
-                },
-                table: ({ children }) => (
-                  <div className="overflow-x-auto">
-                    <table className="border-collapse border border-border text-xs">{children}</table>
-                  </div>
-                ),
-                th: ({ children }) => <th className="border border-border px-2 py-1 bg-muted font-medium">{children}</th>,
-                td: ({ children }) => <td className="border border-border px-2 py-1">{children}</td>,
-              }}
-            >
-              {message.content}
-            </ReactMarkdown>
-          </div>
+          <>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              <ReactMarkdown
+                components={{
+                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                  ul: ({ children }) => <ul className="mb-2 ml-4 list-disc">{children}</ul>,
+                  ol: ({ children }) => <ol className="mb-2 ml-4 list-decimal">{children}</ol>,
+                  li: ({ children }) => <li className="mb-1">{children}</li>,
+                  code: ({ className, children }) => {
+                    const isInline = !className;
+                    return isInline ? (
+                      <code className="bg-muted-foreground/20 px-1 py-0.5 rounded text-xs">{children}</code>
+                    ) : (
+                      <code className="block bg-muted-foreground/20 p-2 rounded text-xs overflow-x-auto">{children}</code>
+                    );
+                  },
+                  table: ({ children }) => (
+                    <div className="overflow-x-auto">
+                      <table className="border-collapse border border-border text-xs">{children}</table>
+                    </div>
+                  ),
+                  th: ({ children }) => <th className="border border-border px-2 py-1 bg-muted font-medium">{children}</th>,
+                  td: ({ children }) => <td className="border border-border px-2 py-1">{children}</td>,
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
+            {/* Action buttons for assistant messages */}
+            <EdithMessageActions 
+              toolCalls={message.toolCalls} 
+              messageContent={message.content} 
+            />
+          </>
         )}
       </div>
     </div>

@@ -317,6 +317,24 @@ const EDITH_TOOLS = [
         required: ["pattern_type"]
       }
     }
+  },
+  // Knowledge Ingestion Tool
+  {
+    type: "function",
+    function: {
+      name: "add_knowledge",
+      description: "Add new knowledge to Edith's knowledge base. Users can provide documentation, procedures, guidelines, or other text content for Edith to remember and reference later.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "Title for this knowledge entry" },
+          content: { type: "string", description: "The content/text to add to knowledge base" },
+          content_type: { type: "string", enum: ["documentation", "procedure", "guideline", "policy", "training_material", "regulation", "other"], description: "Type of content" },
+          source: { type: "string", description: "Source of this information (e.g., 'Company Handbook', 'ISO 9001 Audit Notes')" }
+        },
+        required: ["title", "content", "content_type"]
+      }
+    }
   }
 ];
 
@@ -354,6 +372,12 @@ CAPABILITIES:
 - Perform batch operations on NCs (reassign, change status, close, extend due dates)
 - Analyze performance by person, department, or time period
 - Detect patterns in NC data (repeat issues, category trends)
+- Add new knowledge to your knowledge base (documentation, procedures, guidelines)
+
+KNOWLEDGE INGESTION:
+- When users share documentation, procedures, or guidelines, offer to add them to the knowledge base
+- Use add_knowledge tool to store important information for future reference
+- Confirm what was added and explain how you can use it
 
 RESPONSE GUIDELINES:
 - Use markdown formatting for clarity
@@ -1640,6 +1664,34 @@ async function executeToolCall(
       }
 
       return { error: `Pattern type '${args.pattern_type}' not fully implemented yet` };
+    }
+
+    // Knowledge Ingestion
+    case "add_knowledge": {
+      const { data, error } = await supabaseAdmin
+        .from("edith_knowledge")
+        .insert({
+          tenant_id: profile?.tenant_id,
+          title: args.title,
+          content: args.content,
+          content_type: args.content_type,
+          metadata: {
+            source: args.source,
+            added_by: userId,
+            added_at: new Date().toISOString(),
+          },
+        })
+        .select("id, title")
+        .single();
+
+      if (error) throw new Error(error.message);
+
+      return {
+        success: true,
+        message: `Added '${data.title}' to knowledge base`,
+        knowledge_id: data.id,
+        tip: "I can now reference this information when answering questions. Try asking me about the topic!",
+      };
     }
 
     default:
