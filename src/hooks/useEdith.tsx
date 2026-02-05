@@ -244,13 +244,69 @@ export function EdithProvider({ children }: { children: ReactNode }) {
     }
   }, [state.isLoading, state.currentConversation, user, profile?.tenant_id, createConversation]);
 
-  // Select conversation
+  // Select conversation (from memory)
   const selectConversation = useCallback((id: string) => {
     const conversation = state.conversations.find(c => c.id === id);
     if (conversation) {
       setState(prev => ({ ...prev, currentConversation: conversation }));
     }
   }, [state.conversations]);
+
+  // Load conversation from database
+  const loadConversation = useCallback(async (id: string) => {
+    if (!user) return;
+
+    try {
+      // Get conversation
+      const { data: convData, error: convError } = await supabase
+        .from('edith_conversations')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (convError) throw convError;
+
+      // Get messages
+      const { data: messagesData, error: msgError } = await supabase
+        .from('edith_messages')
+        .select('*')
+        .eq('conversation_id', id)
+        .order('created_at', { ascending: true });
+
+      if (msgError) throw msgError;
+
+      const loadedConversation: EdithConversation = {
+        id: convData.id,
+        conversationNumber: convData.conversation_number,
+        title: convData.title,
+        messages: (messagesData || []).map(m => ({
+          id: m.id,
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+          toolCalls: m.tool_calls as any,
+          createdAt: new Date(m.created_at),
+        })),
+        context: convData.context as EdithCtx || {},
+        createdAt: new Date(convData.created_at),
+        updatedAt: new Date(convData.updated_at),
+      };
+
+      setState(prev => ({
+        ...prev,
+        currentConversation: loadedConversation,
+        conversations: prev.conversations.some(c => c.id === id)
+          ? prev.conversations.map(c => c.id === id ? loadedConversation : c)
+          : [loadedConversation, ...prev.conversations],
+      }));
+    } catch (error) {
+      console.error('Failed to load conversation:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load conversation',
+        variant: 'destructive',
+      });
+    }
+  }, [user]);
 
   // Clear error
   const clearError = useCallback(() => {
@@ -299,6 +355,7 @@ export function EdithProvider({ children }: { children: ReactNode }) {
     sendMessage,
     startNewConversation,
     selectConversation,
+    loadConversation,
     clearError,
     updateContext,
   };

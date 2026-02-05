@@ -1,12 +1,22 @@
-import { X, Sparkles, Plus, History } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { X, Sparkles, Plus, History, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useEdith } from '@/hooks/useEdith';
 import { EdithChat } from './EdithChat';
 import { EdithToolbar } from './EdithToolbar';
+import { EdithContextBar } from './EdithContextBar';
+import { EdithConversationHistory } from './EdithConversationHistory';
 
 export function EdithPanel() {
-  const { isOpen, closeEdith, startNewConversation, currentConversation } = useEdith();
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const { isOpen, closeEdith, startNewConversation, currentConversation, loadConversation } = useEdith();
+
+  const handleSelectConversation = useCallback(async (conversationId: string) => {
+    await loadConversation(conversationId);
+    setHistoryOpen(false);
+  }, [loadConversation]);
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeEdith()}>
@@ -31,6 +41,15 @@ export function EdithPanel() {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
+                onClick={() => setHistoryOpen(!historyOpen)}
+                title="Conversation history"
+              >
+                <History className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
                 onClick={startNewConversation}
                 title="New conversation"
               >
@@ -47,6 +66,31 @@ export function EdithPanel() {
             </div>
           </div>
         </SheetHeader>
+
+        {/* Context Bar - Shows what Edith sees */}
+        <EdithContextBar />
+
+        {/* Conversation History (Collapsible) */}
+        <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between px-4 py-2 h-auto border-b rounded-none text-xs text-muted-foreground"
+            >
+              <span className="flex items-center gap-2">
+                <History className="h-3 w-3" />
+                Previous Conversations
+              </span>
+              {historyOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="border-b">
+            <EdithConversationHistory 
+              onSelectConversation={handleSelectConversation}
+              currentConversationId={currentConversation?.id}
+            />
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* Quick Actions Toolbar */}
         <EdithToolbar />

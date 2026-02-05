@@ -230,6 +230,93 @@ const EDITH_TOOLS = [
         required: ["text_type", "context"]
       }
     }
+  },
+  // Email and Report Tools
+  {
+    type: "function",
+    function: {
+      name: "send_nc_reminders",
+      description: "Send reminder emails to responsible persons for overdue or pending NCs",
+      parameters: {
+        type: "object",
+        properties: {
+          nc_ids: { type: "array", items: { type: "string" }, description: "Array of NC IDs to send reminders for" },
+          type: { type: "string", enum: ["reminder", "escalation"], description: "Type of notification" },
+          custom_message: { type: "string", description: "Optional custom message to include" }
+        },
+        required: ["nc_ids"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "generate_report",
+      description: "Generate reports (NC summary, compliance, overdue, performance, audit prep)",
+      parameters: {
+        type: "object",
+        properties: {
+          report_type: { type: "string", enum: ["nc_summary", "iso_compliance", "overdue_report", "performance", "audit_prep"], description: "Type of report to generate" },
+          date_from: { type: "string", description: "Start date (YYYY-MM-DD)" },
+          date_to: { type: "string", description: "End date (YYYY-MM-DD)" },
+          format: { type: "string", enum: ["json", "html"], description: "Output format (default json)" }
+        },
+        required: ["report_type"]
+      }
+    }
+  },
+  // Batch Operations
+  {
+    type: "function",
+    function: {
+      name: "batch_update_ncs",
+      description: "Perform bulk updates on multiple NCs (reassign, change status). REQUIRES USER CONFIRMATION.",
+      parameters: {
+        type: "object",
+        properties: {
+          nc_ids: { type: "array", items: { type: "string" }, description: "Array of NC IDs to update" },
+          action: { type: "string", enum: ["reassign", "change_status", "close", "extend_due_date"], description: "Action to perform" },
+          new_responsible_person_name: { type: "string", description: "Name of new responsible person (for reassign)" },
+          new_status: { type: "string", enum: ["open", "in_progress", "pending_review", "pending_verification", "closed"], description: "New status (for change_status)" },
+          days_extension: { type: "number", description: "Number of days to extend due date (for extend_due_date)" },
+          confirmed: { type: "boolean", description: "User has confirmed this batch action" }
+        },
+        required: ["nc_ids", "action"]
+      }
+    }
+  },
+  // Analytics/Predictive Tools
+  {
+    type: "function",
+    function: {
+      name: "get_performance_insights",
+      description: "Get performance analytics comparing users, departments, or time periods",
+      parameters: {
+        type: "object",
+        properties: {
+          insight_type: { type: "string", enum: ["by_person", "by_department", "trends", "patterns"], description: "Type of insight" },
+          user_name: { type: "string", description: "Specific user to analyze" },
+          department_name: { type: "string", description: "Specific department to analyze" },
+          days: { type: "number", description: "Number of days to analyze (default 90)" }
+        },
+        required: ["insight_type"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "detect_patterns",
+      description: "Detect patterns in NC data - repeat issues, common root causes, problem areas",
+      parameters: {
+        type: "object",
+        properties: {
+          pattern_type: { type: "string", enum: ["repeat_issues", "root_cause_trends", "category_analysis", "seasonal"], description: "Type of pattern to detect" },
+          days: { type: "number", description: "Number of days to analyze (default 180)" }
+        },
+        required: ["pattern_type"]
+      }
+    }
   }
 ];
 
@@ -261,8 +348,12 @@ CAPABILITIES:
 - Check compliance against ISO requirements
 - Provide audit preparation guidance
 - Reference South African mining regulations
-- Generate compliance reports
+- Generate compliance reports (NC summary, ISO compliance, overdue, performance, audit prep)
 - Write ISO-compliant text for documentation
+- Send reminder emails to responsible persons for overdue NCs
+- Perform batch operations on NCs (reassign, change status, close, extend due dates)
+- Analyze performance by person, department, or time period
+- Detect patterns in NC data (repeat issues, category trends)
 
 RESPONSE GUIDELINES:
 - Use markdown formatting for clarity
@@ -325,7 +416,11 @@ serve(async (req) => {
     }
 
     // Create Supabase client with user's token
-    const supabaseUser = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!, {
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseAnonKey) {
+      throw new Error("SUPABASE_ANON_KEY is not configured");
+    }
+    const supabaseUser = createClient(SUPABASE_URL, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
 
@@ -1113,18 +1208,459 @@ async function executeToolCall(
       return guidance;
     }
 
+    // Email Sending
+    case "send_nc_reminders": {
+      if (!args.nc_ids || args.nc_ids.length === 0) {
+        return { error: "NC IDs are required" };
+      }
+
+      // Call the email edge function
+      const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+      const emailType = args.type === 'escalation' ? 'nc_escalation' : 'nc_reminder';
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/edith-send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({
+            type: emailType,
+            ncIds: args.nc_ids,
+            customMessage: args.custom_message,
+          }),
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          return { error: result.error || "Failed to send emails" };
+        }
+
+        return {
+          success: true,
+          emailsSent: result.emailsSent,
+          message: `Successfully sent ${result.emailsSent} ${args.type || 'reminder'} email(s)`,
+        };
+      } catch (e) {
+        return { error: `Failed to send emails: ${e instanceof Error ? e.message : 'Unknown error'}` };
+      }
+    }
+
+    // Report Generation
+    case "generate_report": {
+      const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/edith-generate-report`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({
+            type: args.report_type,
+            dateFrom: args.date_from,
+            dateTo: args.date_to,
+            format: args.format || 'json',
+          }),
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          return { error: result.error || "Failed to generate report" };
+        }
+
+        return result;
+      } catch (e) {
+        return { error: `Failed to generate report: ${e instanceof Error ? e.message : 'Unknown error'}` };
+      }
+    }
+
+    // Batch Operations
+    case "batch_update_ncs": {
+      if (!args.nc_ids || args.nc_ids.length === 0) {
+        return { error: "NC IDs are required" };
+      }
+
+      // Require confirmation for batch operations
+      if (!args.confirmed) {
+        // Get NCs to show what will be affected
+        const { data: affectedNCs } = await supabase
+          .from("non_conformances")
+          .select("nc_number, description, status, severity")
+          .in("id", args.nc_ids);
+
+        return {
+          requires_confirmation: true,
+          message: `This will ${args.action} ${args.nc_ids.length} NC(s). Please confirm.`,
+          affected_ncs: affectedNCs?.map((nc: any) => ({
+            nc_number: nc.nc_number,
+            description: nc.description?.substring(0, 50),
+            current_status: nc.status,
+          })),
+          action: args.action,
+          confirm_instruction: "To proceed, call this function again with confirmed: true",
+        };
+      }
+
+      // Perform the batch operation
+      let updateCount = 0;
+      const errors: string[] = [];
+
+      switch (args.action) {
+        case "reassign": {
+          if (!args.new_responsible_person_name) {
+            return { error: "new_responsible_person_name is required for reassign action" };
+          }
+
+          // Find new responsible person
+          const { data: persons } = await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .ilike("full_name", `%${args.new_responsible_person_name}%`)
+            .limit(1);
+
+          if (!persons || persons.length === 0) {
+            return { error: `Could not find person named '${args.new_responsible_person_name}'` };
+          }
+
+          const newPersonId = persons[0].id;
+          const newPersonName = persons[0].full_name;
+
+          const { error } = await supabase
+            .from("non_conformances")
+            .update({ responsible_person: newPersonId })
+            .in("id", args.nc_ids);
+
+          if (error) {
+            errors.push(error.message);
+          } else {
+            updateCount = args.nc_ids.length;
+          }
+
+          return {
+            success: errors.length === 0,
+            updated: updateCount,
+            message: `Reassigned ${updateCount} NC(s) to ${newPersonName}`,
+            errors: errors.length > 0 ? errors : undefined,
+          };
+        }
+
+        case "change_status": {
+          if (!args.new_status) {
+            return { error: "new_status is required for change_status action" };
+          }
+
+          const updateData: any = { status: args.new_status };
+          if (args.new_status === "closed") {
+            updateData.closed_at = new Date().toISOString();
+          }
+
+          const { error } = await supabase
+            .from("non_conformances")
+            .update(updateData)
+            .in("id", args.nc_ids);
+
+          if (error) {
+            errors.push(error.message);
+          } else {
+            updateCount = args.nc_ids.length;
+          }
+
+          return {
+            success: errors.length === 0,
+            updated: updateCount,
+            message: `Updated status to '${args.new_status}' for ${updateCount} NC(s)`,
+            errors: errors.length > 0 ? errors : undefined,
+          };
+        }
+
+        case "close": {
+          const { error } = await supabase
+            .from("non_conformances")
+            .update({ status: "closed", closed_at: new Date().toISOString() })
+            .in("id", args.nc_ids);
+
+          if (error) {
+            errors.push(error.message);
+          } else {
+            updateCount = args.nc_ids.length;
+          }
+
+          return {
+            success: errors.length === 0,
+            updated: updateCount,
+            message: `Closed ${updateCount} NC(s)`,
+            errors: errors.length > 0 ? errors : undefined,
+          };
+        }
+
+        case "extend_due_date": {
+          const daysToExtend = args.days_extension || 7;
+          
+          // Get current NCs
+          const { data: ncs } = await supabase
+            .from("non_conformances")
+            .select("id, due_date")
+            .in("id", args.nc_ids);
+
+          for (const nc of ncs || []) {
+            const newDueDate = new Date(nc.due_date);
+            newDueDate.setDate(newDueDate.getDate() + daysToExtend);
+
+            const { error } = await supabase
+              .from("non_conformances")
+              .update({ due_date: newDueDate.toISOString().split("T")[0] })
+              .eq("id", nc.id);
+
+            if (error) {
+              errors.push(`Failed to update NC ${nc.id}: ${error.message}`);
+            } else {
+              updateCount++;
+            }
+          }
+
+          return {
+            success: errors.length === 0,
+            updated: updateCount,
+            message: `Extended due date by ${daysToExtend} days for ${updateCount} NC(s)`,
+            errors: errors.length > 0 ? errors : undefined,
+          };
+        }
+
+        default:
+          return { error: `Unknown batch action: ${args.action}` };
+      }
+    }
+
+    // Performance Insights
+    case "get_performance_insights": {
+      const days = args.days || 90;
+      const dateFrom = new Date();
+      dateFrom.setDate(dateFrom.getDate() - days);
+
+      if (args.insight_type === "by_person") {
+        // Get all NCs with responsible person
+        const { data: ncs } = await supabase
+          .from("non_conformances")
+          .select(`
+            id, status, severity, due_date, created_at, closed_at,
+            responsible:profiles!non_conformances_responsible_person_fkey(id, full_name)
+          `)
+          .gte("created_at", dateFrom.toISOString());
+
+        // Calculate performance by person
+        const perfMap = new Map<string, any>();
+        const today = new Date();
+
+        for (const nc of ncs || []) {
+          const personName = (nc.responsible as any)?.full_name || "Unassigned";
+          if (!perfMap.has(personName)) {
+            perfMap.set(personName, {
+              name: personName,
+              total: 0,
+              closed: 0,
+              overdue: 0,
+              totalClosureDays: 0,
+            });
+          }
+
+          const perf = perfMap.get(personName)!;
+          perf.total++;
+
+          if (nc.status === "closed") {
+            perf.closed++;
+            if (nc.closed_at) {
+              perf.totalClosureDays += (new Date(nc.closed_at).getTime() - new Date(nc.created_at).getTime()) / (1000 * 60 * 60 * 24);
+            }
+          }
+
+          if (new Date(nc.due_date) < today && nc.status !== "closed") {
+            perf.overdue++;
+          }
+        }
+
+        const insights = Array.from(perfMap.values()).map(p => ({
+          ...p,
+          closureRate: p.total > 0 ? Math.round(p.closed / p.total * 100) : 0,
+          avgClosureDays: p.closed > 0 ? Math.round(p.totalClosureDays / p.closed * 10) / 10 : null,
+          overdueRate: p.total > 0 ? Math.round(p.overdue / p.total * 100) : 0,
+        })).sort((a, b) => b.total - a.total);
+
+        return {
+          insight_type: "by_person",
+          period_days: days,
+          insights,
+          summary: {
+            total_people: insights.length,
+            top_performer: insights.reduce((a, b) => (a.closureRate > b.closureRate ? a : b), insights[0])?.name,
+            most_overdue: insights.reduce((a, b) => (a.overdue > b.overdue ? a : b), insights[0])?.name,
+          },
+        };
+      }
+
+      if (args.insight_type === "trends") {
+        // Get NCs by week
+        const { data: ncs } = await supabase
+          .from("non_conformances")
+          .select("created_at, closed_at, status, severity")
+          .gte("created_at", dateFrom.toISOString())
+          .order("created_at");
+
+        // Group by week
+        const weeklyData = new Map<string, { created: number; closed: number }>();
+        
+        for (const nc of ncs || []) {
+          const weekStart = getWeekStart(new Date(nc.created_at));
+          if (!weeklyData.has(weekStart)) {
+            weeklyData.set(weekStart, { created: 0, closed: 0 });
+          }
+          weeklyData.get(weekStart)!.created++;
+
+          if (nc.closed_at) {
+            const closedWeek = getWeekStart(new Date(nc.closed_at));
+            if (!weeklyData.has(closedWeek)) {
+              weeklyData.set(closedWeek, { created: 0, closed: 0 });
+            }
+            weeklyData.get(closedWeek)!.closed++;
+          }
+        }
+
+        const trends = Array.from(weeklyData.entries())
+          .map(([week, data]) => ({ week, ...data }))
+          .sort((a, b) => a.week.localeCompare(b.week));
+
+        return {
+          insight_type: "trends",
+          period_days: days,
+          weekly_trends: trends,
+          summary: {
+            total_created: trends.reduce((sum, t) => sum + t.created, 0),
+            total_closed: trends.reduce((sum, t) => sum + t.closed, 0),
+            trend_direction: trends.length >= 2 
+              ? trends[trends.length - 1].created > trends[trends.length - 2].created ? "increasing" : "decreasing"
+              : "stable",
+          },
+        };
+      }
+
+      return { error: `Insight type '${args.insight_type}' not fully implemented yet` };
+    }
+
+    // Pattern Detection
+    case "detect_patterns": {
+      const days = args.days || 180;
+      const dateFrom = new Date();
+      dateFrom.setDate(dateFrom.getDate() - days);
+
+      if (args.pattern_type === "category_analysis") {
+        const { data: ncs } = await supabase
+          .from("non_conformances")
+          .select("category, severity, status, description")
+          .gte("created_at", dateFrom.toISOString());
+
+        const categoryStats = new Map<string, { count: number; critical: number; major: number; minor: number }>();
+
+        for (const nc of ncs || []) {
+          if (!categoryStats.has(nc.category)) {
+            categoryStats.set(nc.category, { count: 0, critical: 0, major: 0, minor: 0 });
+          }
+          const stats = categoryStats.get(nc.category)!;
+          stats.count++;
+          stats[nc.severity as 'critical' | 'major' | 'minor']++;
+        }
+
+        const analysis = Array.from(categoryStats.entries())
+          .map(([category, stats]) => ({
+            category: category.replace(/_/g, ' '),
+            ...stats,
+            percentage: ncs ? Math.round(stats.count / ncs.length * 100) : 0,
+          }))
+          .sort((a, b) => b.count - a.count);
+
+        return {
+          pattern_type: "category_analysis",
+          period_days: days,
+          total_ncs: ncs?.length || 0,
+          categories: analysis,
+          top_category: analysis[0]?.category,
+          recommendations: analysis.length > 0 
+            ? `Focus attention on '${analysis[0].category}' category which accounts for ${analysis[0].percentage}% of NCs.`
+            : "Not enough data for recommendations.",
+        };
+      }
+
+      if (args.pattern_type === "repeat_issues") {
+        // Look for similar descriptions
+        const { data: ncs } = await supabase
+          .from("non_conformances")
+          .select("nc_number, description, category, responsible:profiles!non_conformances_responsible_person_fkey(full_name)")
+          .gte("created_at", dateFrom.toISOString())
+          .order("created_at", { ascending: false });
+
+        // Simple keyword extraction for repeat detection
+        const keywordCounts = new Map<string, { count: number; ncs: string[] }>();
+        const keywords = ['training', 'manual', 'documentation', 'equipment', 'safety', 'record', 'assessment', 'incomplete', 'missing', 'overdue'];
+
+        for (const nc of ncs || []) {
+          const desc = (nc.description as string)?.toLowerCase() || '';
+          for (const keyword of keywords) {
+            if (desc.includes(keyword)) {
+              if (!keywordCounts.has(keyword)) {
+                keywordCounts.set(keyword, { count: 0, ncs: [] });
+              }
+              const kw = keywordCounts.get(keyword)!;
+              kw.count++;
+              if (kw.ncs.length < 5) {
+                kw.ncs.push(nc.nc_number);
+              }
+            }
+          }
+        }
+
+        const patterns = Array.from(keywordCounts.entries())
+          .filter(([_, stats]) => stats.count >= 3)
+          .map(([keyword, stats]) => ({
+            issue_keyword: keyword,
+            occurrence_count: stats.count,
+            sample_ncs: stats.ncs,
+          }))
+          .sort((a, b) => b.occurrence_count - a.occurrence_count);
+
+        return {
+          pattern_type: "repeat_issues",
+          period_days: days,
+          patterns_detected: patterns.length,
+          patterns,
+          recommendation: patterns.length > 0
+            ? `Recurring issues detected around '${patterns[0].issue_keyword}' (${patterns[0].occurrence_count} occurrences). Consider systemic improvement.`
+            : "No significant repeat patterns detected.",
+        };
+      }
+
+      return { error: `Pattern type '${args.pattern_type}' not fully implemented yet` };
+    }
+
     default:
       return { error: `Unknown function: ${functionName}` };
   }
 }
 
+function getWeekStart(date: Date): string {
+  const d = new Date(date);
+  d.setDate(d.getDate() - d.getDay());
+  return d.toISOString().split("T")[0];
+}
+
 function getActionType(functionName: string): string {
-  if (functionName.startsWith("query_") || functionName.startsWith("get_") || functionName.startsWith("search_") || functionName.startsWith("check_") || functionName.startsWith("generate_") || functionName.startsWith("write_")) {
+  if (functionName.startsWith("query_") || functionName.startsWith("get_") || functionName.startsWith("search_") || functionName.startsWith("check_") || functionName.startsWith("generate_") || functionName.startsWith("write_") || functionName.startsWith("detect_")) {
     return "query";
   }
   if (functionName.startsWith("create_")) return "create";
-  if (functionName.startsWith("update_")) return "update";
+  if (functionName.startsWith("update_") || functionName.startsWith("batch_")) return "update";
   if (functionName.startsWith("delete_")) return "delete";
+  if (functionName.startsWith("send_")) return "email";
   return "query";
 }
 

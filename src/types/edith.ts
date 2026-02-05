@@ -50,6 +50,7 @@ export interface EdithContextValue extends EdithState {
   sendMessage: (message: string) => Promise<void>;
   startNewConversation: () => void;
   selectConversation: (id: string) => void;
+  loadConversation: (id: string) => Promise<void>;
   clearError: () => void;
   updateContext: (context: Partial<EdithContext>) => void;
 }
