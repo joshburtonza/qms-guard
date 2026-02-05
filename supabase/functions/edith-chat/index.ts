@@ -138,49 +138,165 @@ const EDITH_TOOLS = [
         required: []
       }
     }
+  },
+  // ISO 9001:2015 Knowledge Tools
+  {
+    type: "function",
+    function: {
+      name: "get_iso_clause",
+      description: "Get ISO 9001:2015 clause requirements, interpretation, and mining context. Use when users ask about ISO requirements, compliance, or audit preparation.",
+      parameters: {
+        type: "object",
+        properties: {
+          clause_number: { type: "string", description: "The ISO clause number like '10.2' or '7.5.3'" },
+          search_term: { type: "string", description: "Search for clauses containing this term" }
+        },
+        required: []
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "check_iso_compliance",
+      description: "Check compliance status for a specific ISO clause based on QMS Guard data. Analyzes NCs, procedures, and records.",
+      parameters: {
+        type: "object",
+        properties: {
+          clause_number: { type: "string", description: "The ISO clause to check compliance for" },
+          include_evidence: { type: "boolean", description: "Include evidence summary (default true)" }
+        },
+        required: ["clause_number"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_audit_questions",
+      description: "Get sample audit questions for an ISO clause to prepare for audits",
+      parameters: {
+        type: "object",
+        properties: {
+          clause_number: { type: "string", description: "The ISO clause number" }
+        },
+        required: ["clause_number"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_regulatory_info",
+      description: "Get South African mining regulatory information (MHSA, MQA, Mining Charter, Skills Development Act)",
+      parameters: {
+        type: "object",
+        properties: {
+          regulation_name: { type: "string", description: "Name of regulation to search for" },
+          search_term: { type: "string", description: "Search term in regulation text" }
+        },
+        required: []
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "generate_compliance_report",
+      description: "Generate a compliance assessment summary for ISO 9001 or specific clauses",
+      parameters: {
+        type: "object",
+        properties: {
+          scope: { type: "string", enum: ["full", "clause", "section"], description: "Scope of assessment" },
+          clause_number: { type: "string", description: "Specific clause if scope is 'clause'" },
+          section_number: { type: "string", description: "Section number (4-10) if scope is 'section'" }
+        },
+        required: ["scope"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "write_iso_compliant_text",
+      description: "Help write ISO-compliant text for NC descriptions, root causes, corrective actions, or procedures",
+      parameters: {
+        type: "object",
+        properties: {
+          text_type: { type: "string", enum: ["nc_description", "root_cause", "corrective_action", "procedure", "policy"], description: "Type of text to write" },
+          context: { type: "string", description: "Context or rough draft from user" },
+          iso_clause: { type: "string", description: "Related ISO clause for reference" }
+        },
+        required: ["text_type", "context"]
+      }
+    }
   }
 ];
 
-// System prompt for Edith
+// System prompt for Edith - ISO 9001:2015 Expert
 const EDITH_SYSTEM_PROMPT = `You are Edith (Enhanced Digital Intelligence for Training and HR), the AI assistant for QMS Guard - a Quality Management System for mining industry compliance.
 
 IDENTITY:
-- You are helpful, professional, and knowledgeable about ISO 9001 quality management
-- You understand mining industry terminology and South African workplace regulations
+- You are an EXPERT in ISO 9001:2015 Quality Management Systems
+- You understand mining industry terminology and South African workplace regulations (MHSA, MQA, Mining Charter)
 - You can access and modify the QMS database through your tools
+- You always reference specific ISO clauses when discussing compliance
+- You provide mining training context for all ISO guidance
 - You always explain what you're doing and confirm destructive actions
+
+ISO 9001:2015 EXPERTISE:
+- You have complete knowledge of all ISO 9001:2015 clauses (4-10)
+- You understand how each clause applies to mining training operations
+- You can assess compliance by checking QMS Guard data against requirements
+- You help prepare for audits by explaining requirements and gathering evidence
+- You write ISO-compliant documentation (NCs, corrective actions, procedures)
 
 CAPABILITIES:
 - Query and search non-conformances (NCs)
-- Create new NCs when users report issues
+- Create new NCs with ISO-compliant language
 - Update NC statuses (with appropriate confirmation)
 - Show user tasks and assignments
 - Provide dashboard statistics
-- Search knowledge base for documentation and regulations
-- Find users/profiles for assignments
+- Explain ISO 9001:2015 clause requirements
+- Check compliance against ISO requirements
+- Provide audit preparation guidance
+- Reference South African mining regulations
+- Generate compliance reports
+- Write ISO-compliant text for documentation
 
 RESPONSE GUIDELINES:
 - Use markdown formatting for clarity
-- Present data in tables when showing multiple NCs
-- Always include NC numbers (like NC-2026-02-00001) when referencing NCs
+- Present data in tables when showing multiple items
+- Always include NC numbers when referencing NCs
+- Reference specific ISO clauses (e.g., "Per Clause 10.2...")
+- Explain mining training context for ISO requirements
 - Suggest next actions when appropriate
-- For destructive operations, confirm with the user first
+- For destructive operations, confirm with user first
 - Be concise but thorough
 
-NC WORKFLOW CONTEXT:
-1. Open → Initial report
-2. In Progress → Corrective action being implemented
-3. Pending Review → Awaiting manager approval
-4. Pending Verification → Manager approved, awaiting final verification
+NC WORKFLOW CONTEXT (implements ISO 9001:2015 Clause 10.2):
+1. Open → Initial report (10.2a: React to nonconformity)
+2. In Progress → Root cause analysis + corrective action (10.2b: Evaluate need for action)
+3. Pending Review → Manager approval (10.2c: Implement action)
+4. Pending Verification → Effectiveness check (10.2d: Review effectiveness)
 5. Closed → Verified and completed
 6. Rejected → Returned for rework
 
-SEVERITY GUIDELINES:
-- Critical: Safety risk, legal compliance issue, immediate action needed (48h)
-- Major: Regulatory non-compliance, certification at risk (7 days)
-- Minor: Process deviation, documentation issue, best practice (14 days)
+SEVERITY GUIDELINES (per Clause 6.1 - Risk-based thinking):
+- Critical: Safety risk, legal compliance issue, immediate action needed (48h) - Clause 8.7 control required
+- Major: Regulatory non-compliance, certification at risk (7 days) - Clause 10.2 mandatory
+- Minor: Process deviation, documentation issue, best practice (14 days) - Clause 10.3 improvement
 
-Always be helpful and guide users through the QMS processes efficiently.`;
+ISO 9001:2015 QUICK REFERENCE:
+- Clause 4: Context of the Organization (understand your environment)
+- Clause 5: Leadership (management commitment and policy)
+- Clause 6: Planning (risks, opportunities, objectives)
+- Clause 7: Support (resources, competence, awareness, communication, documented info)
+- Clause 8: Operation (planning, requirements, design, external providers, production, release, nonconforming outputs)
+- Clause 9: Performance Evaluation (monitoring, customer satisfaction, analysis, internal audit, management review)
+- Clause 10: Improvement (nonconformity, corrective action, continual improvement)
+
+Always be helpful and guide users through the QMS processes efficiently with ISO compliance in mind.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -681,13 +797,329 @@ async function executeToolCall(
       };
     }
 
+    // ISO 9001:2015 Knowledge Tools
+    case "get_iso_clause": {
+      let query = supabase
+        .from("edith_iso_knowledge")
+        .select("*")
+        .order("clause_number");
+
+      if (args.clause_number) {
+        // Search for exact match or starts with
+        query = query.or(`clause_number.eq.${args.clause_number},section_number.eq.${args.clause_number},clause_number.ilike.${args.clause_number}%`);
+      }
+      if (args.search_term) {
+        query = query.or(`clause_title.ilike.%${args.search_term}%,requirement_text.ilike.%${args.search_term}%,interpretation.ilike.%${args.search_term}%`);
+      }
+
+      query = query.limit(10);
+
+      const { data, error } = await query;
+      if (error) throw new Error(error.message);
+
+      return {
+        clauses: data?.map((clause: any) => ({
+          clause_number: clause.section_number || clause.clause_number,
+          title: clause.section_title || clause.clause_title,
+          requirement: clause.requirement_text,
+          interpretation: clause.interpretation,
+          mining_context: clause.mining_context,
+          evidence_required: clause.evidence_required,
+          common_issues: clause.common_nonconformities,
+        })) || [],
+        message: data?.length ? `Found ${data.length} ISO 9001:2015 clause(s)` : "No matching clauses found",
+      };
+    }
+
+    case "check_iso_compliance": {
+      // Get the ISO clause requirements
+      const { data: clauseData } = await supabase
+        .from("edith_iso_knowledge")
+        .select("*")
+        .or(`clause_number.eq.${args.clause_number},section_number.eq.${args.clause_number}`)
+        .single();
+
+      if (!clauseData) {
+        return { error: `Clause ${args.clause_number} not found` };
+      }
+
+      // Analyze compliance based on clause
+      const compliance: any = {
+        clause: args.clause_number,
+        title: clauseData.section_title || clauseData.clause_title,
+        requirement_summary: clauseData.interpretation,
+      };
+
+      // Check NC data for compliance indicators
+      const { count: openNCs } = await supabase
+        .from("non_conformances")
+        .select("*", { count: "exact", head: true })
+        .not("status", "eq", "closed");
+
+      const { count: overdueNCs } = await supabase
+        .from("non_conformances")
+        .select("*", { count: "exact", head: true })
+        .lt("due_date", new Date().toISOString().split("T")[0])
+        .not("status", "eq", "closed");
+
+      const { count: closedWithCA } = await supabase
+        .from("corrective_actions")
+        .select("*", { count: "exact", head: true });
+
+      // Determine compliance status based on clause
+      if (args.clause_number.startsWith("10.2")) {
+        // NC and Corrective Action - check if NCs have corrective actions
+        const { data: ncsWithoutCA } = await supabase
+          .from("non_conformances")
+          .select("nc_number, id")
+          .eq("status", "pending_review")
+          .limit(5);
+
+        compliance.status = overdueNCs === 0 ? "compliant" : overdueNCs <= 3 ? "partial" : "non_compliant";
+        compliance.findings = {
+          open_ncs: openNCs,
+          overdue_ncs: overdueNCs,
+          ncs_with_corrective_actions: closedWithCA,
+        };
+        compliance.recommendations = overdueNCs > 0 
+          ? `Address ${overdueNCs} overdue NC(s) to improve compliance. Per Clause 10.2, corrective actions should be implemented in a timely manner.`
+          : "NC management is current. Continue monitoring.";
+      } else if (args.clause_number.startsWith("9.1")) {
+        // Performance evaluation - check for monitoring data
+        const { count: surveys } = await supabase
+          .from("customer_satisfaction_surveys")
+          .select("*", { count: "exact", head: true });
+
+        compliance.status = surveys && surveys > 0 ? "compliant" : "partial";
+        compliance.findings = {
+          customer_surveys: surveys || 0,
+          monitoring_in_place: surveys && surveys > 0,
+        };
+        compliance.recommendations = surveys === 0 
+          ? "Implement customer satisfaction monitoring per Clause 9.1.2."
+          : "Customer monitoring is active.";
+      } else {
+        // Generic compliance check
+        compliance.status = "partial";
+        compliance.findings = {
+          note: "Full compliance assessment requires review of documented procedures and records.",
+        };
+        compliance.recommendations = "Review documented procedures and records against clause requirements.";
+      }
+
+      if (args.include_evidence !== false) {
+        compliance.evidence_needed = clauseData.evidence_required;
+      }
+
+      return compliance;
+    }
+
+    case "get_audit_questions": {
+      const { data, error } = await supabase
+        .from("edith_iso_knowledge")
+        .select("clause_number, clause_title, section_number, section_title, audit_questions, evidence_required, common_nonconformities")
+        .or(`clause_number.eq.${args.clause_number},section_number.eq.${args.clause_number}`);
+
+      if (error) throw new Error(error.message);
+      if (!data || data.length === 0) {
+        return { error: `No audit questions found for clause ${args.clause_number}` };
+      }
+
+      return {
+        clause: args.clause_number,
+        title: data[0].section_title || data[0].clause_title,
+        audit_questions: data[0].audit_questions || [],
+        evidence_to_prepare: data[0].evidence_required || [],
+        common_findings: data[0].common_nonconformities || [],
+        tip: "Ensure you can demonstrate objective evidence for each question. Have records readily available.",
+      };
+    }
+
+    case "get_regulatory_info": {
+      let query = supabase
+        .from("edith_regulatory_knowledge")
+        .select("*")
+        .order("regulation_name");
+
+      if (args.regulation_name) {
+        query = query.ilike("regulation_name", `%${args.regulation_name}%`);
+      }
+      if (args.search_term) {
+        query = query.or(`requirement_text.ilike.%${args.search_term}%,interpretation.ilike.%${args.search_term}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw new Error(error.message);
+
+      return {
+        regulations: data?.map((reg: any) => ({
+          name: reg.regulation_name,
+          code: reg.regulation_code,
+          requirement: reg.requirement_text,
+          interpretation: reg.interpretation,
+          iso_links: reg.iso_clause_links,
+          qms_impact: reg.qms_impact,
+        })) || [],
+        message: data?.length ? `Found ${data.length} regulation(s)` : "No matching regulations found",
+      };
+    }
+
+    case "generate_compliance_report": {
+      const report: any = {
+        generated_at: new Date().toISOString(),
+        scope: args.scope,
+        tenant_id: profile?.tenant_id,
+        sections: [],
+      };
+
+      // Get NC stats
+      const { count: totalNCs } = await supabase
+        .from("non_conformances")
+        .select("*", { count: "exact", head: true });
+
+      const { count: openNCs } = await supabase
+        .from("non_conformances")
+        .select("*", { count: "exact", head: true })
+        .not("status", "eq", "closed");
+
+      const { count: overdueNCs } = await supabase
+        .from("non_conformances")
+        .select("*", { count: "exact", head: true })
+        .lt("due_date", new Date().toISOString().split("T")[0])
+        .not("status", "eq", "closed");
+
+      // Get survey stats
+      const { count: totalSurveys } = await supabase
+        .from("customer_satisfaction_surveys")
+        .select("*", { count: "exact", head: true });
+
+      report.summary = {
+        total_ncs: totalNCs || 0,
+        open_ncs: openNCs || 0,
+        overdue_ncs: overdueNCs || 0,
+        customer_surveys: totalSurveys || 0,
+      };
+
+      // Overall status
+      if (overdueNCs === 0 && openNCs !== null && openNCs < 10) {
+        report.overall_status = "compliant";
+        report.overall_message = "QMS is performing well. Continue monitoring.";
+      } else if (overdueNCs !== null && overdueNCs <= 5) {
+        report.overall_status = "partial";
+        report.overall_message = "Some areas need attention. Focus on overdue NCs.";
+      } else {
+        report.overall_status = "attention_required";
+        report.overall_message = "Significant issues require management attention.";
+      }
+
+      // Key ISO clauses assessment
+      report.clause_assessments = [
+        {
+          clause: "10.2",
+          title: "Nonconformity and Corrective Action",
+          status: overdueNCs === 0 ? "compliant" : "partial",
+          finding: `${openNCs} open NCs, ${overdueNCs} overdue`,
+        },
+        {
+          clause: "9.1.2",
+          title: "Customer Satisfaction",
+          status: totalSurveys && totalSurveys > 0 ? "compliant" : "partial",
+          finding: `${totalSurveys} customer surveys recorded`,
+        },
+      ];
+
+      return report;
+    }
+
+    case "write_iso_compliant_text": {
+      // This tool helps write ISO-compliant text - the AI will use the context and ISO knowledge
+      // to generate appropriate text. We return guidance for the AI.
+      
+      let guidance = {
+        text_type: args.text_type,
+        user_context: args.context,
+        iso_reference: args.iso_clause,
+        writing_guidelines: [] as string[],
+        example_structure: "",
+      };
+
+      switch (args.text_type) {
+        case "nc_description":
+          guidance.writing_guidelines = [
+            "State the specific nonconformity clearly",
+            "Reference the requirement that was not met",
+            "Include objective evidence (what was observed)",
+            "Avoid blame - focus on the process/system",
+            "Include date, location, and context",
+          ];
+          guidance.example_structure = "[What was found] contrary to [requirement/procedure]. Observed on [date] at [location]. Evidence: [specific observation].";
+          break;
+        case "root_cause":
+          guidance.writing_guidelines = [
+            "Identify the underlying cause, not symptoms",
+            "Use 5 Whys or similar analysis technique",
+            "Consider system/process factors",
+            "Avoid blaming individuals",
+            "Link to contributing factors",
+          ];
+          guidance.example_structure = "Root cause: [fundamental cause]. Contributing factors: [list factors]. Analysis method: [5 Whys/Fishbone/etc.].";
+          break;
+        case "corrective_action":
+          guidance.writing_guidelines = [
+            "Address the root cause, not just symptoms",
+            "Be specific and actionable",
+            "Include responsible person and timeline",
+            "Consider prevention (Clause 10.2.1.b)",
+            "Plan for effectiveness verification",
+          ];
+          guidance.example_structure = "Action: [specific action]. Responsible: [name]. Due: [date]. Verification: [how effectiveness will be checked].";
+          break;
+        case "procedure":
+          guidance.writing_guidelines = [
+            "Clear purpose and scope",
+            "Defined responsibilities",
+            "Step-by-step activities",
+            "Required records identified",
+            "Approval and revision control",
+          ];
+          guidance.example_structure = "1. Purpose 2. Scope 3. Responsibilities 4. Procedure steps 5. Records 6. References";
+          break;
+        case "policy":
+          guidance.writing_guidelines = [
+            "Statement of intent from top management",
+            "Commitment to requirements compliance",
+            "Commitment to continual improvement",
+            "Framework for objectives",
+            "Appropriate to organization context",
+          ];
+          guidance.example_structure = "[Organization] is committed to [quality commitment]. We will [specific commitments]. This policy provides framework for [objectives].";
+          break;
+      }
+
+      // Get related ISO clause info if provided
+      if (args.iso_clause) {
+        const { data: clauseInfo } = await supabase
+          .from("edith_iso_knowledge")
+          .select("interpretation, mining_context")
+          .or(`clause_number.eq.${args.iso_clause},section_number.eq.${args.iso_clause}`)
+          .single();
+
+        if (clauseInfo) {
+          guidance.iso_reference = args.iso_clause;
+          guidance.writing_guidelines.push(`Reference ISO 9001:2015 Clause ${args.iso_clause}: ${clauseInfo.interpretation}`);
+        }
+      }
+
+      return guidance;
+    }
+
     default:
       return { error: `Unknown function: ${functionName}` };
   }
 }
 
 function getActionType(functionName: string): string {
-  if (functionName.startsWith("query_") || functionName.startsWith("get_") || functionName.startsWith("search_")) {
+  if (functionName.startsWith("query_") || functionName.startsWith("get_") || functionName.startsWith("search_") || functionName.startsWith("check_") || functionName.startsWith("generate_") || functionName.startsWith("write_")) {
     return "query";
   }
   if (functionName.startsWith("create_")) return "create";
@@ -699,6 +1131,7 @@ function getActionType(functionName: string): string {
 function getAffectedTable(functionName: string): string | undefined {
   if (functionName.includes("nc") || functionName.includes("non_conformance")) return "non_conformances";
   if (functionName.includes("profile") || functionName.includes("user")) return "profiles";
-  if (functionName.includes("knowledge")) return "edith_knowledge";
+  if (functionName.includes("knowledge") || functionName.includes("iso") || functionName.includes("regulatory")) return "edith_iso_knowledge";
+  if (functionName.includes("compliance")) return "edith_compliance_assessments";
   return undefined;
 }
