@@ -14,6 +14,271 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_checklist_items: {
+        Row: {
+          checklist_id: string
+          created_at: string
+          evidence_found: string | null
+          evidence_required: string | null
+          finding: string | null
+          id: string
+          item_number: number
+          nc_id: string | null
+          notes: string | null
+          requirement: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          checklist_id: string
+          created_at?: string
+          evidence_found?: string | null
+          evidence_required?: string | null
+          finding?: string | null
+          id?: string
+          item_number: number
+          nc_id?: string | null
+          notes?: string | null
+          requirement: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          checklist_id?: string
+          created_at?: string
+          evidence_found?: string | null
+          evidence_required?: string | null
+          finding?: string | null
+          id?: string
+          item_number?: number
+          nc_id?: string | null
+          notes?: string | null
+          requirement?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_checklist_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "audit_checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_checklist_items_nc_id_fkey"
+            columns: ["nc_id"]
+            isOneToOne: false
+            referencedRelation: "non_conformances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_checklist_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_checklists: {
+        Row: {
+          audit_date: string
+          auditor_id: string
+          checklist_number: string
+          completed_at: string | null
+          created_at: string
+          department_id: string | null
+          description: string | null
+          id: string
+          iso_clause: string | null
+          overall_result: string | null
+          status: string | null
+          summary_notes: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audit_date: string
+          auditor_id: string
+          checklist_number: string
+          completed_at?: string | null
+          created_at?: string
+          department_id?: string | null
+          description?: string | null
+          id?: string
+          iso_clause?: string | null
+          overall_result?: string | null
+          status?: string | null
+          summary_notes?: string | null
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audit_date?: string
+          auditor_id?: string
+          checklist_number?: string
+          completed_at?: string | null
+          created_at?: string
+          department_id?: string | null
+          description?: string | null
+          id?: string
+          iso_clause?: string | null
+          overall_result?: string | null
+          status?: string | null
+          summary_notes?: string | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_checklists_auditor_id_fkey"
+            columns: ["auditor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_checklists_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_checklists_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_evaluations: {
+        Row: {
+          approval_comments: string | null
+          approved_at: string | null
+          approved_by: string | null
+          contract_reference: string | null
+          contractor_name: string
+          contractor_type: string | null
+          contractor_type_other: string | null
+          created_at: string
+          department_id: string | null
+          evaluation_date: string
+          evaluation_number: string
+          evaluator_comments: string | null
+          evaluator_id: string
+          id: string
+          overall_score: number | null
+          recommendation: string | null
+          score_communication: number | null
+          score_compliance: number | null
+          score_health_safety: number | null
+          score_quality_of_work: number | null
+          score_timeliness: number | null
+          score_value_for_money: number | null
+          status: string | null
+          strengths: string | null
+          submitted_at: string | null
+          tenant_id: string
+          updated_at: string
+          weaknesses: string | null
+        }
+        Insert: {
+          approval_comments?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          contract_reference?: string | null
+          contractor_name: string
+          contractor_type?: string | null
+          contractor_type_other?: string | null
+          created_at?: string
+          department_id?: string | null
+          evaluation_date: string
+          evaluation_number: string
+          evaluator_comments?: string | null
+          evaluator_id: string
+          id?: string
+          overall_score?: number | null
+          recommendation?: string | null
+          score_communication?: number | null
+          score_compliance?: number | null
+          score_health_safety?: number | null
+          score_quality_of_work?: number | null
+          score_timeliness?: number | null
+          score_value_for_money?: number | null
+          status?: string | null
+          strengths?: string | null
+          submitted_at?: string | null
+          tenant_id: string
+          updated_at?: string
+          weaknesses?: string | null
+        }
+        Update: {
+          approval_comments?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          contract_reference?: string | null
+          contractor_name?: string
+          contractor_type?: string | null
+          contractor_type_other?: string | null
+          created_at?: string
+          department_id?: string | null
+          evaluation_date?: string
+          evaluation_number?: string
+          evaluator_comments?: string | null
+          evaluator_id?: string
+          id?: string
+          overall_score?: number | null
+          recommendation?: string | null
+          score_communication?: number | null
+          score_compliance?: number | null
+          score_health_safety?: number | null
+          score_quality_of_work?: number | null
+          score_timeliness?: number | null
+          score_value_for_money?: number | null
+          status?: string | null
+          strengths?: string | null
+          submitted_at?: string | null
+          tenant_id?: string
+          updated_at?: string
+          weaknesses?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_evaluations_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_evaluations_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_evaluations_evaluator_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_evaluations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       corrective_actions: {
         Row: {
           completion_date: string | null
@@ -349,6 +614,48 @@ export type Database = {
           },
           {
             foreignKeyName: "customer_satisfaction_surveys_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      department_manager_mapping: {
+        Row: {
+          created_at: string
+          department_id: string
+          id: string
+          tenant_id: string | null
+          training_manager_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department_id: string
+          id?: string
+          tenant_id?: string | null
+          training_manager_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department_id?: string
+          id?: string
+          tenant_id?: string | null
+          training_manager_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "department_manager_mapping_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: true
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "department_manager_mapping_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -763,6 +1070,118 @@ export type Database = {
           requirement_text?: string
         }
         Relationships: []
+      }
+      facilitator_annual_evaluations: {
+        Row: {
+          acknowledged_at: string | null
+          areas_for_improvement: string | null
+          created_at: string
+          development_plan: string | null
+          evaluation_number: string
+          evaluation_period_end: string
+          evaluation_period_start: string
+          evaluator_comments: string | null
+          evaluator_id: string
+          facilitator_comments: string | null
+          facilitator_id: string
+          id: string
+          overall_score: number | null
+          reviewed_at: string | null
+          score_assessment_quality: number | null
+          score_continuous_improvement: number | null
+          score_knowledge_expertise: number | null
+          score_learner_engagement: number | null
+          score_material_preparation: number | null
+          score_presentation_skills: number | null
+          score_professionalism: number | null
+          score_time_management: number | null
+          status: string | null
+          strengths: string | null
+          submitted_at: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          areas_for_improvement?: string | null
+          created_at?: string
+          development_plan?: string | null
+          evaluation_number: string
+          evaluation_period_end: string
+          evaluation_period_start: string
+          evaluator_comments?: string | null
+          evaluator_id: string
+          facilitator_comments?: string | null
+          facilitator_id: string
+          id?: string
+          overall_score?: number | null
+          reviewed_at?: string | null
+          score_assessment_quality?: number | null
+          score_continuous_improvement?: number | null
+          score_knowledge_expertise?: number | null
+          score_learner_engagement?: number | null
+          score_material_preparation?: number | null
+          score_presentation_skills?: number | null
+          score_professionalism?: number | null
+          score_time_management?: number | null
+          status?: string | null
+          strengths?: string | null
+          submitted_at?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          areas_for_improvement?: string | null
+          created_at?: string
+          development_plan?: string | null
+          evaluation_number?: string
+          evaluation_period_end?: string
+          evaluation_period_start?: string
+          evaluator_comments?: string | null
+          evaluator_id?: string
+          facilitator_comments?: string | null
+          facilitator_id?: string
+          id?: string
+          overall_score?: number | null
+          reviewed_at?: string | null
+          score_assessment_quality?: number | null
+          score_continuous_improvement?: number | null
+          score_knowledge_expertise?: number | null
+          score_learner_engagement?: number | null
+          score_material_preparation?: number | null
+          score_presentation_skills?: number | null
+          score_professionalism?: number | null
+          score_time_management?: number | null
+          status?: string | null
+          strengths?: string | null
+          submitted_at?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facilitator_annual_evaluations_evaluator_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facilitator_annual_evaluations_facilitator_id_fkey"
+            columns: ["facilitator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facilitator_annual_evaluations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       moderation_attachments: {
         Row: {
@@ -1203,6 +1622,57 @@ export type Database = {
           },
           {
             foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qr_locations: {
+        Row: {
+          created_at: string
+          department_id: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          qr_code_data: string
+          site_location: string
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          qr_code_data: string
+          site_location: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          qr_code_data?: string
+          site_location?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_locations_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qr_locations_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
