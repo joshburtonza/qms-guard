@@ -33,6 +33,18 @@ import CourseEvaluationReports from "./pages/course-evaluations/CourseEvaluation
 import BrandingSettings from "./pages/settings/BrandingSettings";
 // Activity Log
 import ActivityLog from "./pages/ActivityLog";
+// QR Codes
+import QRCodeManager from "./pages/qr-codes/QRCodeManager";
+// Audits
+import AuditList from "./pages/audits/AuditList";
+import AuditCreate from "./pages/audits/AuditCreate";
+import AuditDetail from "./pages/audits/AuditDetail";
+// Facilitator Evaluations
+import FacilitatorEvaluationList from "./pages/facilitator-evaluations/FacilitatorEvaluationList";
+import FacilitatorEvaluationCreate from "./pages/facilitator-evaluations/FacilitatorEvaluationCreate";
+// Contractor Evaluations
+import ContractorEvaluationList from "./pages/contractor-evaluations/ContractorEvaluationList";
+import ContractorEvaluationCreate from "./pages/contractor-evaluations/ContractorEvaluationCreate";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +81,18 @@ const App = () => (
                   <Route path="/course-evaluations" element={<CourseEvaluationList />} />
                   <Route path="/course-evaluations/submit" element={<CourseEvaluationSubmit />} />
                   <Route path="/course-evaluations/reports" element={<CourseEvaluationReports />} />
+                  {/* QR Codes */}
+                  <Route path="/qr-codes" element={<QRCodeManager />} />
+                  {/* Internal Audits */}
+                  <Route path="/audits" element={<AuditList />} />
+                  <Route path="/audits/create" element={<AuditCreate />} />
+                  <Route path="/audits/:id" element={<AuditDetail />} />
+                  {/* Facilitator Evaluations */}
+                  <Route path="/facilitator-evaluations" element={<FacilitatorEvaluationList />} />
+                  <Route path="/facilitator-evaluations/create" element={<FacilitatorEvaluationCreate />} />
+                  {/* Contractor Evaluations */}
+                  <Route path="/contractor-evaluations" element={<ContractorEvaluationList />} />
+                  <Route path="/contractor-evaluations/create" element={<ContractorEvaluationCreate />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 {/* Edith AI Assistant */}

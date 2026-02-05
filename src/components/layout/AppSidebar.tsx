@@ -79,6 +79,21 @@ const courseEvalNavItems: NavItem[] = [
   { title: 'Evaluation Reports', href: '/course-evaluations/reports', icon: BarChart3 },
 ];
 
+const auditNavItems: NavItem[] = [
+  { title: 'All Audits', href: '/audits', icon: ClipboardCheck },
+  { title: 'New Audit', href: '/audits/create', icon: ClipboardCheck },
+];
+
+const facilitatorEvalNavItems: NavItem[] = [
+  { title: 'All Evaluations', href: '/facilitator-evaluations', icon: GraduationCap },
+  { title: 'New Evaluation', href: '/facilitator-evaluations/create', icon: ClipboardCheck },
+];
+
+const contractorEvalNavItems: NavItem[] = [
+  { title: 'All Evaluations', href: '/contractor-evaluations', icon: Briefcase },
+  { title: 'New Evaluation', href: '/contractor-evaluations/create', icon: ClipboardCheck },
+];
+
 const adminNavItems: NavItem[] = [
   { title: 'Activity Log', href: '/activity', icon: Activity, roles: ['super_admin', 'site_admin', 'manager'] },
   { title: 'Reports', href: '/reports', icon: BarChart3, roles: ['super_admin', 'site_admin', 'manager'] },
@@ -93,6 +108,9 @@ export function AppSidebar() {
   const [feedbackOpen, setFeedbackOpen] = useState(true);
   const [moderationOpen, setModerationOpen] = useState(true);
   const [courseEvalOpen, setCourseEvalOpen] = useState(true);
+  const [auditOpen, setAuditOpen] = useState(false);
+  const [facilitatorEvalOpen, setFacilitatorEvalOpen] = useState(false);
+  const [contractorEvalOpen, setContractorEvalOpen] = useState(false);
   const location = useLocation();
   const { profile, roles, signOut } = useAuth();
   const { tenant } = useTenant();
@@ -264,6 +282,18 @@ export function AppSidebar() {
           </p>
         )}
         {renderCollapsibleGroup('Moderation', GraduationCap, moderationNavItems, moderationOpen, setModerationOpen)}
+        {renderCollapsibleGroup('Internal Audits', ClipboardCheck, auditNavItems, auditOpen, setAuditOpen)}
+
+        <Separator className="my-3 bg-sidebar-border" />
+        
+        {/* Evaluations Group */}
+        {!collapsed && (
+          <p className="px-3 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider mb-2">
+            Evaluations
+          </p>
+        )}
+        {renderCollapsibleGroup('Facilitators', GraduationCap, facilitatorEvalNavItems, facilitatorEvalOpen, setFacilitatorEvalOpen)}
+        {renderCollapsibleGroup('Contractors', Briefcase, contractorEvalNavItems, contractorEvalOpen, setContractorEvalOpen)}
 
         {filteredAdminItems.length > 0 && (
           <>

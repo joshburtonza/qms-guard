@@ -1,0 +1,487 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { format } from 'date-fns';
+import {
+  Briefcase,
+  ArrowLeft,
+  Save,
+  Calendar,
+  Star,
+} from 'lucide-react';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
+
+interface Department {
+  id: string;
+  name: string;
+}
+
+const CONTRACTOR_TYPES = [
+  { value: 'training_provider', label: 'Training Provider' },
+  { value: 'equipment_supplier', label: 'Equipment Supplier' },
+  { value: 'consultant', label: 'Consultant' },
+  { value: 'service_provider', label: 'Service Provider' },
+  { value: 'other', label: 'Other' },
+];
+
+const RECOMMENDATIONS = [
+  { value: 'highly_recommended', label: 'Highly Recommended' },
+  { value: 'recommended', label: 'Recommended' },
+  { value: 'conditional', label: 'Conditional' },
+  { value: 'not_recommended', label: 'Not Recommended' },
+];
+
+const SCORE_CATEGORIES = [
+  { key: 'score_quality_of_work', label: 'Quality of Work' },
+  { key: 'score_timeliness', label: 'Timeliness' },
+  { key: 'score_communication', label: 'Communication' },
+  { key: 'score_compliance', label: 'Compliance' },
+  { key: 'score_value_for_money', label: 'Value for Money' },
+  { key: 'score_health_safety', label: 'Health & Safety' },
+];
+
+const formSchema = z.object({
+  contractor_name: z.string().min(1, 'Contractor name is required'),
+  contractor_type: z.string().min(1, 'Select a contractor type'),
+  contractor_type_other: z.string().optional(),
+  contract_reference: z.string().optional(),
+  evaluation_date: z.date({ required_error: 'Evaluation date is required' }),
+  department_id: z.string().optional(),
+  score_quality_of_work: z.string().min(1, 'Required'),
+  score_timeliness: z.string().min(1, 'Required'),
+  score_communication: z.string().min(1, 'Required'),
+  score_compliance: z.string().min(1, 'Required'),
+  score_value_for_money: z.string().min(1, 'Required'),
+  score_health_safety: z.string().min(1, 'Required'),
+  recommendation: z.string().min(1, 'Select a recommendation'),
+  strengths: z.string().optional(),
+  weaknesses: z.string().optional(),
+  evaluator_comments: z.string().optional(),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+export default function ContractorEvaluationCreate() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { profile } = useAuth();
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      contractor_name: '',
+      contract_reference: '',
+      strengths: '',
+      weaknesses: '',
+      evaluator_comments: '',
+    },
+  });
+
+  const selectedType = form.watch('contractor_type');
+
+  useEffect(() => {
+    async function fetchDepartments() {
+      const { data } = await supabase.from('departments').select('id, name').order('name');
+      if (data) setDepartments(data);
+    }
+    fetchDepartments();
+  }, []);
+
+  async function onSubmit(data: FormData) {
+    if (!profile) return;
+    setIsSubmitting(true);
+
+    try {
+      const scores = {
+        score_quality_of_work: parseInt(data.score_quality_of_work),
+        score_timeliness: parseInt(data.score_timeliness),
+        score_communication: parseInt(data.score_communication),
+        score_compliance: parseInt(data.score_compliance),
+        score_value_for_money: parseInt(data.score_value_for_money),
+        score_health_safety: parseInt(data.score_health_safety),
+      };
+
+      const overall_score =
+        Object.values(scores).reduce((sum, s) => sum + s, 0) / Object.values(scores).length;
+
+      const { data: evaluation, error } = await supabase
+        .from('contractor_evaluations')
+        .insert({
+          evaluation_number: '', // Will be auto-generated by trigger
+          contractor_name: data.contractor_name,
+          contractor_type: data.contractor_type,
+          contractor_type_other: data.contractor_type === 'other' ? data.contractor_type_other : null,
+          contract_reference: data.contract_reference || null,
+          evaluation_date: format(data.evaluation_date, 'yyyy-MM-dd'),
+          department_id: data.department_id || null,
+          evaluator_id: profile.id,
+          ...scores,
+          overall_score,
+          recommendation: data.recommendation,
+          strengths: data.strengths || null,
+          weaknesses: data.weaknesses || null,
+          evaluator_comments: data.evaluator_comments || null,
+          tenant_id: profile.tenant_id,
+          status: 'draft',
+        } as any)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: 'Evaluation Created',
+        description: `Evaluation ${evaluation.evaluation_number} has been created.`,
+      });
+
+      navigate(`/contractor-evaluations/${evaluation.id}`);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function ScoreSelector({ name, label }: { name: keyof FormData; label: string }) {
+    return (
+      <FormField
+        control={form.control}
+        name={name}
+        render={({ field }) => (
+          <FormItem className="space-y-2">
+            <FormLabel>{label}</FormLabel>
+            <FormControl>
+              <RadioGroup
+                onValueChange={field.onChange}
+                value={field.value as string}
+                className="flex gap-2"
+              >
+                {[1, 2, 3, 4, 5].map((score) => (
+                  <div key={score} className="flex flex-col items-center">
+                    <RadioGroupItem
+                      value={score.toString()}
+                      id={`${name}-${score}`}
+                      className="sr-only peer"
+                    />
+                    <Label
+                      htmlFor={`${name}-${score}`}
+                      className={cn(
+                        'w-10 h-10 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors',
+                        field.value === score.toString()
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-muted-foreground/30 hover:border-primary/50'
+                      )}
+                    >
+                      {score}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    );
+  }
+
+  return (
+    <AppLayout>
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/contractor-evaluations')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+              <Briefcase className="h-6 w-6 text-primary" />
+              New Contractor Evaluation
+            </h1>
+            <p className="text-muted-foreground">
+              Evaluate contractor/provider performance
+            </p>
+          </div>
+        </div>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Contractor Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contractor Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="contractor_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contractor Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Company or individual name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="contractor_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Type *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {CONTRACTOR_TYPES.map((t) => (
+                              <SelectItem key={t.value} value={t.value}>
+                                {t.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="contract_reference"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contract Reference</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Contract or PO number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {selectedType === 'other' && (
+                  <FormField
+                    control={form.control}
+                    name="contractor_type_other"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Describe Type *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Specify contractor type" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="evaluation_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Evaluation Date *</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  'w-full justify-start text-left font-normal',
+                                  !field.value && 'text-muted-foreground'
+                                )}
+                              >
+                                <Calendar className="mr-2 h-4 w-4" />
+                                {field.value ? format(field.value, 'PPP') : 'Select date'}
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <CalendarComponent
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="department_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Department</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select department" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {departments.map((d) => (
+                              <SelectItem key={d.id} value={d.id}>
+                                {d.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Scoring */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-amber-500" />
+                  Performance Scores
+                </CardTitle>
+                <CardDescription>Rate each category from 1 (Poor) to 5 (Excellent)</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-6 sm:grid-cols-2">
+                {SCORE_CATEGORIES.map((cat) => (
+                  <ScoreSelector key={cat.key} name={cat.key as keyof FormData} label={cat.label} />
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Recommendation */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Recommendation & Feedback</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="recommendation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Recommendation *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select recommendation" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {RECOMMENDATIONS.map((r) => (
+                            <SelectItem key={r.value} value={r.value}>
+                              {r.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="strengths"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Strengths</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Key strengths observed..." {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="weaknesses"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Weaknesses</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Areas needing improvement..." {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="evaluator_comments"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Additional Comments</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Any additional observations..." {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Submit */}
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => navigate('/contractor-evaluations')}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                <Save className="h-4 w-4 mr-2" />
+                {isSubmitting ? 'Saving...' : 'Save Evaluation'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </div>
+    </AppLayout>
+  );
+}
