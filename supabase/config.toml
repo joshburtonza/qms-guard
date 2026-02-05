@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.nc-workflow-notification]
 verify_jwt = false
+
+[functions.nc-scheduled-tasks]
+verify_jwt = false

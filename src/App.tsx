@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { TenantProvider } from "@/hooks/useTenant";
 import { EdithProvider } from "@/hooks/useEdith";
 import { EdithFloatingButton, EdithPanel } from "@/components/edith";
+import { LockoutGuard } from "@/components/LockoutGuard";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import ReportNC from "./pages/ReportNC";
@@ -42,33 +43,35 @@ const App = () => (
         <AuthProvider>
           <TenantProvider>
             <EdithProvider>
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/report" element={<ReportNC />} />
-                <Route path="/nc" element={<NCList />} />
-                <Route path="/nc/:id" element={<NCDetail />} />
-                <Route path="/tasks" element={<MyTasks />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/settings/branding" element={<BrandingSettings />} />
-                {/* Phase 2: Customer Satisfaction Surveys */}
-                <Route path="/surveys" element={<SurveyList />} />
-                <Route path="/surveys/submit" element={<SurveySubmit />} />
-                <Route path="/surveys/reports" element={<SurveyReports />} />
-                {/* Phase 2: Moderation Platform */}
-                <Route path="/moderation" element={<ModerationList />} />
-                <Route path="/moderation/submit" element={<ModerationSubmit />} />
-                <Route path="/moderation/queue" element={<ModerationQueue />} />
-                <Route path="/moderation/:id" element={<ModerationDetail />} />
-                {/* Phase 2: Course Evaluations */}
-                <Route path="/course-evaluations" element={<CourseEvaluationList />} />
-                <Route path="/course-evaluations/submit" element={<CourseEvaluationSubmit />} />
-                <Route path="/course-evaluations/reports" element={<CourseEvaluationReports />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              {/* Edith AI Assistant */}
-              <EdithFloatingButton />
-              <EdithPanel />
+              <LockoutGuard>
+                <Routes>
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/report" element={<ReportNC />} />
+                  <Route path="/nc" element={<NCList />} />
+                  <Route path="/nc/:id" element={<NCDetail />} />
+                  <Route path="/tasks" element={<MyTasks />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/settings/branding" element={<BrandingSettings />} />
+                  {/* Phase 2: Customer Satisfaction Surveys */}
+                  <Route path="/surveys" element={<SurveyList />} />
+                  <Route path="/surveys/submit" element={<SurveySubmit />} />
+                  <Route path="/surveys/reports" element={<SurveyReports />} />
+                  {/* Phase 2: Moderation Platform */}
+                  <Route path="/moderation" element={<ModerationList />} />
+                  <Route path="/moderation/submit" element={<ModerationSubmit />} />
+                  <Route path="/moderation/queue" element={<ModerationQueue />} />
+                  <Route path="/moderation/:id" element={<ModerationDetail />} />
+                  {/* Phase 2: Course Evaluations */}
+                  <Route path="/course-evaluations" element={<CourseEvaluationList />} />
+                  <Route path="/course-evaluations/submit" element={<CourseEvaluationSubmit />} />
+                  <Route path="/course-evaluations/reports" element={<CourseEvaluationReports />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                {/* Edith AI Assistant */}
+                <EdithFloatingButton />
+                <EdithPanel />
+              </LockoutGuard>
             </EdithProvider>
           </TenantProvider>
         </AuthProvider>
