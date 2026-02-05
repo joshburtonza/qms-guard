@@ -465,6 +465,63 @@ export type Database = {
           },
         ]
       }
+      edith_compliance_assessments: {
+        Row: {
+          assessed_at: string | null
+          assessed_by: string | null
+          assessment_type: string
+          compliance_status: string | null
+          evidence_reviewed: string[] | null
+          findings: Json
+          id: string
+          iso_clause: string | null
+          next_review_date: string | null
+          recommendations: string | null
+          tenant_id: string
+        }
+        Insert: {
+          assessed_at?: string | null
+          assessed_by?: string | null
+          assessment_type: string
+          compliance_status?: string | null
+          evidence_reviewed?: string[] | null
+          findings: Json
+          id?: string
+          iso_clause?: string | null
+          next_review_date?: string | null
+          recommendations?: string | null
+          tenant_id: string
+        }
+        Update: {
+          assessed_at?: string | null
+          assessed_by?: string | null
+          assessment_type?: string
+          compliance_status?: string | null
+          evidence_reviewed?: string[] | null
+          findings?: Json
+          id?: string
+          iso_clause?: string | null
+          next_review_date?: string | null
+          recommendations?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edith_compliance_assessments_assessed_by_fkey"
+            columns: ["assessed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edith_compliance_assessments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       edith_conversations: {
         Row: {
           context: Json | null
@@ -512,6 +569,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      edith_iso_knowledge: {
+        Row: {
+          audit_questions: string[] | null
+          clause_number: string
+          clause_title: string
+          common_nonconformities: string[] | null
+          compliance_indicators: string[] | null
+          created_at: string | null
+          evidence_required: string[] | null
+          id: string
+          interpretation: string | null
+          is_mandatory: boolean | null
+          mining_context: string | null
+          parent_clause: string | null
+          qms_guard_mapping: Json | null
+          requirement_text: string
+          section_number: string | null
+          section_title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          audit_questions?: string[] | null
+          clause_number: string
+          clause_title: string
+          common_nonconformities?: string[] | null
+          compliance_indicators?: string[] | null
+          created_at?: string | null
+          evidence_required?: string[] | null
+          id?: string
+          interpretation?: string | null
+          is_mandatory?: boolean | null
+          mining_context?: string | null
+          parent_clause?: string | null
+          qms_guard_mapping?: Json | null
+          requirement_text: string
+          section_number?: string | null
+          section_title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          audit_questions?: string[] | null
+          clause_number?: string
+          clause_title?: string
+          common_nonconformities?: string[] | null
+          compliance_indicators?: string[] | null
+          created_at?: string | null
+          evidence_required?: string[] | null
+          id?: string
+          interpretation?: string | null
+          is_mandatory?: boolean | null
+          mining_context?: string | null
+          parent_clause?: string | null
+          qms_guard_mapping?: Json | null
+          requirement_text?: string
+          section_number?: string | null
+          section_title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       edith_knowledge: {
         Row: {
@@ -607,6 +724,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      edith_regulatory_knowledge: {
+        Row: {
+          compliance_deadline: string | null
+          created_at: string | null
+          id: string
+          interpretation: string | null
+          iso_clause_links: string[] | null
+          penalty_info: string | null
+          qms_impact: string | null
+          regulation_code: string | null
+          regulation_name: string
+          requirement_text: string
+        }
+        Insert: {
+          compliance_deadline?: string | null
+          created_at?: string | null
+          id?: string
+          interpretation?: string | null
+          iso_clause_links?: string[] | null
+          penalty_info?: string | null
+          qms_impact?: string | null
+          regulation_code?: string | null
+          regulation_name: string
+          requirement_text: string
+        }
+        Update: {
+          compliance_deadline?: string | null
+          created_at?: string | null
+          id?: string
+          interpretation?: string | null
+          iso_clause_links?: string[] | null
+          penalty_info?: string | null
+          qms_impact?: string | null
+          regulation_code?: string | null
+          regulation_name?: string
+          requirement_text?: string
+        }
+        Relationships: []
       }
       moderation_attachments: {
         Row: {
