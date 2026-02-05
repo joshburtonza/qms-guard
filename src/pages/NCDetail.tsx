@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import {
@@ -10,12 +10,13 @@ import {
   User,
   Building,
   MapPin,
-  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StatusBadge } from '@/components/nc/StatusBadge';
 import { SeverityIndicator } from '@/components/nc/SeverityIndicator';
 import { WorkflowProgress } from '@/components/nc/WorkflowProgress';
+import { NCActionPanel } from '@/components/nc/workflow';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,12 +32,9 @@ export default function NCDetail() {
   const [attachments, setAttachments] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    if (id) fetchNCDetails();
-  }, [id]);
-
-  async function fetchNCDetails() {
+  const fetchNCDetails = useCallback(async () => {
     try {
       const [ncResult, attachResult, activityResult] = await Promise.all([
         supabase
@@ -45,7 +43,7 @@ export default function NCDetail() {
             *,
             reporter:reported_by(full_name, employee_id),
             responsible:responsible_person(full_name, employee_id),
-            department:department_id(name, site_location)
+            department:department_id(name, site_location, manager_id)
           `)
           .eq('id', id)
           .single(),
@@ -72,8 +70,18 @@ export default function NCDetail() {
       navigate('/nc');
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
-  }
+  }, [id, navigate]);
+
+  useEffect(() => {
+    if (id) fetchNCDetails();
+  }, [id, fetchNCDetails]);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchNCDetails();
+  };
 
   if (isLoading) {
     return (
@@ -106,6 +114,14 @@ export default function NCDetail() {
               </h1>
               <StatusBadge status={nc.status} isOverdue={overdue} />
               <SeverityIndicator severity={nc.severity} />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
             <p className="text-muted-foreground mt-1">
               {NC_CATEGORY_LABELS[nc.category as keyof typeof NC_CATEGORY_LABELS]}
@@ -122,15 +138,19 @@ export default function NCDetail() {
         </Card>
 
         {/* Main Content */}
-        <Tabs defaultValue="details">
+        <Tabs defaultValue="actions">
           <TabsList>
-            <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="actions">Actions</TabsTrigger>
+            <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
             <TabsTrigger value="attachments">
               Attachments ({attachments.length})
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="actions" className="mt-6">
+            <NCActionPanel nc={nc} onUpdate={handleRefresh} />
+          </TabsContent>
 
           <TabsContent value="details" className="mt-6">
             <div className="grid gap-6 lg:grid-cols-3">
@@ -226,10 +246,10 @@ export default function NCDetail() {
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <Calendar className={`h-4 w-4 mt-0.5 ${overdue ? 'text-red-500' : 'text-muted-foreground'}`} />
+                      <Calendar className={`h-4 w-4 mt-0.5 ${overdue ? 'text-destructive' : 'text-muted-foreground'}`} />
                       <div>
                         <p className="text-sm text-muted-foreground">Due Date</p>
-                        <p className={`font-medium ${overdue ? 'text-red-600' : ''}`}>
+                        <p className={`font-medium ${overdue ? 'text-destructive' : ''}`}>
                           {format(new Date(nc.due_date), 'PPP')}
                         </p>
                       </div>
@@ -238,16 +258,6 @@ export default function NCDetail() {
                 </Card>
               </div>
             </div>
-          </TabsContent>
-
-          <TabsContent value="actions" className="mt-6">
-            <Card>
-              <CardContent className="py-6">
-                <p className="text-center text-muted-foreground">
-                  Action panel will be implemented based on current step and user role.
-                </p>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="history" className="mt-6">

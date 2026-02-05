@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.edith-generate-report]
 verify_jwt = false
+
+[functions.nc-workflow-notification]
+verify_jwt = false

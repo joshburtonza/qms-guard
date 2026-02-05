@@ -1,0 +1,263 @@
+import { useEffect, useState } from 'react';
+import { Shield, Clock, CheckCircle, AlertTriangle, Ban, Info } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { QAClassificationForm } from './QAClassificationForm';
+import { ResponsiblePersonForm } from './ResponsiblePersonForm';
+import { ManagerApprovalForm } from './ManagerApprovalForm';
+
+interface NCActionPanelProps {
+  nc: any;
+  onUpdate: () => void;
+}
+
+type UserRole = 'qa' | 'responsible_person' | 'manager' | 'initiator' | 'viewer';
+
+export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
+  const { user, profile } = useAuth();
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [correctiveAction, setCorrectiveAction] = useState<any>(null);
+  const [previousDecline, setPreviousDecline] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchUserContext();
+    }
+  }, [user?.id, nc.id]);
+
+  async function fetchUserContext() {
+    try {
+      // Fetch user roles
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id);
+
+      setUserRoles(roles?.map(r => r.role) || []);
+
+      // Fetch latest corrective action for this NC
+      const { data: ca } = await supabase
+        .from('corrective_actions')
+        .select('*')
+        .eq('nc_id', nc.id)
+        .order('submitted_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      setCorrectiveAction(ca);
+
+      // Check for previous decline comments
+      const { data: approvals } = await supabase
+        .from('workflow_approvals')
+        .select('comments')
+        .eq('nc_id', nc.id)
+        .eq('action', 'rejected')
+        .order('approved_at', { ascending: false })
+        .limit(1);
+
+      if (approvals && approvals.length > 0) {
+        setPreviousDecline(approvals[0].comments);
+      }
+    } catch (error) {
+      console.error('Error fetching user context:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Determine user's relationship to this NC
+  const isQA = userRoles.includes('super_admin') || userRoles.includes('site_admin') || userRoles.includes('verifier');
+  const isManager = userRoles.includes('manager') || userRoles.includes('super_admin') || userRoles.includes('site_admin');
+  const isResponsiblePerson = nc.responsible_person === user?.id;
+  const isInitiator = nc.reported_by === user?.id;
+
+  // Determine what action (if any) the current user can take
+  const getActionableState = (): {
+    canAct: boolean;
+    component: React.ReactNode | null;
+    message: string;
+    icon: React.ReactNode;
+    variant: 'default' | 'info' | 'warning' | 'success';
+  } => {
+    // NC is closed or rejected - no actions available
+    if (nc.status === 'closed') {
+      return {
+        canAct: false,
+        component: null,
+        message: 'This non-conformance has been approved and closed.',
+        icon: <CheckCircle className="h-5 w-5 text-green-600" />,
+        variant: 'success',
+      };
+    }
+
+    if (nc.status === 'rejected') {
+      return {
+        canAct: false,
+        component: null,
+        message: 'This non-conformance was rejected after two review attempts. Manual intervention is required.',
+        icon: <Ban className="h-5 w-5 text-red-600" />,
+        variant: 'warning',
+      };
+    }
+
+    // Step 1: Open - waiting for QA classification
+    if (nc.status === 'open' && nc.current_step === 1) {
+      if (isQA) {
+        return {
+          canAct: true,
+          component: <QAClassificationForm nc={nc} onSuccess={onUpdate} />,
+          message: 'Please classify the risk level for this NC.',
+          icon: <Shield className="h-5 w-5 text-primary" />,
+          variant: 'default',
+        };
+      }
+      return {
+        canAct: false,
+        component: null,
+        message: 'Waiting for QA to classify this NC.',
+        icon: <Clock className="h-5 w-5 text-muted-foreground" />,
+        variant: 'info',
+      };
+    }
+
+    // Step 2: In Progress - waiting for responsible person response
+    if (nc.status === 'in_progress' && (nc.current_step === 2 || nc.current_step === 3)) {
+      const isRework = nc.current_step === 3 && previousDecline !== null;
+      
+      if (isResponsiblePerson) {
+        return {
+          canAct: true,
+          component: (
+            <ResponsiblePersonForm 
+              nc={nc} 
+              isRework={isRework}
+              previousDeclineComments={previousDecline || undefined}
+              onSuccess={onUpdate} 
+            />
+          ),
+          message: isRework 
+            ? 'Your previous submission was declined. Please provide revised corrective actions.'
+            : 'Please document the root cause and corrective actions.',
+          icon: isRework 
+            ? <AlertTriangle className="h-5 w-5 text-amber-500" />
+            : <Shield className="h-5 w-5 text-primary" />,
+          variant: isRework ? 'warning' : 'default',
+        };
+      }
+      return {
+        canAct: false,
+        component: null,
+        message: `Waiting for ${nc.responsible?.full_name || 'responsible person'} to submit corrective actions.`,
+        icon: <Clock className="h-5 w-5 text-muted-foreground" />,
+        variant: 'info',
+      };
+    }
+
+    // Step 3/5: Pending Review - waiting for manager approval
+    if (nc.status === 'pending_review') {
+      // Determine if this is second approval round
+      const approvalCount = (nc.workflow_history || []).filter(
+        (h: any) => h.action === 'manager_declined'
+      ).length;
+      const isSecondApproval = approvalCount >= 1;
+
+      if (isManager) {
+        return {
+          canAct: true,
+          component: (
+            <ManagerApprovalForm 
+              nc={nc} 
+              correctiveAction={correctiveAction}
+              isSecondApproval={isSecondApproval}
+              onSuccess={onUpdate} 
+            />
+          ),
+          message: isSecondApproval 
+            ? 'This is the final review round. Please make your decision carefully.'
+            : 'Please review the corrective action and make your decision.',
+          icon: isSecondApproval 
+            ? <AlertTriangle className="h-5 w-5 text-amber-500" />
+            : <Shield className="h-5 w-5 text-primary" />,
+          variant: isSecondApproval ? 'warning' : 'default',
+        };
+      }
+      return {
+        canAct: false,
+        component: null,
+        message: 'Waiting for Training Manager to review and approve.',
+        icon: <Clock className="h-5 w-5 text-muted-foreground" />,
+        variant: 'info',
+      };
+    }
+
+    // Step 4: Pending Verification
+    if (nc.status === 'pending_verification') {
+      if (isQA) {
+        return {
+          canAct: false, // TODO: Implement verification form
+          component: null,
+          message: 'Verification pending - feature coming soon.',
+          icon: <Shield className="h-5 w-5 text-primary" />,
+          variant: 'info',
+        };
+      }
+      return {
+        canAct: false,
+        component: null,
+        message: 'Waiting for QA verification.',
+        icon: <Clock className="h-5 w-5 text-muted-foreground" />,
+        variant: 'info',
+      };
+    }
+
+    // Default fallback
+    return {
+      canAct: false,
+      component: null,
+      message: 'No actions available for this NC.',
+      icon: <Info className="h-5 w-5 text-muted-foreground" />,
+      variant: 'info',
+    };
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="py-6">
+          <Skeleton className="h-48 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const { canAct, component, message, icon, variant } = getActionableState();
+
+  // If user can act, show the form
+  if (canAct && component) {
+    return component;
+  }
+
+  // Otherwise show status message
+  const alertVariants: Record<string, string> = {
+    success: 'border-green-200 bg-green-50',
+    warning: 'border-amber-200 bg-amber-50',
+    info: 'border-blue-200 bg-blue-50',
+    default: 'border-border',
+  };
+
+  return (
+    <Alert className={alertVariants[variant]}>
+      <div className="flex items-center gap-2">
+        {icon}
+        <AlertTitle className="mb-0">Status</AlertTitle>
+      </div>
+      <AlertDescription className="mt-2">
+        {message}
+      </AlertDescription>
+    </Alert>
+  );
+}
