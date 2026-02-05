@@ -401,6 +401,213 @@ export type Database = {
           },
         ]
       }
+      edith_actions: {
+        Row: {
+          action_details: Json
+          action_type: string
+          affected_ids: string[] | null
+          affected_table: string | null
+          conversation_id: string | null
+          error_message: string | null
+          id: string
+          performed_at: string | null
+          success: boolean
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          action_details: Json
+          action_type: string
+          affected_ids?: string[] | null
+          affected_table?: string | null
+          conversation_id?: string | null
+          error_message?: string | null
+          id?: string
+          performed_at?: string | null
+          success?: boolean
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          action_details?: Json
+          action_type?: string
+          affected_ids?: string[] | null
+          affected_table?: string | null
+          conversation_id?: string | null
+          error_message?: string | null
+          id?: string
+          performed_at?: string | null
+          success?: boolean
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edith_actions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "edith_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edith_actions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edith_actions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edith_conversations: {
+        Row: {
+          context: Json | null
+          conversation_number: string
+          created_at: string | null
+          id: string
+          tenant_id: string
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          context?: Json | null
+          conversation_number: string
+          created_at?: string | null
+          id?: string
+          tenant_id: string
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          context?: Json | null
+          conversation_number?: string
+          created_at?: string | null
+          id?: string
+          tenant_id?: string
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edith_conversations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edith_conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edith_knowledge: {
+        Row: {
+          content: string
+          content_type: string
+          created_at: string | null
+          embedding: string | null
+          id: string
+          metadata: Json | null
+          source_id: string | null
+          tenant_id: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          content_type: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+          source_id?: string | null
+          tenant_id?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          content_type?: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+          source_id?: string | null
+          tenant_id?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edith_knowledge_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edith_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string | null
+          id: string
+          role: string
+          tenant_id: string
+          tool_calls: Json | null
+          tool_results: Json | null
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          role: string
+          tenant_id: string
+          tool_calls?: Json | null
+          tool_results?: Json | null
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          role?: string
+          tenant_id?: string
+          tool_calls?: Json | null
+          tool_results?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edith_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "edith_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edith_messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       moderation_attachments: {
         Row: {
           attachment_type: string
