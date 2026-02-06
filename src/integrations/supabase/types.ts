@@ -2027,9 +2027,86 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      edith_usage_daily: {
+        Row: {
+          avg_latency_ms: number | null
+          chats: number | null
+          cost_usd: number | null
+          day: string | null
+          imports: number | null
+          interactions: number | null
+          tenant_id: string | null
+          tokens: number | null
+          users: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edith_usage_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edith_usage_summary: {
+        Row: {
+          active_users: number | null
+          avg_latency_ms: number | null
+          chat_messages: number | null
+          file_imports: number | null
+          last_activity_at: string | null
+          month: string | null
+          reports_generated: number | null
+          tenant_id: string | null
+          total_conversations: number | null
+          total_cost_usd: number | null
+          total_input_tokens: number | null
+          total_interactions: number | null
+          total_output_tokens: number | null
+          total_tokens: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edith_usage_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      get_edith_usage_daily: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          avg_latency_ms: number
+          chats: number
+          cost_usd: number
+          day: string
+          imports: number
+          interactions: number
+          tokens: number
+          users: number
+        }[]
+      }
+      get_edith_usage_summary: {
+        Args: { p_months?: number; p_tenant_id: string }
+        Returns: {
+          active_users: number
+          avg_latency_ms: number
+          chat_messages: number
+          file_imports: number
+          last_activity_at: string
+          month: string
+          reports_generated: number
+          total_conversations: number
+          total_cost_usd: number
+          total_interactions: number
+          total_tokens: number
+        }[]
+      }
       get_user_department: { Args: { _user_id: string }; Returns: string }
       get_user_tenant: { Args: { _user_id: string }; Returns: string }
       has_role: {
@@ -2040,6 +2117,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      refresh_edith_usage_summary: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role:
