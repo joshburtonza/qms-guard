@@ -49,6 +49,9 @@ import ContractorEvaluationCreate from "./pages/contractor-evaluations/Contracto
 import ContractorEvaluationDetail from "./pages/contractor-evaluations/ContractorEvaluationDetail";
 // Department Manager Mapping
 import DepartmentManagerMapping from "./pages/settings/DepartmentManagerMapping";
+// Edith Full Page
+import Edith from "./pages/Edith";
+import EdithSettings from "./pages/settings/EdithSettings";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +104,9 @@ const App = () => (
                   <Route path="/contractor-evaluations/:id" element={<ContractorEvaluationDetail />} />
                   {/* Department Manager Mapping */}
                   <Route path="/settings/department-mapping" element={<DepartmentManagerMapping />} />
+                  {/* Edith AI Full Page */}
+                  <Route path="/edith" element={<Edith />} />
+                  <Route path="/settings/edith" element={<EdithSettings />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 {/* Edith AI Assistant */}
