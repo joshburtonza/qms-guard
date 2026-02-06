@@ -42,9 +42,13 @@ import AuditDetail from "./pages/audits/AuditDetail";
 // Facilitator Evaluations
 import FacilitatorEvaluationList from "./pages/facilitator-evaluations/FacilitatorEvaluationList";
 import FacilitatorEvaluationCreate from "./pages/facilitator-evaluations/FacilitatorEvaluationCreate";
+import FacilitatorEvaluationDetail from "./pages/facilitator-evaluations/FacilitatorEvaluationDetail";
 // Contractor Evaluations
 import ContractorEvaluationList from "./pages/contractor-evaluations/ContractorEvaluationList";
 import ContractorEvaluationCreate from "./pages/contractor-evaluations/ContractorEvaluationCreate";
+import ContractorEvaluationDetail from "./pages/contractor-evaluations/ContractorEvaluationDetail";
+// Department Manager Mapping
+import DepartmentManagerMapping from "./pages/settings/DepartmentManagerMapping";
 
 const queryClient = new QueryClient();
 
@@ -90,9 +94,13 @@ const App = () => (
                   {/* Facilitator Evaluations */}
                   <Route path="/facilitator-evaluations" element={<FacilitatorEvaluationList />} />
                   <Route path="/facilitator-evaluations/create" element={<FacilitatorEvaluationCreate />} />
+                  <Route path="/facilitator-evaluations/:id" element={<FacilitatorEvaluationDetail />} />
                   {/* Contractor Evaluations */}
                   <Route path="/contractor-evaluations" element={<ContractorEvaluationList />} />
                   <Route path="/contractor-evaluations/create" element={<ContractorEvaluationCreate />} />
+                  <Route path="/contractor-evaluations/:id" element={<ContractorEvaluationDetail />} />
+                  {/* Department Manager Mapping */}
+                  <Route path="/settings/department-mapping" element={<DepartmentManagerMapping />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 {/* Edith AI Assistant */}
