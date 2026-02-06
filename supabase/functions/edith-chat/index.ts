@@ -758,6 +758,22 @@ const EDITH_TOOLS: Tool[] = [
       }
     }
   },
+  {
+    type: "function",
+    function: {
+      name: "process_file",
+      description: "Process an uploaded file (PDF, Excel, CSV, Word, or image) and extract its text content and structured data for analysis. Use this when a user uploads a file and you need to read its contents.",
+      parameters: {
+        type: "object",
+        properties: {
+          file_path: { type: "string", description: "Path to the file in the edith-uploads storage bucket. Format: {tenant_id}/{filename}" },
+          mime_type: { type: "string", description: "MIME type of the file (e.g., 'text/csv', 'application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')" },
+          file_name: { type: "string", description: "Original filename as uploaded by the user" }
+        },
+        required: ["file_path", "mime_type", "file_name"]
+      }
+    }
+  },
 ];
 
 // ==================== SYSTEM PROMPT ====================
@@ -1179,6 +1195,21 @@ async function executeToolCall(
         updated_count: args.nc_ids.length,
         message: `Successfully ${args.action} ${args.nc_ids.length} NCs`,
       };
+    }
+
+    case "process_file": {
+      const { data, error } = await supabaseAdmin.functions.invoke("edith-process-file", {
+        body: {
+          filePath: args.file_path,
+          mimeType: args.mime_type,
+          fileName: args.file_name,
+        },
+        headers: {
+          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+      });
+      if (error) throw new Error(`File processing failed: ${error.message}`);
+      return data;
     }
 
     default:
