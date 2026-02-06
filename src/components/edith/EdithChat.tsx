@@ -1,17 +1,28 @@
-import { useRef, useEffect, KeyboardEvent, useState } from 'react';
-import { Send, Loader2, WifiOff, RefreshCw } from 'lucide-react';
+import { useRef, useEffect, useState } from 'react';
+import { Loader2, WifiOff, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useEdith } from '@/hooks/useEdith';
+import { EdithInput } from './EdithInput';
 import { EdithMessageActions } from './EdithMessageActions';
+import { EdithStreamingMessage } from './EdithStreamingMessage';
+import { EdithSuggestedPrompts } from './EdithSuggestedPrompts';
 import type { EdithMessage } from '@/types/edith';
 
 export function EdithChat() {
-  const { currentConversation, isLoading, sendMessage, error, clearError } = useEdith();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { 
+    currentConversation, 
+    isLoading, 
+    isStreaming,
+    streamingContent,
+    sendMessage, 
+    error, 
+    clearError,
+    stopStreaming,
+    config,
+  } = useEdith();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const messages = currentConversation?.messages || [];
@@ -21,12 +32,7 @@ export function EdithChat() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
-
-  // Focus input on mount
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  }, [messages, streamingContent]);
 
   // Offline detection
   useEffect(() => {
@@ -42,36 +48,31 @@ export function EdithChat() {
     };
   }, []);
 
-  const handleSubmit = () => {
-    const value = inputRef.current?.value?.trim();
-    if (value && !isLoading) {
-      sendMessage(value);
-      if (inputRef.current) {
-        inputRef.current.value = '';
-      }
-    }
+  const handleSend = (message: string, files?: File[]) => {
+    sendMessage(message, files);
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
+  const handleSelectPrompt = (prompt: string) => {
+    sendMessage(prompt);
   };
+
+  const assistantName = config?.assistantName || 'Edith';
 
   return (
     <div className="flex flex-col h-full">
       {/* Messages area */}
       <ScrollArea className="flex-1 p-4" ref={scrollRef as any}>
         <div className="space-y-4">
-          {messages.length === 0 && (
+          {messages.length === 0 && !isLoading && !isStreaming && (
             <div className="text-center py-8">
               <p className="text-muted-foreground text-sm">
-                Hi! I'm Edith, your QMS assistant. How can I help you today?
+                {config?.welcomeMessage || `Hi! I'm ${assistantName}, your QMS assistant. How can I help you today?`}
               </p>
-              <p className="text-muted-foreground text-xs mt-2">
-                Try: "Show my tasks" or "What's overdue?"
-              </p>
+              <EdithSuggestedPrompts 
+                onSelectPrompt={handleSelectPrompt}
+                customPrompts={config?.suggestedPrompts}
+                variant="grid"
+              />
             </div>
           )}
 
@@ -79,15 +80,26 @@ export function EdithChat() {
             <MessageBubble key={message.id} message={message} />
           ))}
 
-          {isLoading && (
+          {/* Streaming message */}
+          {isStreaming && (
+            <div className="flex justify-start">
+              <EdithStreamingMessage
+                content={streamingContent}
+                isStreaming={true}
+              />
+            </div>
+          )}
+
+          {/* Loading state */}
+          {isLoading && !isStreaming && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Edith is thinking...</span>
+              <span className="text-sm">{assistantName} is thinking...</span>
             </div>
           )}
 
           {/* Error state */}
-          {error && !isLoading && (
+          {error && !isLoading && !isStreaming && (
             <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
               <WifiOff className="h-4 w-4 flex-shrink-0" />
               <span className="text-sm flex-1">{error}</span>
@@ -105,41 +117,31 @@ export function EdithChat() {
         </div>
       </ScrollArea>
 
+      {/* Suggested prompts when there are messages */}
+      {messages.length > 0 && !isLoading && !isStreaming && (
+        <EdithSuggestedPrompts 
+          onSelectPrompt={handleSelectPrompt}
+          isLoading={isLoading}
+        />
+      )}
+
       {/* Offline banner */}
       {isOffline && (
         <div className="px-4 py-2 bg-warning/10 border-t border-warning/20 text-warning-foreground flex items-center gap-2 text-xs">
           <WifiOff className="h-3 w-3" />
-          You're offline. Edith needs an internet connection.
+          You're offline. {assistantName} needs an internet connection.
         </div>
       )}
 
       {/* Input area */}
-      <div className="border-t p-4">
-        <div className="flex gap-2">
-          <Input
-            ref={inputRef}
-            placeholder="Ask Edith anything..."
-            onKeyDown={handleKeyDown}
-            disabled={isLoading || isOffline}
-            className="flex-1"
-          />
-          <Button
-            onClick={handleSubmit}
-            disabled={isLoading}
-            size="icon"
-            className="shrink-0"
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground mt-2 text-center">
-          Press <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">⌘K</kbd> to toggle
-        </p>
-      </div>
+      <EdithInput
+        onSend={handleSend}
+        isLoading={isLoading}
+        isStreaming={isStreaming}
+        isOffline={isOffline}
+        onStop={stopStreaming}
+        placeholder={`Ask ${assistantName} anything...`}
+      />
     </div>
   );
 }
@@ -193,7 +195,6 @@ function MessageBubble({ message }: { message: EdithMessage }) {
                 {message.content}
               </ReactMarkdown>
             </div>
-            {/* Action buttons for assistant messages */}
             <EdithMessageActions 
               toolCalls={message.toolCalls} 
               messageContent={message.content} 

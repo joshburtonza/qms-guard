@@ -834,7 +834,9 @@ export type Database = {
           context: Json | null
           conversation_number: string
           created_at: string | null
+          deleted_at: string | null
           id: string
+          is_pinned: boolean | null
           tenant_id: string
           title: string | null
           updated_at: string | null
@@ -844,7 +846,9 @@ export type Database = {
           context?: Json | null
           conversation_number: string
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
+          is_pinned?: boolean | null
           tenant_id: string
           title?: string | null
           updated_at?: string | null
@@ -854,7 +858,9 @@ export type Database = {
           context?: Json | null
           conversation_number?: string
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
+          is_pinned?: boolean | null
           tenant_id?: string
           title?: string | null
           updated_at?: string | null
@@ -986,6 +992,7 @@ export type Database = {
       }
       edith_messages: {
         Row: {
+          attachments: Json | null
           content: string
           conversation_id: string
           created_at: string | null
@@ -996,6 +1003,7 @@ export type Database = {
           tool_results: Json | null
         }
         Insert: {
+          attachments?: Json | null
           content: string
           conversation_id: string
           created_at?: string | null
@@ -1006,6 +1014,7 @@ export type Database = {
           tool_results?: Json | null
         }
         Update: {
+          attachments?: Json | null
           content?: string
           conversation_id?: string
           created_at?: string | null
@@ -1070,6 +1079,138 @@ export type Database = {
           requirement_text?: string
         }
         Relationships: []
+      }
+      edith_tenant_config: {
+        Row: {
+          ai_model: string | null
+          ai_provider: string | null
+          assistant_avatar_url: string | null
+          assistant_name: string | null
+          created_at: string | null
+          enabled_tools: Json | null
+          fallback_provider: string | null
+          id: string
+          monthly_doc_gen_limit: number | null
+          monthly_message_limit: number | null
+          personality_prompt: string | null
+          suggested_prompts: Json | null
+          tenant_id: string
+          updated_at: string | null
+          welcome_message: string | null
+        }
+        Insert: {
+          ai_model?: string | null
+          ai_provider?: string | null
+          assistant_avatar_url?: string | null
+          assistant_name?: string | null
+          created_at?: string | null
+          enabled_tools?: Json | null
+          fallback_provider?: string | null
+          id?: string
+          monthly_doc_gen_limit?: number | null
+          monthly_message_limit?: number | null
+          personality_prompt?: string | null
+          suggested_prompts?: Json | null
+          tenant_id: string
+          updated_at?: string | null
+          welcome_message?: string | null
+        }
+        Update: {
+          ai_model?: string | null
+          ai_provider?: string | null
+          assistant_avatar_url?: string | null
+          assistant_name?: string | null
+          created_at?: string | null
+          enabled_tools?: Json | null
+          fallback_provider?: string | null
+          id?: string
+          monthly_doc_gen_limit?: number | null
+          monthly_message_limit?: number | null
+          personality_prompt?: string | null
+          suggested_prompts?: Json | null
+          tenant_id?: string
+          updated_at?: string | null
+          welcome_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edith_tenant_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edith_usage_log: {
+        Row: {
+          conversation_id: string | null
+          created_at: string | null
+          estimated_cost_usd: number | null
+          id: string
+          input_tokens: number | null
+          interaction_type: string | null
+          latency_ms: number | null
+          model: string
+          output_tokens: number | null
+          provider: string
+          tenant_id: string
+          tool_calls_count: number | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string | null
+          estimated_cost_usd?: number | null
+          id?: string
+          input_tokens?: number | null
+          interaction_type?: string | null
+          latency_ms?: number | null
+          model: string
+          output_tokens?: number | null
+          provider: string
+          tenant_id: string
+          tool_calls_count?: number | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string | null
+          estimated_cost_usd?: number | null
+          id?: string
+          input_tokens?: number | null
+          interaction_type?: string | null
+          latency_ms?: number | null
+          model?: string
+          output_tokens?: number | null
+          provider?: string
+          tenant_id?: string
+          tool_calls_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edith_usage_log_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "edith_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edith_usage_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edith_usage_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       facilitator_annual_evaluations: {
         Row: {

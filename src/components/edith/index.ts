@@ -1,8 +1,14 @@
 export { EdithFloatingButton } from './EdithFloatingButton';
 export { EdithPanel } from './EdithPanel';
 export { EdithChat } from './EdithChat';
+export { EdithInput } from './EdithInput';
 export { EdithToolbar } from './EdithToolbar';
 export { EdithContextBar } from './EdithContextBar';
 export { EdithConversationHistory } from './EdithConversationHistory';
 export { EdithActionButton, NCActionButtons, ReportActionButtons, ConfirmActionButtons } from './EdithActionButton';
 export { EdithMessageActions } from './EdithMessageActions';
+export { EdithStreamingMessage } from './EdithStreamingMessage';
+export { EdithSuggestedPrompts } from './EdithSuggestedPrompts';
+export { EdithFileCard } from './EdithFileCard';
+export { EdithNCReference } from './EdithNCReference';
+export { EdithActionCard } from './EdithActionCard';
