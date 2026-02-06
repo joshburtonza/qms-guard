@@ -98,6 +98,7 @@ const adminNavItems: NavItem[] = [
   { title: 'Activity Log', href: '/activity', icon: Activity, roles: ['super_admin', 'site_admin', 'manager'] },
   { title: 'Reports', href: '/reports', icon: BarChart3, roles: ['super_admin', 'site_admin', 'manager'] },
   { title: 'Users', href: '/users', icon: Users, roles: ['super_admin', 'site_admin'] },
+  { title: 'Dept. Managers', href: '/settings/department-mapping', icon: Users, roles: ['super_admin', 'site_admin'] },
   { title: 'Branding', href: '/settings/branding', icon: Settings, roles: ['super_admin', 'site_admin'] },
   { title: 'QR Codes', href: '/qr-codes', icon: QrCode, roles: ['super_admin', 'site_admin'] },
 ];
