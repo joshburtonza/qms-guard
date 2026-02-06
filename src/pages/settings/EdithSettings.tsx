@@ -31,7 +31,6 @@ export default function EdithSettings() {
   const [config, setConfig] = useState<Partial<EdithTenantConfig>>({});
   const [usage, setUsage] = useState<EdithUsage | null>(null);
   const [userRoles, setUserRoles] = useState<string[]>([]);
-  const [usage, setUsage] = useState<EdithUsage | null>(null);
 
   const isAdmin = userRoles.includes('site_admin') || userRoles.includes('super_admin');
 
