@@ -1623,14 +1623,17 @@ export type Database = {
           closed_at: string | null
           created_at: string | null
           current_step: number | null
+          date_occurred: string | null
           department_id: string | null
           description: string
           due_date: string
           id: string
           immediate_action: string | null
           nc_number: string
+          qa_classification_comments: string | null
           reported_by: string
           responsible_person: string
+          risk_classification: string | null
           severity: Database["public"]["Enums"]["nc_severity"]
           shift: string | null
           site_location: string | null
@@ -1646,14 +1649,17 @@ export type Database = {
           closed_at?: string | null
           created_at?: string | null
           current_step?: number | null
+          date_occurred?: string | null
           department_id?: string | null
           description: string
           due_date: string
           id?: string
           immediate_action?: string | null
           nc_number: string
+          qa_classification_comments?: string | null
           reported_by: string
           responsible_person: string
+          risk_classification?: string | null
           severity: Database["public"]["Enums"]["nc_severity"]
           shift?: string | null
           site_location?: string | null
@@ -1669,14 +1675,17 @@ export type Database = {
           closed_at?: string | null
           created_at?: string | null
           current_step?: number | null
+          date_occurred?: string | null
           department_id?: string | null
           description?: string
           due_date?: string
           id?: string
           immediate_action?: string | null
           nc_number?: string
+          qa_classification_comments?: string | null
           reported_by?: string
           responsible_person?: string
+          risk_classification?: string | null
           severity?: Database["public"]["Enums"]["nc_severity"]
           shift?: string | null
           site_location?: string | null
