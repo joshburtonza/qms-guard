@@ -287,3 +287,93 @@
     padding-top: env(safe-area-inset-top);
   }
 }
+
+/* Print Styles for PDF Export */
+@media print {
+  /* Hide non-essential elements */
+  .no-print,
+  nav,
+  aside,
+  [data-sidebar],
+  .sidebar,
+  header:not(.print-header),
+  button:not(.print-button),
+  .tabs-list,
+  [role="tablist"] {
+    display: none !important;
+  }
+
+  /* Reset page layout */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+
+  /* Full width content */
+  main,
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Print container */
+  .print-container {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Page break handling */
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Table styling for print */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th,
+  td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f5f5f5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Ensure colors print correctly */
+  .bg-muted,
+  .bg-muted\/50 {
+    background-color: #f5f5f5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 1cm;
+    size: A4 portrait;
+  }
+
+  /* Hide scrollbars */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}

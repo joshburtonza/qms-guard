@@ -57,6 +57,7 @@ const ncFormSchema = z.object({
   department_id: z.string().min(1, 'Please select a department'),
   site_location: z.string().min(1, 'Please enter a location'),
   shift: z.enum(['day', 'night', 'general'], { required_error: 'Please select a shift' }),
+  date_occurred: z.date({ required_error: 'Please select when this occurred' }),
   category: z.enum([
     'training_documentation',
     'competency_verification',
@@ -100,6 +101,7 @@ export default function ReportNC() {
       department_id: searchParams.get('dept') || '',
       site_location: searchParams.get('location') || '',
       shift: 'general',
+      date_occurred: new Date(),
       description: '',
       immediate_action: '',
     },
@@ -163,6 +165,7 @@ export default function ReportNC() {
         department_id: data.department_id,
         site_location: data.site_location,
         shift: data.shift as 'day' | 'night' | 'general',
+        date_occurred: format(data.date_occurred, 'yyyy-MM-dd'),
         category: data.category,
         category_other: data.category === 'other' ? data.category_other : null,
         severity: data.severity,
@@ -316,6 +319,48 @@ export default function ReportNC() {
                           ))}
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="date_occurred"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Date Occurred *</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                'w-full sm:w-56 pl-3 text-left font-normal',
+                                !field.value && 'text-muted-foreground'
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, 'PPP')
+                              ) : (
+                                <span>Select date</span>
+                              )}
+                              <Calendar className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) => date > new Date()}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>When did this non-conformance occur?</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

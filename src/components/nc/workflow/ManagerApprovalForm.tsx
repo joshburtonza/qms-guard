@@ -17,6 +17,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
+import { SignatureCanvas } from '@/components/ui/signature-canvas';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,6 +28,7 @@ const approvalFormSchema = z.object({
     required_error: 'Please select a decision',
   }),
   comments: z.string().min(10, 'Please provide comments for your decision (min 10 characters)'),
+  signature: z.string().optional(),
 });
 
 type ApprovalFormData = z.infer<typeof approvalFormSchema>;
@@ -47,11 +49,13 @@ export function ManagerApprovalForm({
   const { toast } = useToast();
   const { profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [signatureData, setSignatureData] = useState<string | null>(null);
 
   const form = useForm<ApprovalFormData>({
     resolver: zodResolver(approvalFormSchema),
     defaultValues: {
       comments: '',
+      signature: '',
     },
   });
 
@@ -91,7 +95,8 @@ export function ManagerApprovalForm({
           action: data.decision === 'approve' ? 'approved' : 'rejected',
           comments: data.comments,
           approved_by: profile.id,
-        });
+          signature_data: isApproved ? signatureData : null,
+        } as any);
 
       if (approvalError) throw approvalError;
 
@@ -324,6 +329,17 @@ export function ManagerApprovalForm({
                 </FormItem>
               )}
             />
+
+            {selectedDecision === 'approve' && (
+              <div className="space-y-2">
+                <SignatureCanvas
+                  onSignatureChange={setSignatureData}
+                  label="Manager Signature (optional)"
+                  width={350}
+                  height={120}
+                />
+              </div>
+            )}
 
             <div className="flex gap-3">
               <Button 

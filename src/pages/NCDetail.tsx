@@ -11,12 +11,14 @@ import {
   Building,
   MapPin,
   RefreshCw,
+  Printer,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StatusBadge } from '@/components/nc/StatusBadge';
 import { SeverityIndicator } from '@/components/nc/SeverityIndicator';
 import { WorkflowProgress } from '@/components/nc/WorkflowProgress';
 import { NCActionPanel } from '@/components/nc/workflow';
+import { NCPrintView } from '@/components/nc/NCPrintView';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,12 +33,14 @@ export default function NCDetail() {
   const [nc, setNC] = useState<any>(null);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
+  const [correctiveAction, setCorrectiveAction] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showPrintView, setShowPrintView] = useState(false);
 
   const fetchNCDetails = useCallback(async () => {
     try {
-      const [ncResult, attachResult, activityResult] = await Promise.all([
+      const [ncResult, attachResult, activityResult, caResult] = await Promise.all([
         supabase
           .from('non_conformances')
           .select(`
@@ -59,12 +63,20 @@ export default function NCDetail() {
           `)
           .eq('nc_id', id)
           .order('performed_at', { ascending: false }),
+        supabase
+          .from('corrective_actions')
+          .select('*')
+          .eq('nc_id', id)
+          .order('submitted_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
       ]);
 
       if (ncResult.error) throw ncResult.error;
       setNC(ncResult.data);
       setAttachments(attachResult.data || []);
       setActivities(activityResult.data || []);
+      setCorrectiveAction(caResult.data || null);
     } catch (error) {
       console.error('Error fetching NC details:', error);
       navigate('/nc');
@@ -83,6 +95,16 @@ export default function NCDetail() {
     fetchNCDetails();
   };
 
+  const handlePrint = () => {
+    setShowPrintView(true);
+    // Wait for state update, then print
+    setTimeout(() => {
+      window.print();
+      // Hide print view after printing
+      setTimeout(() => setShowPrintView(false), 500);
+    }, 100);
+  };
+
   if (isLoading) {
     return (
       <AppLayout>
@@ -96,6 +118,18 @@ export default function NCDetail() {
   }
 
   if (!nc) return null;
+
+  // Show print view when printing
+  if (showPrintView) {
+    return (
+      <NCPrintView
+        nc={nc}
+        attachments={attachments}
+        activities={activities}
+        correctiveAction={correctiveAction}
+      />
+    );
+  }
 
   const overdue = isOverdue(nc.due_date, nc.status);
 
@@ -119,8 +153,18 @@ export default function NCDetail() {
                 size="icon" 
                 onClick={handleRefresh}
                 disabled={isRefreshing}
+                className="no-print"
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrint}
+                className="no-print"
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Export PDF
               </Button>
             </div>
             <p className="text-muted-foreground mt-1">
