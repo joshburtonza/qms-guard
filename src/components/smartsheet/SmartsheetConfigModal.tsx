@@ -90,11 +90,19 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
   const { data: sheetsData, isLoading: isLoadingSheets } = useQuery({
     queryKey: ['smartsheet-sheets'],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('smartsheet-sync', {
-        body: { action: 'get_sheets' },
-      });
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase.functions.invoke('smartsheet-sync', {
+          body: { action: 'get_sheets' },
+        });
+
+        if (error) {
+          return { sheets: [] as Sheet[], error: error.message };
+        }
+
+        return { sheets: (data?.sheets || []) as Sheet[] };
+      } catch (err: any) {
+        return { sheets: [] as Sheet[], error: err?.message || 'Failed to load sheets' };
+      }
     },
     enabled: open,
   });
@@ -255,7 +263,18 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
           {/* Sheet Selection */}
           <div className="space-y-2">
             <Label>Target Sheet</Label>
-            <Select value={selectedSheet} onValueChange={setSelectedSheet}>
+
+            {sheetsData?.error && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  Smartsheet authorization failed. Please make sure you used a valid Smartsheet Personal Access Token (API Access)
+                  for a user that has access to the target sheet, then click “Test Connection”.
+                  <div className="mt-2 text-xs opacity-90">Details: {sheetsData.error}</div>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <Select value={selectedSheet} onValueChange={setSelectedSheet} disabled={!!sheetsData?.error}>
               <SelectTrigger>
                 <SelectValue placeholder={isLoadingSheets ? 'Loading sheets...' : 'Select a sheet'} />
               </SelectTrigger>
