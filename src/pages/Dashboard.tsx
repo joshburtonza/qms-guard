@@ -16,6 +16,7 @@ import {
 import { AppLayout } from '@/components/layout/AppLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { NCListItem } from '@/components/nc/NCListItem';
+import { SmartsheetWidget } from '@/components/smartsheet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -51,7 +52,7 @@ import {
   Legend,
 } from 'recharts';
 
-const CHART_COLORS = ['#1e3a5f', '#f97316', '#22c55e', '#a855f7', '#eab308'];
+const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
 export default function Dashboard() {
   const { profile, roles } = useAuth();
@@ -392,7 +393,7 @@ export default function Dashboard() {
               <CardContent>
                 {myTasks.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <CheckCircle className="h-12 w-12 text-green-500 mb-3" />
+                    <CheckCircle className="h-12 w-12 text-primary mb-3" />
                     <p className="font-medium">All caught up!</p>
                     <p className="text-sm text-muted-foreground">
                       No pending actions at the moment
@@ -409,7 +410,7 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Quick Stats */}
+          {/* Quick Stats & Integrations */}
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -418,18 +419,21 @@ export default function Dashboard() {
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Closed This Month</span>
-                  <span className="font-semibold text-green-600">{stats.closed}</span>
+                  <span className="font-semibold text-primary">{stats.closed}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Pending Review</span>
-                  <span className="font-semibold text-purple-600">{stats.pending_review}</span>
+                  <span className="font-semibold text-primary">{stats.pending_review}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Awaiting Verification</span>
-                  <span className="font-semibold text-yellow-600">{stats.pending_verification}</span>
+                  <span className="font-semibold text-primary">{stats.pending_verification}</span>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Smartsheet Integration Widget */}
+            <SmartsheetWidget />
           </div>
         </div>
 
@@ -438,7 +442,7 @@ export default function Dashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="flex items-center gap-2 text-amber-600">
+                <CardTitle className="flex items-center gap-2 text-destructive">
                   <AlertTriangle className="h-5 w-5" />
                   Overdue Actions
                 </CardTitle>

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Mail, Phone, Building, Loader2 } from 'lucide-react';
+import { ArrowLeft, User, Phone, Building, Loader2, FileSpreadsheet } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { SmartsheetConfigModal } from '@/components/smartsheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +36,7 @@ export default function Settings() {
   const { profile, roles, signOut } = useAuth();
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showSmartsheetConfig, setShowSmartsheetConfig] = useState(false);
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -206,7 +208,36 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Integrations */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Integrations</CardTitle>
+            <CardDescription>Connect external services</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <FileSpreadsheet className="h-8 w-8 text-primary" />
+                <div>
+                  <p className="font-medium">Smartsheet</p>
+                  <p className="text-sm text-muted-foreground">
+                    Sync NC data with Smartsheet
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" onClick={() => setShowSmartsheetConfig(true)}>
+                Configure
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <SmartsheetConfigModal
+        open={showSmartsheetConfig}
+        onOpenChange={setShowSmartsheetConfig}
+      />
     </AppLayout>
   );
 }

@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.nc-scheduled-tasks]
 verify_jwt = false
+
+[functions.smartsheet-sync]
+verify_jwt = false
