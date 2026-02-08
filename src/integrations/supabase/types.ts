@@ -1637,6 +1637,7 @@ export type Database = {
           severity: Database["public"]["Enums"]["nc_severity"]
           shift: string | null
           site_location: string | null
+          smartsheet_row_id: string | null
           status: Database["public"]["Enums"]["nc_status"]
           tenant_id: string | null
           updated_at: string | null
@@ -1663,6 +1664,7 @@ export type Database = {
           severity: Database["public"]["Enums"]["nc_severity"]
           shift?: string | null
           site_location?: string | null
+          smartsheet_row_id?: string | null
           status?: Database["public"]["Enums"]["nc_status"]
           tenant_id?: string | null
           updated_at?: string | null
@@ -1689,6 +1691,7 @@ export type Database = {
           severity?: Database["public"]["Enums"]["nc_severity"]
           shift?: string | null
           site_location?: string | null
+          smartsheet_row_id?: string | null
           status?: Database["public"]["Enums"]["nc_status"]
           tenant_id?: string | null
           updated_at?: string | null
@@ -1823,6 +1826,116 @@ export type Database = {
           },
           {
             foreignKeyName: "qr_locations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smartsheet_config: {
+        Row: {
+          column_mapping: Json
+          created_at: string
+          id: string
+          last_sync_at: string | null
+          last_sync_error: string | null
+          last_sync_status: string | null
+          sheet_id: string
+          sheet_name: string | null
+          sync_enabled: boolean
+          tenant_id: string
+          updated_at: string
+          webhook_id: string | null
+          webhook_secret: string | null
+        }
+        Insert: {
+          column_mapping?: Json
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          last_sync_status?: string | null
+          sheet_id: string
+          sheet_name?: string | null
+          sync_enabled?: boolean
+          tenant_id: string
+          updated_at?: string
+          webhook_id?: string | null
+          webhook_secret?: string | null
+        }
+        Update: {
+          column_mapping?: Json
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          last_sync_status?: string | null
+          sheet_id?: string
+          sheet_name?: string | null
+          sync_enabled?: boolean
+          tenant_id?: string
+          updated_at?: string
+          webhook_id?: string | null
+          webhook_secret?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smartsheet_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smartsheet_sync_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          nc_id: string | null
+          payload: Json | null
+          smartsheet_row_id: string | null
+          sync_direction: string
+          sync_status: string
+          sync_type: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          nc_id?: string | null
+          payload?: Json | null
+          smartsheet_row_id?: string | null
+          sync_direction: string
+          sync_status: string
+          sync_type: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          nc_id?: string | null
+          payload?: Json | null
+          smartsheet_row_id?: string | null
+          sync_direction?: string
+          sync_status?: string
+          sync_type?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smartsheet_sync_log_nc_id_fkey"
+            columns: ["nc_id"]
+            isOneToOne: false
+            referencedRelation: "non_conformances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smartsheet_sync_log_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

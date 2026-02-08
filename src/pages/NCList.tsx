@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Download, Loader2 } from 'lucide-react';
+import { Plus, Search, Download, Loader2, FileSpreadsheet } from 'lucide-react';
 import { format } from 'date-fns';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { NCListItem } from '@/components/nc/NCListItem';
+import { SmartsheetSyncModal } from '@/components/smartsheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -20,6 +21,7 @@ import { NCStatus, NC_STATUS_LABELS, NC_CATEGORY_LABELS, NCCategory } from '@/ty
 import { useToast } from '@/hooks/use-toast';
 
 export default function NCList() {
+  const [showSmartsheetModal, setShowSmartsheetModal] = useState(false);
   const { toast } = useToast();
   const [ncs, setNCs] = useState<any[]>([]);
   const [filteredNCs, setFilteredNCs] = useState<any[]>([]);
@@ -206,6 +208,13 @@ export default function NCList() {
           <div className="flex gap-2">
             <Button 
               variant="outline" 
+              onClick={() => setShowSmartsheetModal(true)}
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Smartsheet
+            </Button>
+            <Button 
+              variant="outline" 
               onClick={handleExport}
               disabled={isExporting}
             >
@@ -224,6 +233,11 @@ export default function NCList() {
             </Button>
           </div>
         </div>
+
+        <SmartsheetSyncModal 
+          open={showSmartsheetModal} 
+          onOpenChange={setShowSmartsheetModal} 
+        />
 
         {/* Filters */}
         <Card className="p-4">
