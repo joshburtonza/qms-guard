@@ -87,12 +87,17 @@ export function QAClassificationForm({ nc, onSuccess }: QAClassificationFormProp
 
     try {
       // Update the NC with QA classification
+      // Dual-write to both real columns AND workflow_history for backward compatibility
       const { error: updateError } = await supabase
         .from('non_conformances')
         .update({
           status: 'in_progress',
           current_step: 2,
           due_date: format(data.due_date, 'yyyy-MM-dd'),
+          // Write to real columns for easy querying/filtering
+          risk_classification: data.risk_classification,
+          qa_classification_comments: data.qa_comments,
+          // Also keep in workflow_history for audit trail
           workflow_history: [
             ...(nc.workflow_history || []),
             {
