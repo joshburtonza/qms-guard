@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth, differenceInDays } from 'date-fns';
 import {
   FileWarning,
   Clock,
@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ListTodo,
   BarChart3,
+  Timer,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
@@ -18,6 +19,15 @@ import { NCListItem } from '@/components/nc/NCListItem';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -45,6 +55,7 @@ const CHART_COLORS = ['#1e3a5f', '#f97316', '#22c55e', '#a855f7', '#eab308'];
 
 export default function Dashboard() {
   const { profile, roles } = useAuth();
+  const [allNCs, setAllNCs] = useState<any[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     open: 0,
     in_progress: 0,
@@ -77,6 +88,8 @@ export default function Dashboard() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      setAllNCs(ncs || []);
 
       // Calculate stats
       const newStats: DashboardStats = {
@@ -133,6 +146,69 @@ export default function Dashboard() {
     }
   }
 
+  // Calculate closure rate
+  const closureRate = useMemo(() => {
+    const total = allNCs.length;
+    if (total === 0) return null;
+    return Math.round((stats.closed / total) * 100);
+  }, [allNCs.length, stats.closed]);
+
+  // Calculate average resolution time
+  const avgResolutionDays = useMemo(() => {
+    const closedNCs = allNCs.filter(nc => nc.status === 'closed' && nc.closed_at && nc.created_at);
+    if (closedNCs.length === 0) return null;
+    
+    const totalDays = closedNCs.reduce((sum, nc) => {
+      const days = differenceInDays(new Date(nc.closed_at), new Date(nc.created_at));
+      return sum + Math.max(0, days);
+    }, 0);
+    
+    return Math.round(totalDays / closedNCs.length);
+  }, [allNCs]);
+
+  // Calculate monthly trend data
+  const trendData = useMemo(() => {
+    const months = [];
+    const now = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = subMonths(now, i);
+      const monthStart = startOfMonth(monthDate);
+      const monthEnd = endOfMonth(monthDate);
+      
+      const created = allNCs.filter(nc => {
+        const createdDate = new Date(nc.created_at);
+        return createdDate >= monthStart && createdDate <= monthEnd;
+      }).length;
+      
+      const closed = allNCs.filter(nc => {
+        if (!nc.closed_at) return false;
+        const closedDate = new Date(nc.closed_at);
+        return closedDate >= monthStart && closedDate <= monthEnd;
+      }).length;
+      
+      months.push({
+        month: format(monthDate, 'MMM'),
+        created,
+        closed,
+      });
+    }
+    
+    return months;
+  }, [allNCs]);
+
+  // Get overdue NCs list
+  const overdueNCs = useMemo(() => {
+    return allNCs
+      .filter(nc => isOverdue(nc.due_date, nc.status))
+      .map(nc => ({
+        ...nc,
+        daysOverdue: differenceInDays(new Date(), new Date(nc.due_date)),
+      }))
+      .sort((a, b) => b.daysOverdue - a.daysOverdue)
+      .slice(0, 10);
+  }, [allNCs]);
+
   if (isLoading) {
     return (
       <AppLayout>
@@ -168,7 +244,7 @@ export default function Dashboard() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
           <KPICard
             title="Open"
             value={stats.open}
@@ -194,6 +270,101 @@ export default function Dashboard() {
             icon={AlertTriangle}
             variant={stats.overdue > 0 ? 'danger' : 'success'}
           />
+          <KPICard
+            title="Closure Rate"
+            value={closureRate !== null ? `${closureRate}%` : 'N/A'}
+            icon={CheckCircle}
+            variant="success"
+          />
+          <KPICard
+            title="Avg Resolution"
+            value={avgResolutionDays !== null ? `${avgResolutionDays} days` : 'N/A'}
+            icon={Timer}
+            variant="default"
+          />
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Monthly Trend Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <TrendingUp className="h-5 w-5" />
+                NC Trend — Last 6 Months
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={trendData}>
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="created" name="Created" fill="#1e3a5f" />
+                    <Bar dataKey="closed" name="Closed" fill="#22c55e" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Category Breakdown */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <BarChart3 className="h-5 w-5" />
+                NC by Category
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {categoryData.length === 0 ? (
+                <div className="flex items-center justify-center h-48 text-muted-foreground">
+                  No data available
+                </div>
+              ) : (
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={categoryData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={70}
+                        paddingAngle={2}
+                      >
+                        {categoryData.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={CHART_COLORS[index % CHART_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              <div className="mt-4 space-y-2">
+                {categoryData.slice(0, 4).map((item, index) => (
+                  <div key={item.name} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-3 w-3 rounded-full"
+                        style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                      />
+                      <span className="text-muted-foreground">{item.name}</span>
+                    </div>
+                    <span className="font-medium">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Content Grid */}
@@ -238,65 +409,8 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Charts */}
+          {/* Quick Stats */}
           <div className="space-y-6">
-            {/* Category Breakdown */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <BarChart3 className="h-5 w-5" />
-                  NC by Category
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {categoryData.length === 0 ? (
-                  <div className="flex items-center justify-center h-48 text-muted-foreground">
-                    No data available
-                  </div>
-                ) : (
-                  <div className="h-48">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={categoryData}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={40}
-                          outerRadius={70}
-                          paddingAngle={2}
-                        >
-                          {categoryData.map((_, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={CHART_COLORS[index % CHART_COLORS.length]}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-                <div className="mt-4 space-y-2">
-                  {categoryData.slice(0, 4).map((item, index) => (
-                    <div key={item.name} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="h-3 w-3 rounded-full"
-                          style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-                        />
-                        <span className="text-muted-foreground">{item.name}</span>
-                      </div>
-                      <span className="font-medium">{item.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Stats */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Status Overview</CardTitle>
@@ -318,6 +432,63 @@ export default function Dashboard() {
             </Card>
           </div>
         </div>
+
+        {/* Overdue NCs Table */}
+        {overdueNCs.length > 0 && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-amber-600">
+                  <AlertTriangle className="h-5 w-5" />
+                  Overdue Actions
+                </CardTitle>
+                <CardDescription>
+                  NCs past their due date requiring immediate attention
+                </CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/nc?status=overdue">
+                  View All Overdue
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>NC Number</TableHead>
+                    <TableHead>Responsible Person</TableHead>
+                    <TableHead>Due Date</TableHead>
+                    <TableHead>Days Overdue</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {overdueNCs.map((nc) => (
+                    <TableRow key={nc.id}>
+                      <TableCell>
+                        <Link to={`/nc/${nc.id}`} className="font-medium text-primary hover:underline">
+                          {nc.nc_number}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{nc.responsible?.full_name || 'Unassigned'}</TableCell>
+                      <TableCell className="text-destructive font-medium">
+                        {format(new Date(nc.due_date), 'MMM d, yyyy')}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="destructive">{nc.daysOverdue} days</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{NC_STATUS_LABELS[nc.status as NCStatus]}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </AppLayout>
   );

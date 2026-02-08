@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { QAClassificationForm } from './QAClassificationForm';
 import { ResponsiblePersonForm } from './ResponsiblePersonForm';
 import { ManagerApprovalForm } from './ManagerApprovalForm';
+import { QAVerificationForm } from './QAVerificationForm';
 import { CurrentRoleBadge, FieldLockSummary } from '../FieldLockIndicator';
 
 interface NCActionPanelProps {
@@ -213,11 +214,11 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
     if (nc.status === 'pending_verification') {
       if (isQA) {
         return {
-          canAct: false, // TODO: Implement verification form
-          component: null,
-          message: 'Verification pending - feature coming soon.',
+          canAct: true,
+          component: <QAVerificationForm nc={nc} onSuccess={onUpdate} />,
+          message: 'Please verify the corrective actions and confirm effectiveness.',
           icon: <Shield className="h-5 w-5 text-primary" />,
-          variant: 'info',
+          variant: 'default',
         };
       }
       return {
