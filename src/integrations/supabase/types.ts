@@ -1987,6 +1987,7 @@ export type Database = {
           comments: string | null
           id: string
           nc_id: string
+          signature_data: string | null
           step: number
           tenant_id: string | null
         }
@@ -1997,6 +1998,7 @@ export type Database = {
           comments?: string | null
           id?: string
           nc_id: string
+          signature_data?: string | null
           step: number
           tenant_id?: string | null
         }
@@ -2007,6 +2009,7 @@ export type Database = {
           comments?: string | null
           id?: string
           nc_id?: string
+          signature_data?: string | null
           step?: number
           tenant_id?: string | null
         }
