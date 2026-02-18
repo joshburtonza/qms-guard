@@ -84,7 +84,7 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
           .from('non_conformances')
           .update({
             status: 'closed',
-            current_step: 6,
+            current_step: 5,
             closed_at: new Date().toISOString(),
             workflow_history: [...(nc.workflow_history || []), workflowEntry],
           })
