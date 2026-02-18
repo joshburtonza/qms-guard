@@ -70,7 +70,7 @@ const ncFormSchema = z.object({
   category_other: z.string().optional(),
   severity: z.enum(['critical', 'major', 'minor'], { required_error: 'Please select severity' }),
   description: z.string().min(50, 'Description must be at least 50 characters'),
-  immediate_action: z.string().optional(),
+  
   responsible_person: z.string().min(1, 'Please select a responsible person'),
   due_date: z.date({ required_error: 'Please select a due date' }),
 }).refine((data) => {
@@ -103,7 +103,7 @@ export default function ReportNC() {
       shift: 'general',
       date_occurred: new Date(),
       description: '',
-      immediate_action: '',
+      
     },
   });
 
@@ -170,7 +170,7 @@ export default function ReportNC() {
         category_other: data.category === 'other' ? data.category_other : null,
         severity: data.severity,
         description: data.description,
-        immediate_action: data.immediate_action || null,
+        
         responsible_person: data.responsible_person,
         due_date: format(data.due_date, 'yyyy-MM-dd'),
         status: 'open' as const,
@@ -492,23 +492,6 @@ export default function ReportNC() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="immediate_action"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Immediate Action Taken</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Describe any immediate actions taken to address the issue..."
-                          className="min-h-20"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 {/* File Upload */}
                 <div className="space-y-2">

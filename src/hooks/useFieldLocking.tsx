@@ -144,6 +144,7 @@ export function useFieldLocking({
         return {
           fields: {
             ...defaultFields,
+            immediate_action: { editable: true },
             root_cause: { editable: true },
             corrective_action: { editable: true },
             preventive_action: { editable: true },
