@@ -173,6 +173,36 @@ const emailTemplates = {
     `,
   }),
 
+  nc_escalated: (nc: any, declineCount: number) => ({
+    subject: `[ESCALATION] NC ${nc.nc_number} - ${declineCount} Declines, Admin Review Required`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #7C3AED; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">QMS Guard - ESCALATION</h1>
+        </div>
+        <div style="padding: 20px; background: #f5f3ff;">
+          <h2 style="color: #7C3AED;">⚠️ NC Escalated — Multiple Declines</h2>
+          <p>This NC has been declined <strong>${declineCount} times</strong> and has been escalated for administrator review. The NC remains active in the approve/decline cycle.</p>
+          
+          <div style="background: white; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>NC Number:</strong> ${nc.nc_number}</p>
+            <p><strong>Description:</strong> ${nc.description}</p>
+            <p><strong>Decline Count:</strong> <span style="color: #DC2626; font-weight: bold;">${declineCount}</span></p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.lovable.app'}/nc/${nc.id}" 
+               style="background: #7C3AED; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Review Escalated NC
+            </a>
+          </div>
+          
+          <p style="color: #666;">Please review the NC history and facilitate resolution.</p>
+        </div>
+      </div>
+    `,
+  }),
+
   reminder: (nc: any, daysOverdue: number) => ({
     subject: `[Reminder] NC ${nc.nc_number} - ${daysOverdue > 0 ? `${daysOverdue} Days OVERDUE` : 'Action Required'}`,
     html: `
@@ -265,7 +295,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { type, nc_id, risk_classification, decline_comments } = await req.json();
+    const { type, nc_id, risk_classification, decline_comments, decline_count } = await req.json();
 
     console.log('Processing notification:', { type, nc_id });
 
@@ -355,20 +385,22 @@ Deno.serve(async (req) => {
         break;
       }
 
-      case 'nc_rejected_final': {
-        // Notify QA, admin, and training manager
+      case 'nc_rejected_final':
+      case 'nc_escalated': {
+        // Notify all super_admin and site_admin users in the tenant
         const { data: admins } = await supabase
           .from('user_roles')
           .select('user_id')
-          .in('role', ['super_admin', 'site_admin', 'verifier']);
+          .in('role', ['super_admin', 'site_admin']);
+
+        const template = type === 'nc_escalated'
+          ? emailTemplates.nc_escalated(nc, decline_count || 3)
+          : emailTemplates.nc_rejected_final(nc);
 
         for (const admin of admins || []) {
           const email = await getEmailForUser(supabase, admin.user_id);
           if (email) {
-            notifications.push({
-              to: email,
-              template: emailTemplates.nc_rejected_final(nc),
-            });
+            notifications.push({ to: email, template });
           }
         }
         break;
