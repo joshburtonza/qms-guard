@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 interface StatusBadgeProps {
   status: NCStatus;
   isOverdue?: boolean;
+  isEscalated?: boolean;
   className?: string;
 }
 
@@ -17,27 +18,35 @@ const statusStyles: Record<NCStatus, string> = {
   rejected: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100',
 };
 
-export function StatusBadge({ status, isOverdue, className }: StatusBadgeProps) {
-  if (isOverdue) {
-    return (
-      <Badge 
-        variant="outline" 
-        className={cn(
-          'bg-red-100 text-red-800 border-red-200 animate-pulse-subtle',
-          className
-        )}
-      >
-        Overdue
-      </Badge>
-    );
-  }
-
+export function StatusBadge({ status, isOverdue, isEscalated, className }: StatusBadgeProps) {
   return (
-    <Badge 
-      variant="outline" 
-      className={cn(statusStyles[status], className)}
-    >
-      {NC_STATUS_LABELS[status]}
-    </Badge>
+    <div className="flex items-center gap-1.5">
+      {isOverdue ? (
+        <Badge 
+          variant="outline" 
+          className={cn(
+            'bg-red-100 text-red-800 border-red-200 animate-pulse-subtle',
+            className
+          )}
+        >
+          Overdue
+        </Badge>
+      ) : (
+        <Badge 
+          variant="outline" 
+          className={cn(statusStyles[status], className)}
+        >
+          {NC_STATUS_LABELS[status]}
+        </Badge>
+      )}
+      {isEscalated && (
+        <Badge 
+          variant="outline" 
+          className="bg-purple-100 text-purple-800 border-purple-200"
+        >
+          ESCALATED
+        </Badge>
+      )}
+    </div>
   );
 }

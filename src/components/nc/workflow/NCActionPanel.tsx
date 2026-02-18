@@ -114,7 +114,7 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
       return {
         canAct: false,
         component: null,
-        message: 'This non-conformance was rejected after two review attempts. Manual intervention is required.',
+        message: 'This non-conformance was rejected (legacy status). Contact an administrator for resolution.',
         icon: <Ban className="h-5 w-5 text-red-600" />,
         variant: 'warning',
       };
@@ -175,11 +175,10 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
 
     // Step 3/5: Pending Review - waiting for manager approval
     if (nc.status === 'pending_review') {
-      // Determine if this is second approval round
-      const approvalCount = (nc.workflow_history || []).filter(
+      const declineCount = (nc.workflow_history || []).filter(
         (h: any) => h.action === 'manager_declined'
       ).length;
-      const isSecondApproval = approvalCount >= 1;
+      const isEscalated = declineCount >= 3;
 
       if (isManager) {
         return {
@@ -188,17 +187,16 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
             <ManagerApprovalForm 
               nc={nc} 
               correctiveAction={correctiveAction}
-              isSecondApproval={isSecondApproval}
               onSuccess={onUpdate} 
             />
           ),
-          message: isSecondApproval 
-            ? 'This is the final review round. Please make your decision carefully.'
+          message: isEscalated
+            ? 'This NC has been escalated after multiple declines. Please review carefully.'
             : 'Please review the corrective action and make your decision.',
-          icon: isSecondApproval 
+          icon: isEscalated 
             ? <AlertTriangle className="h-5 w-5 text-amber-500" />
             : <Shield className="h-5 w-5 text-primary" />,
-          variant: isSecondApproval ? 'warning' : 'default',
+          variant: isEscalated ? 'warning' : 'default',
         };
       }
       return {

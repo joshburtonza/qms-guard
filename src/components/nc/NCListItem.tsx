@@ -20,6 +20,10 @@ export function NCListItem({ nc, className }: NCListItemProps) {
   const overdue = isOverdue(nc.due_date, nc.status);
   const dueDate = new Date(nc.due_date);
   const isToday = format(dueDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+  const declineCount = ((nc as any).workflow_history || []).filter(
+    (h: any) => h.action === 'manager_declined'
+  ).length;
+  const isEscalated = declineCount >= 3;
 
   return (
     <Link to={`/nc/${nc.id}`}>
@@ -35,7 +39,7 @@ export function NCListItem({ nc, className }: NCListItemProps) {
               <span className="font-mono text-sm font-semibold text-primary">
                 {nc.nc_number}
               </span>
-              <StatusBadge status={nc.status} isOverdue={overdue} />
+              <StatusBadge status={nc.status} isOverdue={overdue} isEscalated={isEscalated} />
               <SeverityIndicator severity={nc.severity} showLabel={false} />
             </div>
 

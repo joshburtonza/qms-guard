@@ -53,14 +53,12 @@ type ApprovalFormData = z.infer<typeof approvalFormSchema>;
 interface ManagerApprovalFormProps {
   nc: any;
   correctiveAction: any;
-  isSecondApproval?: boolean;
   onSuccess: () => void;
 }
 
 export function ManagerApprovalForm({ 
   nc, 
   correctiveAction,
-  isSecondApproval = false, 
   onSuccess 
 }: ManagerApprovalFormProps) {
   const { toast } = useToast();
@@ -108,28 +106,19 @@ export function ManagerApprovalForm({
     setIsSubmitting(true);
 
     try {
-      const approvalStep = isSecondApproval ? 6 : 4;
       const isApproved = data.decision === 'approve';
+      const declineCount = (nc.workflow_history || []).filter(
+        (h: any) => h.action === 'manager_declined'
+      ).length;
 
-      let newStatus: string;
-      let newStep: number;
-
-      if (isApproved) {
-        newStatus = 'pending_verification';
-        newStep = 4;
-      } else if (isSecondApproval) {
-        newStatus = 'rejected';
-        newStep = 6;
-      } else {
-        newStatus = 'in_progress';
-        newStep = 3;
-      }
+      const newStatus = isApproved ? 'pending_verification' : 'in_progress';
+      const newStep = isApproved ? 4 : 3;
 
       const { error: approvalError } = await supabase
         .from('workflow_approvals')
         .insert({
           nc_id: nc.id,
-          step: approvalStep,
+          step: 4,
           action: data.decision === 'approve' ? 'approved' : 'rejected',
           comments: data.comments,
           approved_by: profile.id,
@@ -138,19 +127,26 @@ export function ManagerApprovalForm({
 
       if (approvalError) throw approvalError;
 
+      const workflowEntry = isApproved
+        ? {
+            action: 'manager_approved',
+            by: profile.id,
+            at: new Date().toISOString(),
+            signature: signatureData,
+          }
+        : {
+            action: 'manager_declined',
+            by: profile.id,
+            at: new Date().toISOString(),
+            comments: data.comments,
+          };
+
       const updateData: any = {
         status: newStatus,
         current_step: newStep,
         workflow_history: [
           ...(nc.workflow_history || []),
-          {
-            step: approvalStep,
-            action: data.decision === 'approve' ? 'manager_approved' : 'manager_declined',
-            comments: data.comments,
-            approval_round: isSecondApproval ? 2 : 1,
-            performed_by: profile.id,
-            performed_at: new Date().toISOString(),
-          },
+          workflowEntry,
         ],
       };
 
@@ -161,34 +157,31 @@ export function ManagerApprovalForm({
 
       if (updateError) throw updateError;
 
+      // Check if this decline triggers escalation (3+ declines)
+      const newDeclineCount = isApproved ? declineCount : declineCount + 1;
+      const shouldEscalate = !isApproved && newDeclineCount >= 3;
+
       await supabase.from('nc_activity_log').insert({
         nc_id: nc.id,
         action: isApproved 
-          ? 'NC Approved & Closed' 
-          : isSecondApproval 
-            ? 'NC Rejected (Final)' 
-            : 'NC Declined - Rework Required',
+          ? 'NC Approved — Awaiting QA Verification' 
+          : shouldEscalate
+            ? 'NC Declined & Escalated to Admin'
+            : 'NC Declined — Rework Required',
         details: {
           decision: data.decision,
           comments: data.comments,
-          approval_round: isSecondApproval ? 2 : 1,
+          decline_count: newDeclineCount,
+          escalated: shouldEscalate,
           approved_by: profile.full_name,
         },
         performed_by: profile.id,
       });
 
-      let notificationType: string;
-      if (isApproved) {
-        notificationType = 'nc_approved';
-      } else if (isSecondApproval) {
-        notificationType = 'nc_rejected_final';
-      } else {
-        notificationType = 'nc_declined';
-      }
-
+      // Send notifications
       await supabase.functions.invoke('nc-workflow-notification', {
         body: {
-          type: notificationType,
+          type: isApproved ? 'nc_approved' : shouldEscalate ? 'nc_escalated' : 'nc_declined',
           nc_id: nc.id,
           decline_comments: data.comments,
         },
@@ -198,8 +191,8 @@ export function ManagerApprovalForm({
         title: isApproved ? 'NC Approved' : 'NC Declined',
         description: isApproved 
           ? `NC ${nc.nc_number} has been approved. Awaiting QA verification.`
-          : isSecondApproval
-            ? `NC ${nc.nc_number} has been rejected. Manual intervention required.`
+          : shouldEscalate
+            ? `NC ${nc.nc_number} has been sent back for rework and escalated to administrators.`
             : `NC ${nc.nc_number} has been sent back for rework.`,
         variant: isApproved ? 'default' : 'destructive',
       });
@@ -226,13 +219,10 @@ export function ManagerApprovalForm({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CheckCircle className="h-5 w-5 text-primary" />
-          Manager Review {isSecondApproval && '(Final Approval)'}
+          Manager Review
         </CardTitle>
         <CardDescription>
-          {isSecondApproval 
-            ? 'This is the final review. Declining will require manual intervention.'
-            : 'Review the corrective action and either approve to close or decline for rework.'
-          }
+          Review the corrective action and either approve to close or decline for rework.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -262,17 +252,6 @@ export function ManagerApprovalForm({
         )}
 
         <Separator />
-
-        {isSecondApproval && (
-          <Alert variant="destructive" className="border-destructive/20 bg-destructive/5">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Final Approval Round</AlertTitle>
-            <AlertDescription>
-              This is the second and final review. If you decline, the NC will be marked as rejected
-              and will require manual intervention from QA or Admin to resolve.
-            </AlertDescription>
-          </Alert>
-        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit, handleInvalidSubmit)} className="space-y-6">
@@ -328,8 +307,8 @@ export function ManagerApprovalForm({
                               Decline
                             </label>
                             <p className="text-xs text-muted-foreground">
-                              {isSecondApproval ? 'Reject & escalate' : 'Needs more work'}
-                            </p>
+                               Needs more work
+                             </p>
                           </div>
                         </div>
                       </div>

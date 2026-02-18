@@ -146,7 +146,7 @@ export default function NCDetail() {
               <h1 className="text-2xl font-bold tracking-tight font-mono">
                 {nc.nc_number}
               </h1>
-              <StatusBadge status={nc.status} isOverdue={overdue} />
+              <StatusBadge status={nc.status} isOverdue={overdue} isEscalated={((nc as any).workflow_history || []).filter((h: any) => h.action === 'manager_declined').length >= 3} />
               <SeverityIndicator severity={nc.severity} />
               <Button 
                 variant="ghost" 
