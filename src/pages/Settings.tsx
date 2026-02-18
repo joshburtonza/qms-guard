@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Phone, Building, Loader2, FileSpreadsheet, BookOpen } from 'lucide-react';
+import { ArrowLeft, User, Phone, Building, Loader2, FileSpreadsheet, BookOpen, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -220,6 +220,22 @@ export default function Settings() {
                 Manage
               </Button>
             </div>
+            {roles.includes('super_admin') && (
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Trash2 className="h-8 w-8 text-destructive" />
+                  <div>
+                    <p className="font-medium">Data Cleanup</p>
+                    <p className="text-sm text-muted-foreground">
+                      Search, scan, and remove sensitive data from records
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" onClick={() => navigate('/settings/data-cleanup')}>
+                  Manage
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
