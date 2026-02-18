@@ -891,16 +891,20 @@ export type Database = {
           common_nonconformities: string[] | null
           compliance_indicators: string[] | null
           created_at: string | null
+          edith_number: string
+          effective_from: string | null
           evidence_required: string[] | null
           id: string
           interpretation: string | null
           is_mandatory: boolean | null
+          iso_standard_version: string | null
           mining_context: string | null
           parent_clause: string | null
           qms_guard_mapping: Json | null
           requirement_text: string
           section_number: string | null
           section_title: string | null
+          superseded_by: string | null
           updated_at: string | null
         }
         Insert: {
@@ -910,16 +914,20 @@ export type Database = {
           common_nonconformities?: string[] | null
           compliance_indicators?: string[] | null
           created_at?: string | null
+          edith_number: string
+          effective_from?: string | null
           evidence_required?: string[] | null
           id?: string
           interpretation?: string | null
           is_mandatory?: boolean | null
+          iso_standard_version?: string | null
           mining_context?: string | null
           parent_clause?: string | null
           qms_guard_mapping?: Json | null
           requirement_text: string
           section_number?: string | null
           section_title?: string | null
+          superseded_by?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -929,19 +937,31 @@ export type Database = {
           common_nonconformities?: string[] | null
           compliance_indicators?: string[] | null
           created_at?: string | null
+          edith_number?: string
+          effective_from?: string | null
           evidence_required?: string[] | null
           id?: string
           interpretation?: string | null
           is_mandatory?: boolean | null
+          iso_standard_version?: string | null
           mining_context?: string | null
           parent_clause?: string | null
           qms_guard_mapping?: Json | null
           requirement_text?: string
           section_number?: string | null
           section_title?: string | null
+          superseded_by?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "edith_iso_knowledge_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "edith_iso_knowledge"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       edith_knowledge: {
         Row: {
@@ -1323,6 +1343,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      iso_clause_versions: {
+        Row: {
+          active: boolean
+          clause_number: string
+          clause_title: string
+          created_at: string
+          edith_number: string
+          id: string
+          iso_version: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          clause_number: string
+          clause_title: string
+          created_at?: string
+          edith_number: string
+          id?: string
+          iso_version: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          clause_number?: string
+          clause_title?: string
+          created_at?: string
+          edith_number?: string
+          id?: string
+          iso_version?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       moderation_attachments: {
         Row: {

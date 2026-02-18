@@ -52,6 +52,7 @@ import DepartmentManagerMapping from "./pages/settings/DepartmentManagerMapping"
 // Edith Full Page
 import Edith from "./pages/Edith";
 import EdithSettings from "./pages/settings/EdithSettings";
+import ClauseManagement from "./pages/settings/ClauseManagement";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,7 @@ const App = () => (
                   {/* Edith AI Full Page */}
                   <Route path="/edith" element={<Edith />} />
                   <Route path="/settings/edith" element={<EdithSettings />} />
+                  <Route path="/settings/clauses" element={<ClauseManagement />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 {/* Edith AI Assistant */}
