@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Phone, Building, Loader2, FileSpreadsheet } from 'lucide-react';
+import { ArrowLeft, User, Phone, Building, Loader2, FileSpreadsheet, BookOpen } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -204,6 +204,20 @@ export default function Settings() {
             <div className="pt-4 border-t">
               <Button variant="destructive" onClick={signOut}>
                 Sign Out
+              </Button>
+            </div>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <BookOpen className="h-8 w-8 text-primary" />
+                <div>
+                  <p className="font-medium">Clause Management</p>
+                  <p className="text-sm text-muted-foreground">
+                    Manage Edith Numbers and ISO clause version mappings
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" onClick={() => navigate('/settings/clauses')}>
+                Manage
               </Button>
             </div>
           </CardContent>
