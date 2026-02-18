@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { X, Sparkles, Plus, History, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useEdith } from '@/hooks/useEdith';
 import { EdithChat } from './EdithChat';
@@ -19,20 +19,21 @@ export function EdithPanel() {
   }, [loadConversation]);
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && closeEdith()}>
-      <SheetContent 
-        side="right" 
-        className="w-full sm:w-[400px] p-0 flex flex-col"
+    <Dialog open={isOpen} onOpenChange={(open) => !open && closeEdith()}>
+      <DialogContent
+        hideCloseButton
+        overlayClassName="backdrop-blur-sm bg-black/50"
+        className="w-screen h-screen max-w-none max-h-none rounded-none p-0 flex flex-col gap-0 border-0 sm:w-[90vw] sm:h-[85vh] sm:max-w-[700px] sm:max-h-[85vh] sm:rounded-xl sm:border"
       >
         {/* Header */}
-        <SheetHeader className="border-b p-4 shrink-0">
+        <div className="border-b p-4 shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
                 <Sparkles className="h-4 w-4 text-primary-foreground" />
               </div>
               <div>
-                <SheetTitle className="text-left">Edith</SheetTitle>
+                <DialogTitle className="text-left text-base">Edith</DialogTitle>
                 <p className="text-xs text-muted-foreground">QMS AI Assistant</p>
               </div>
             </div>
@@ -65,7 +66,7 @@ export function EdithPanel() {
               </Button>
             </div>
           </div>
-        </SheetHeader>
+        </div>
 
         {/* Context Bar - Shows what Edith sees */}
         <EdithContextBar />
@@ -108,7 +109,7 @@ export function EdithPanel() {
             </p>
           </div>
         )}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
