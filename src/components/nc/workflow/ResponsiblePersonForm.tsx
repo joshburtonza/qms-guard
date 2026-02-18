@@ -22,20 +22,21 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { scrollToFirstError } from '@/lib/form-utils';
 
 const rpFormSchema = z.object({
   immediate_action: z.string().optional(),
-  root_cause: z.string().min(20, 'Root cause analysis must be at least 20 characters'),
-  corrective_action: z.string().min(20, 'Corrective actions must be at least 20 characters'),
-  preventive_action: z.string().optional(),
-  completion_date: z.date({ required_error: 'Please select a completion date' }),
+  root_cause: z.string().min(20, 'Root cause analysis is required. Please provide a detailed explanation.'),
+  corrective_action: z.string().min(20, 'Corrective actions are required. Please describe the specific actions to address this NC.'),
+  preventive_action: z.string().min(10, 'Preventive action is required to prevent recurrence.'),
+  completion_date: z.date({ required_error: 'Expected completion date is required.' }),
 });
 
 type RPFormData = z.infer<typeof rpFormSchema>;
 
 interface ResponsiblePersonFormProps {
   nc: any;
-  isRework?: boolean; // True if this is Round 2 after decline
+  isRework?: boolean;
   previousDeclineComments?: string;
   onSuccess: () => void;
 }
@@ -66,7 +67,7 @@ export function ResponsiblePersonForm({
     const selectedFiles = Array.from(e.target.files || []);
     const validFiles = selectedFiles.filter((file) => {
       const isValidType = /\.(jpg|jpeg|png|pdf|doc|docx)$/i.test(file.name);
-      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+      const isValidSize = file.size <= 10 * 1024 * 1024;
       return isValidType && isValidSize;
     });
 
@@ -83,6 +84,17 @@ export function ResponsiblePersonForm({
 
   function removeFile(index: number) {
     setFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleInvalidSubmit() {
+    const errorCount = scrollToFirstError(form.formState.errors);
+    if (errorCount > 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Please complete all required fields before submitting',
+        description: `${errorCount} required field${errorCount > 1 ? 's' : ''} need${errorCount === 1 ? 's' : ''} to be completed`,
+      });
+    }
   }
 
   async function onSubmit(data: RPFormData) {
@@ -125,9 +137,8 @@ export function ResponsiblePersonForm({
 
       if (caError) throw caError;
 
-      // Update NC status to pending review (manager approval)
-      const nextStep = isRework ? 5 : 3; // Step 5 for rework, Step 3 for first submission
-      const nextStatus = isRework ? 'pending_review' : 'pending_review';
+      const nextStep = isRework ? 5 : 3;
+      const nextStatus = 'pending_review';
 
       const { error: updateError } = await supabase
         .from('non_conformances')
@@ -155,7 +166,6 @@ export function ResponsiblePersonForm({
 
       if (updateError) throw updateError;
 
-      // Log activity
       await supabase.from('nc_activity_log').insert({
         nc_id: nc.id,
         action: isRework ? 'Rework Response Submitted' : 'Corrective Action Submitted',
@@ -169,7 +179,6 @@ export function ResponsiblePersonForm({
         performed_by: profile.id,
       });
 
-      // Trigger notification to training manager
       await supabase.functions.invoke('nc-workflow-notification', {
         body: {
           type: isRework ? 'rework_submitted' : 'response_submitted',
@@ -179,7 +188,7 @@ export function ResponsiblePersonForm({
 
       toast({
         title: isRework ? 'Rework Submitted' : 'Response Submitted',
-        description: `Your ${isRework ? 'revised' : ''} corrective action has been submitted for manager review.`,
+        description: `Your ${isRework ? 'revised ' : ''}corrective action has been submitted for manager review.`,
       });
 
       onSuccess();
@@ -194,6 +203,10 @@ export function ResponsiblePersonForm({
       setIsSubmitting(false);
     }
   }
+
+  const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
+    <span>{children} <span className="text-destructive">*</span></span>
+  );
 
   return (
     <Card>
@@ -219,12 +232,12 @@ export function ResponsiblePersonForm({
         )}
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit, handleInvalidSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="immediate_action"
               render={({ field }) => (
-                <FormItem>
+                <FormItem data-form-field>
                   <FormLabel>What immediate action was taken to contain this non-conformance?</FormLabel>
                   <FormControl>
                     <Textarea
@@ -245,8 +258,8 @@ export function ResponsiblePersonForm({
               control={form.control}
               name="root_cause"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Root Cause Analysis *</FormLabel>
+                <FormItem data-form-field>
+                  <FormLabel><RequiredLabel>Root Cause Analysis</RequiredLabel></FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Describe the root cause of this non-conformance. What underlying factors led to this issue?"
@@ -263,8 +276,8 @@ export function ResponsiblePersonForm({
               control={form.control}
               name="corrective_action"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Corrective Actions *</FormLabel>
+                <FormItem data-form-field>
+                  <FormLabel><RequiredLabel>Corrective Actions</RequiredLabel></FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Describe the specific actions taken or planned to correct this issue..."
@@ -281,8 +294,8 @@ export function ResponsiblePersonForm({
               control={form.control}
               name="preventive_action"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Preventive Actions (Optional)</FormLabel>
+                <FormItem data-form-field>
+                  <FormLabel><RequiredLabel>Preventive Actions</RequiredLabel></FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Describe any preventive measures to avoid recurrence of this issue..."
@@ -299,8 +312,8 @@ export function ResponsiblePersonForm({
               control={form.control}
               name="completion_date"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Target Completion Date *</FormLabel>
+                <FormItem className="flex flex-col" data-form-field>
+                  <FormLabel><RequiredLabel>Target Completion Date</RequiredLabel></FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>

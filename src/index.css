@@ -377,3 +377,18 @@
     display: none;
   }
 }
+
+/* Field validation error animation */
+.field-validation-error {
+  animation: field-shake 0.4s ease-in-out;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.5);
+}
+
+@keyframes field-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}

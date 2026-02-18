@@ -22,13 +22,30 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { scrollToFirstError } from '@/lib/form-utils';
 
+// Use superRefine for conditional validation based on decision
 const approvalFormSchema = z.object({
   decision: z.enum(['approve', 'decline'], {
     required_error: 'Please select a decision',
   }),
-  comments: z.string().min(10, 'Please provide comments for your decision (min 10 characters)'),
+  comments: z.string().optional().default(''),
   signature: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.decision === 'decline') {
+    if (!data.comments || data.comments.length < 10) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'You must provide a reason for declining (minimum 10 characters).',
+        path: ['comments'],
+      });
+    }
+  }
+  if (data.decision === 'approve') {
+    if (!data.comments || data.comments.length === 0) {
+      // Comments optional for approval, but encourage
+    }
+  }
 });
 
 type ApprovalFormData = z.infer<typeof approvalFormSchema>;
@@ -36,7 +53,7 @@ type ApprovalFormData = z.infer<typeof approvalFormSchema>;
 interface ManagerApprovalFormProps {
   nc: any;
   correctiveAction: any;
-  isSecondApproval?: boolean; // True if this is Round 2 (final) approval
+  isSecondApproval?: boolean;
   onSuccess: () => void;
 }
 
@@ -61,33 +78,53 @@ export function ManagerApprovalForm({
 
   const selectedDecision = form.watch('decision');
 
+  // Signature is required for approval
+  const signatureMissing = selectedDecision === 'approve' && !signatureData;
+
+  function handleInvalidSubmit() {
+    const errorCount = scrollToFirstError(form.formState.errors);
+    if (errorCount > 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Please complete all required fields before submitting',
+        description: `${errorCount} required field${errorCount > 1 ? 's' : ''} need${errorCount === 1 ? 's' : ''} to be completed`,
+      });
+    }
+  }
+
   async function onSubmit(data: ApprovalFormData) {
     if (!profile) return;
+
+    // Extra client-side check for signature on approval
+    if (data.decision === 'approve' && !signatureData) {
+      toast({
+        variant: 'destructive',
+        title: 'Digital signature is required for approval.',
+        description: 'Please sign in the signature pad before approving.',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const approvalStep = isSecondApproval ? 6 : 4;
       const isApproved = data.decision === 'approve';
 
-      // Determine new status based on decision
       let newStatus: string;
       let newStep: number;
 
       if (isApproved) {
-        // Approved → send to QA for verification (not direct closure)
         newStatus = 'pending_verification';
         newStep = 4;
       } else if (isSecondApproval) {
-        // Second decline - manual intervention required
         newStatus = 'rejected';
         newStep = 6;
       } else {
-        // First decline - send back for rework
         newStatus = 'in_progress';
-        newStep = 3; // Back to responsible person
+        newStep = 3;
       }
 
-      // Create workflow approval record
       const { error: approvalError } = await supabase
         .from('workflow_approvals')
         .insert({
@@ -101,7 +138,6 @@ export function ManagerApprovalForm({
 
       if (approvalError) throw approvalError;
 
-      // Update NC status
       const updateData: any = {
         status: newStatus,
         current_step: newStep,
@@ -118,8 +154,6 @@ export function ManagerApprovalForm({
         ],
       };
 
-      // Note: closed_at is set during QA verification, not here
-
       const { error: updateError } = await supabase
         .from('non_conformances')
         .update(updateData)
@@ -127,7 +161,6 @@ export function ManagerApprovalForm({
 
       if (updateError) throw updateError;
 
-      // Log activity
       await supabase.from('nc_activity_log').insert({
         nc_id: nc.id,
         action: isApproved 
@@ -144,7 +177,6 @@ export function ManagerApprovalForm({
         performed_by: profile.id,
       });
 
-      // Trigger appropriate notifications
       let notificationType: string;
       if (isApproved) {
         notificationType = 'nc_approved';
@@ -185,11 +217,15 @@ export function ManagerApprovalForm({
     }
   }
 
+  const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
+    <span>{children} <span className="text-destructive">*</span></span>
+  );
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <CheckCircle className="h-5 w-5 text-green-600" />
+          <CheckCircle className="h-5 w-5 text-primary" />
           Manager Review {isSecondApproval && '(Final Approval)'}
         </CardTitle>
         <CardDescription>
@@ -228,7 +264,7 @@ export function ManagerApprovalForm({
         <Separator />
 
         {isSecondApproval && (
-          <Alert variant="destructive" className="border-red-200 bg-red-50">
+          <Alert variant="destructive" className="border-destructive/20 bg-destructive/5">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Final Approval Round</AlertTitle>
             <AlertDescription>
@@ -239,13 +275,13 @@ export function ManagerApprovalForm({
         )}
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit, handleInvalidSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="decision"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Your Decision *</FormLabel>
+                <FormItem data-form-field>
+                  <FormLabel><RequiredLabel>Your Decision</RequiredLabel></FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
@@ -256,16 +292,16 @@ export function ManagerApprovalForm({
                         className={cn(
                           'flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors flex-1',
                           field.value === 'approve'
-                            ? 'border-green-500 bg-green-50'
+                            ? 'border-primary bg-primary/5'
                             : 'border-border hover:bg-muted/50'
                         )}
                         onClick={() => field.onChange('approve')}
                       >
                         <RadioGroupItem value="approve" id="approve" />
                         <div className="flex items-center gap-2">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                          <CheckCircle className="h-5 w-5 text-primary" />
                           <div>
-                            <label htmlFor="approve" className="font-medium text-green-700 cursor-pointer">
+                            <label htmlFor="approve" className="font-medium text-primary cursor-pointer">
                               Approve & Close
                             </label>
                             <p className="text-xs text-muted-foreground">
@@ -279,16 +315,16 @@ export function ManagerApprovalForm({
                         className={cn(
                           'flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors flex-1',
                           field.value === 'decline'
-                            ? 'border-red-500 bg-red-50'
+                            ? 'border-destructive bg-destructive/5'
                             : 'border-border hover:bg-muted/50'
                         )}
                         onClick={() => field.onChange('decline')}
                       >
                         <RadioGroupItem value="decline" id="decline" />
                         <div className="flex items-center gap-2">
-                          <XCircle className="h-5 w-5 text-red-600" />
+                          <XCircle className="h-5 w-5 text-destructive" />
                           <div>
-                            <label htmlFor="decline" className="font-medium text-red-700 cursor-pointer">
+                            <label htmlFor="decline" className="font-medium text-destructive cursor-pointer">
                               Decline
                             </label>
                             <p className="text-xs text-muted-foreground">
@@ -308,16 +344,20 @@ export function ManagerApprovalForm({
               control={form.control}
               name="comments"
               render={({ field }) => (
-                <FormItem>
+                <FormItem data-form-field>
                   <FormLabel>
-                    {selectedDecision === 'decline' ? 'Reason for Decline *' : 'Approval Comments *'}
+                    {selectedDecision === 'decline' ? (
+                      <RequiredLabel>Reason for Decline</RequiredLabel>
+                    ) : (
+                      'Approval Comments'
+                    )}
                   </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder={
                         selectedDecision === 'decline'
                           ? 'Please explain what additional evidence or actions are needed...'
-                          : 'Add any comments for the closure record...'
+                          : 'Add any comments for the closure record (optional)...'
                       }
                       className="min-h-24"
                       {...field}
@@ -329,25 +369,30 @@ export function ManagerApprovalForm({
             />
 
             {selectedDecision === 'approve' && (
-              <div className="space-y-2">
+              <div className="space-y-2" data-form-field>
                 <SignatureCanvas
                   onSignatureChange={setSignatureData}
-                  label="Manager Signature (optional)"
+                  label="Manager Signature *"
                   width={350}
                   height={120}
                 />
+                {signatureMissing && (
+                  <p className="text-sm text-destructive">
+                    Digital signature is required for approval.
+                  </p>
+                )}
               </div>
             )}
 
             <div className="flex gap-3">
               <Button 
                 type="submit" 
-                disabled={isSubmitting}
+                disabled={isSubmitting || (selectedDecision === 'approve' && signatureMissing)}
                 variant={selectedDecision === 'decline' ? 'destructive' : 'default'}
                 className="flex-1"
               >
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {selectedDecision === 'approve' ? 'Approve & Close NC' : 'Decline NC'}
+                {selectedDecision === 'approve' ? 'Approve & Close NC' : selectedDecision === 'decline' ? 'Decline NC' : 'Submit Decision'}
               </Button>
             </div>
           </form>
