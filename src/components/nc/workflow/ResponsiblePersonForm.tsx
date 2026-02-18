@@ -24,6 +24,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
 const rpFormSchema = z.object({
+  immediate_action: z.string().optional(),
   root_cause: z.string().min(20, 'Root cause analysis must be at least 20 characters'),
   corrective_action: z.string().min(20, 'Corrective actions must be at least 20 characters'),
   preventive_action: z.string().optional(),
@@ -53,6 +54,7 @@ export function ResponsiblePersonForm({
   const form = useForm<RPFormData>({
     resolver: zodResolver(rpFormSchema),
     defaultValues: {
+      immediate_action: '',
       root_cause: '',
       corrective_action: '',
       preventive_action: '',
@@ -132,11 +134,13 @@ export function ResponsiblePersonForm({
         .update({
           status: nextStatus,
           current_step: nextStep,
+          immediate_action: data.immediate_action || null,
           workflow_history: [
             ...(nc.workflow_history || []),
             {
               step: nextStep,
               action: isRework ? 'rework_submitted' : 'response_submitted',
+              immediate_action: data.immediate_action,
               root_cause: data.root_cause,
               corrective_action: data.corrective_action,
               preventive_action: data.preventive_action,
@@ -216,6 +220,27 @@ export function ResponsiblePersonForm({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="immediate_action"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>What immediate action was taken to contain this non-conformance?</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe any immediate containment actions taken before root cause analysis..."
+                      className="min-h-20"
+                      {...field}
+                    />
+                  </FormControl>
+                  <p className="text-sm text-muted-foreground">
+                    Describe any immediate containment actions taken before root cause analysis.
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="root_cause"
