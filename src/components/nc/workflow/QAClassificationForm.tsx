@@ -29,8 +29,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { scrollToFirstError } from '@/lib/form-utils';
 
-// Risk classification labels matching the client spec
 const RISK_CLASSIFICATIONS = {
   observation: 'Observation',
   ofi: 'Opportunity for Improvement (OFI)',
@@ -42,10 +42,10 @@ type RiskClassification = keyof typeof RISK_CLASSIFICATIONS;
 
 const qaFormSchema = z.object({
   risk_classification: z.enum(['observation', 'ofi', 'minor', 'major'], {
-    required_error: 'Please select a risk classification',
+    required_error: 'Risk classification is required.',
   }),
   due_date: z.date({ required_error: 'Please select a due date' }),
-  qa_comments: z.string().min(10, 'Please provide detailed QA comments (min 10 characters)'),
+  qa_comments: z.string().min(10, 'Please provide classification comments (minimum 10 characters).'),
 });
 
 type QAFormData = z.infer<typeof qaFormSchema>;
@@ -60,7 +60,6 @@ export function QAClassificationForm({ nc, onSuccess }: QAClassificationFormProp
   const { profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Calculate suggested due dates based on risk
   const getDueDateForRisk = (risk: RiskClassification): Date => {
     const now = new Date();
     switch (risk) {
@@ -81,23 +80,30 @@ export function QAClassificationForm({ nc, onSuccess }: QAClassificationFormProp
 
   const selectedRisk = form.watch('risk_classification');
 
+  function handleInvalidSubmit() {
+    const errorCount = scrollToFirstError(form.formState.errors);
+    if (errorCount > 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Please complete all required fields before submitting',
+        description: `${errorCount} required field${errorCount > 1 ? 's' : ''} need${errorCount === 1 ? 's' : ''} to be completed`,
+      });
+    }
+  }
+
   async function onSubmit(data: QAFormData) {
     if (!profile) return;
     setIsSubmitting(true);
 
     try {
-      // Update the NC with QA classification
-      // Dual-write to both real columns AND workflow_history for backward compatibility
       const { error: updateError } = await supabase
         .from('non_conformances')
         .update({
           status: 'in_progress',
           current_step: 2,
           due_date: format(data.due_date, 'yyyy-MM-dd'),
-          // Write to real columns for easy querying/filtering
           risk_classification: data.risk_classification,
           qa_classification_comments: data.qa_comments,
-          // Also keep in workflow_history for audit trail
           workflow_history: [
             ...(nc.workflow_history || []),
             {
@@ -114,7 +120,6 @@ export function QAClassificationForm({ nc, onSuccess }: QAClassificationFormProp
 
       if (updateError) throw updateError;
 
-      // Log activity
       await supabase.from('nc_activity_log').insert({
         nc_id: nc.id,
         action: 'QA Classification Completed',
@@ -127,7 +132,6 @@ export function QAClassificationForm({ nc, onSuccess }: QAClassificationFormProp
         performed_by: profile.id,
       });
 
-      // Trigger notification to responsible person
       await supabase.functions.invoke('nc-workflow-notification', {
         body: {
           type: 'qa_classified',
@@ -154,6 +158,10 @@ export function QAClassificationForm({ nc, onSuccess }: QAClassificationFormProp
     }
   }
 
+  const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
+    <span>{children} <span className="text-destructive">*</span></span>
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -167,17 +175,16 @@ export function QAClassificationForm({ nc, onSuccess }: QAClassificationFormProp
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit, handleInvalidSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="risk_classification"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Risk Classification *</FormLabel>
+                <FormItem data-form-field>
+                  <FormLabel><RequiredLabel>Risk Classification</RequiredLabel></FormLabel>
                   <Select 
                     onValueChange={(value) => {
                       field.onChange(value);
-                      // Auto-set due date based on risk
                       form.setValue('due_date', getDueDateForRisk(value as RiskClassification));
                     }} 
                     value={field.value}
@@ -191,7 +198,7 @@ export function QAClassificationForm({ nc, onSuccess }: QAClassificationFormProp
                       {(Object.keys(RISK_CLASSIFICATIONS) as RiskClassification[]).map((risk) => (
                         <SelectItem key={risk} value={risk}>
                           <span className={cn(
-                            risk === 'major' && 'text-red-600 font-medium',
+                            risk === 'major' && 'text-destructive font-medium',
                             risk === 'minor' && 'text-amber-600 font-medium'
                           )}>
                             {RISK_CLASSIFICATIONS[risk]}
@@ -215,8 +222,8 @@ export function QAClassificationForm({ nc, onSuccess }: QAClassificationFormProp
               control={form.control}
               name="due_date"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Due Date for Closing *</FormLabel>
+                <FormItem className="flex flex-col" data-form-field>
+                  <FormLabel><RequiredLabel>Due Date for Closing</RequiredLabel></FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -251,8 +258,8 @@ export function QAClassificationForm({ nc, onSuccess }: QAClassificationFormProp
               control={form.control}
               name="qa_comments"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>QA Classification Comments *</FormLabel>
+                <FormItem data-form-field>
+                  <FormLabel><RequiredLabel>QA Classification Comments</RequiredLabel></FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Provide detailed comments on the classification, including any observations or specific areas that need to be addressed..."

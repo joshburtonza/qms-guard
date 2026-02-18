@@ -26,12 +26,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { scrollToFirstError } from '@/lib/form-utils';
 
 const verificationFormSchema = z.object({
   verification_status: z.enum(['verified', 'requires_rework', 'escalated'], {
-    required_error: 'Please select a verification status',
+    required_error: 'Verification decision is required.',
   }),
-  verification_comments: z.string().min(10, 'Please provide verification notes (min 10 characters)'),
+  verification_comments: z.string().min(10, 'Verification comments are required (minimum 10 characters).'),
   effectiveness_rating: z.string().optional(),
 });
 
@@ -64,6 +65,17 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
 
   const selectedStatus = form.watch('verification_status');
 
+  function handleInvalidSubmit() {
+    const errorCount = scrollToFirstError(form.formState.errors);
+    if (errorCount > 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Please complete all required fields before submitting',
+        description: `${errorCount} required field${errorCount > 1 ? 's' : ''} need${errorCount === 1 ? 's' : ''} to be completed`,
+      });
+    }
+  }
+
   async function onSubmit(data: VerificationFormData) {
     if (!profile) return;
     setIsSubmitting(true);
@@ -79,7 +91,6 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
       };
 
       if (data.verification_status === 'verified') {
-        // Update NC as closed
         const { error: updateError } = await supabase
           .from('non_conformances')
           .update({
@@ -92,7 +103,6 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
 
         if (updateError) throw updateError;
 
-        // Log activity
         await supabase.from('nc_activity_log').insert({
           nc_id: nc.id,
           action: 'verification_completed',
@@ -103,7 +113,6 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
           },
         });
 
-        // Send notification
         await supabase.functions.invoke('nc-workflow-notification', {
           body: {
             nc_id: nc.id,
@@ -117,7 +126,6 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
           description: `NC ${nc.nc_number} has been verified and closed successfully.`,
         });
       } else if (data.verification_status === 'requires_rework') {
-        // Send back for rework
         const { error: updateError } = await supabase
           .from('non_conformances')
           .update({
@@ -129,7 +137,6 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
 
         if (updateError) throw updateError;
 
-        // Log activity
         await supabase.from('nc_activity_log').insert({
           nc_id: nc.id,
           action: 'rework_requested',
@@ -137,7 +144,6 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
           details: { reason: data.verification_comments },
         });
 
-        // Send notification
         await supabase.functions.invoke('nc-workflow-notification', {
           body: {
             nc_id: nc.id,
@@ -152,7 +158,6 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
           variant: 'destructive',
         });
       } else if (data.verification_status === 'escalated') {
-        // Escalate to senior management
         const { error: updateError } = await supabase
           .from('non_conformances')
           .update({
@@ -164,7 +169,6 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
 
         if (updateError) throw updateError;
 
-        // Log activity
         await supabase.from('nc_activity_log').insert({
           nc_id: nc.id,
           action: 'escalated',
@@ -192,11 +196,15 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
     }
   }
 
+  const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
+    <span>{children} <span className="text-destructive">*</span></span>
+  );
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <CheckCircle className="h-5 w-5 text-green-600" />
+          <CheckCircle className="h-5 w-5 text-primary" />
           QA Verification
         </CardTitle>
         <CardDescription>
@@ -205,34 +213,33 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit, handleInvalidSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="verification_status"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Verification Decision *</FormLabel>
+                <FormItem data-form-field>
+                  <FormLabel><RequiredLabel>Verification Decision</RequiredLabel></FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
                       value={field.value}
                       className="flex flex-col gap-3"
                     >
-                      {/* Verified Option */}
                       <div
                         className={cn(
                           'flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors',
                           field.value === 'verified'
-                            ? 'border-green-500 bg-green-50'
+                            ? 'border-primary bg-primary/5'
                             : 'border-border hover:bg-muted/50'
                         )}
                         onClick={() => field.onChange('verified')}
                       >
                         <RadioGroupItem value="verified" id="verified" />
                         <div className="flex items-center gap-2 flex-1">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                          <CheckCircle className="h-5 w-5 text-primary" />
                           <div>
-                            <label htmlFor="verified" className="font-medium text-green-700 cursor-pointer">
+                            <label htmlFor="verified" className="font-medium text-primary cursor-pointer">
                               Verified — Actions are effective
                             </label>
                             <p className="text-xs text-muted-foreground">
@@ -242,7 +249,6 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
                         </div>
                       </div>
 
-                      {/* Requires Rework Option */}
                       <div
                         className={cn(
                           'flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors',
@@ -266,21 +272,20 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
                         </div>
                       </div>
 
-                      {/* Escalated Option */}
                       <div
                         className={cn(
                           'flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors',
                           field.value === 'escalated'
-                            ? 'border-red-500 bg-red-50'
+                            ? 'border-destructive bg-destructive/5'
                             : 'border-border hover:bg-muted/50'
                         )}
                         onClick={() => field.onChange('escalated')}
                       >
                         <RadioGroupItem value="escalated" id="escalated" />
                         <div className="flex items-center gap-2 flex-1">
-                          <AlertTriangle className="h-5 w-5 text-red-600" />
+                          <AlertTriangle className="h-5 w-5 text-destructive" />
                           <div>
-                            <label htmlFor="escalated" className="font-medium text-red-700 cursor-pointer">
+                            <label htmlFor="escalated" className="font-medium text-destructive cursor-pointer">
                               Escalate — Refer to senior management
                             </label>
                             <p className="text-xs text-muted-foreground">
@@ -296,14 +301,13 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
               )}
             />
 
-            {/* Effectiveness Rating - Only shown when verified */}
             {selectedStatus === 'verified' && (
               <FormField
                 control={form.control}
                 name="effectiveness_rating"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Effectiveness Rating *</FormLabel>
+                  <FormItem data-form-field>
+                    <FormLabel><RequiredLabel>Effectiveness Rating</RequiredLabel></FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -328,8 +332,8 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
               control={form.control}
               name="verification_comments"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Verification Notes *</FormLabel>
+                <FormItem data-form-field>
+                  <FormLabel><RequiredLabel>Verification Notes</RequiredLabel></FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Provide verification notes..."
