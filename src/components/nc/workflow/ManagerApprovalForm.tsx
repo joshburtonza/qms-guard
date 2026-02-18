@@ -74,8 +74,9 @@ export function ManagerApprovalForm({
       let newStep: number;
 
       if (isApproved) {
-        newStatus = 'closed';
-        newStep = 5; // Final closed state
+        // Approved → send to QA for verification (not direct closure)
+        newStatus = 'pending_verification';
+        newStep = 4;
       } else if (isSecondApproval) {
         // Second decline - manual intervention required
         newStatus = 'rejected';
@@ -117,10 +118,7 @@ export function ManagerApprovalForm({
         ],
       };
 
-      // Set closed_at if approved
-      if (isApproved) {
-        updateData.closed_at = new Date().toISOString();
-      }
+      // Note: closed_at is set during QA verification, not here
 
       const { error: updateError } = await supabase
         .from('non_conformances')
@@ -167,7 +165,7 @@ export function ManagerApprovalForm({
       toast({
         title: isApproved ? 'NC Approved' : 'NC Declined',
         description: isApproved 
-          ? `NC ${nc.nc_number} has been approved and closed.`
+          ? `NC ${nc.nc_number} has been approved. Awaiting QA verification.`
           : isSecondApproval
             ? `NC ${nc.nc_number} has been rejected. Manual intervention required.`
             : `NC ${nc.nc_number} has been sent back for rework.`,
