@@ -54,7 +54,8 @@ import Edith from "./pages/Edith";
 import EdithSettings from "./pages/settings/EdithSettings";
 import ClauseManagement from "./pages/settings/ClauseManagement";
 import DataCleanup from "./pages/settings/DataCleanup";
-
+// Automations
+import AutomationsDashboard from "./pages/automations/AutomationsDashboard";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -111,6 +112,8 @@ const App = () => (
                   <Route path="/settings/edith" element={<EdithSettings />} />
                   <Route path="/settings/clauses" element={<ClauseManagement />} />
                   <Route path="/settings/data-cleanup" element={<DataCleanup />} />
+                  {/* Automations */}
+                  <Route path="/automations" element={<AutomationsDashboard />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 {/* Edith AI Assistant */}
