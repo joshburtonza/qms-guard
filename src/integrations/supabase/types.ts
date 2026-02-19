@@ -1682,6 +1682,7 @@ export type Database = {
           due_date: string
           id: string
           immediate_action: string | null
+          is_after_hours: boolean | null
           nc_number: string
           qa_classification_comments: string | null
           reported_by: string
@@ -1709,6 +1710,7 @@ export type Database = {
           due_date: string
           id?: string
           immediate_action?: string | null
+          is_after_hours?: boolean | null
           nc_number: string
           qa_classification_comments?: string | null
           reported_by: string
@@ -1736,6 +1738,7 @@ export type Database = {
           due_date?: string
           id?: string
           immediate_action?: string | null
+          is_after_hours?: boolean | null
           nc_number?: string
           qa_classification_comments?: string | null
           reported_by?: string
@@ -2256,6 +2259,20 @@ export type Database = {
       }
     }
     Functions: {
+      find_similar_ncs: {
+        Args: {
+          p_description: string
+          p_tenant_id: string
+          p_threshold?: number
+        }
+        Returns: {
+          description: string
+          id: string
+          nc_number: string
+          similarity_score: number
+          status: string
+        }[]
+      }
       get_edith_usage_daily: {
         Args: { p_tenant_id: string }
         Returns: {
@@ -2296,6 +2313,8 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       refresh_edith_usage_summary: { Args: never; Returns: undefined }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role:
