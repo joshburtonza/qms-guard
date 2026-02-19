@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,6 +12,10 @@ import {
   AlertTriangle,
   ArrowLeft,
   Calendar,
+  Mic,
+  MicOff,
+  RotateCcw,
+  Clock,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -34,11 +38,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useTenant } from '@/hooks/useTenant';
 import { supabase } from '@/integrations/supabase/client';
 import {
   NCCategory,
@@ -52,6 +71,8 @@ import {
   calculateDueDate,
 } from '@/types/database';
 import { cn } from '@/lib/utils';
+import { useVoiceToText } from '@/hooks/useVoiceToText';
+import { useFormDraft } from '@/hooks/useFormDraft';
 
 const ncFormSchema = z.object({
   department_id: z.string().min(1, 'Please select a department'),
@@ -85,15 +106,38 @@ const ncFormSchema = z.object({
 
 type NCFormData = z.infer<typeof ncFormSchema>;
 
+interface SimilarNC {
+  id: string;
+  nc_number: string;
+  description: string;
+  status: string;
+  similarity_score: number;
+}
+
+function isAfterHours(): boolean {
+  // Check if current time is outside business hours (07:00-17:00 SAST, Mon-Fri)
+  const now = new Date();
+  // Convert to SAST (UTC+2)
+  const sast = new Date(now.toLocaleString('en-US', { timeZone: 'Africa/Johannesburg' }));
+  const hours = sast.getHours();
+  const day = sast.getDay(); // 0=Sun, 6=Sat
+  return day === 0 || day === 6 || hours < 7 || hours >= 17;
+}
+
 export default function ReportNC() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profile } = useAuth();
+  const { tenant } = useTenant();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<Profile[]>([]);
   const [files, setFiles] = useState<File[]>([]);
+  const [showDraftPrompt, setShowDraftPrompt] = useState(false);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [similarNCs, setSimilarNCs] = useState<SimilarNC[]>([]);
+  const [pendingSubmitData, setPendingSubmitData] = useState<NCFormData | null>(null);
 
   const form = useForm<NCFormData>({
     resolver: zodResolver(ncFormSchema),
@@ -107,8 +151,32 @@ export default function ReportNC() {
     },
   });
 
+  const draftKey = `nc_draft_${profile?.tenant_id}_${profile?.id}`;
+  const { restoreDraft, clearDraft, hasSavedDraft } = useFormDraft({
+    key: draftKey,
+    form,
+    debounceMs: 2000,
+  });
+
+  // Voice-to-text for description
+  const descriptionValue = form.watch('description');
+  const { isListening, isSupported: voiceSupported, toggleListening } = useVoiceToText({
+    lang: 'en-ZA',
+    onResult: useCallback((transcript: string) => {
+      const current = form.getValues('description') || '';
+      form.setValue('description', current + (current ? ' ' : '') + transcript, { shouldValidate: true });
+    }, [form]),
+  });
+
   const selectedCategory = form.watch('category');
   const selectedSeverity = form.watch('severity');
+
+  // Check for saved draft on mount
+  useEffect(() => {
+    if (hasSavedDraft()) {
+      setShowDraftPrompt(true);
+    }
+  }, [hasSavedDraft]);
 
   // Auto-set due date based on severity
   useEffect(() => {
@@ -135,7 +203,7 @@ export default function ReportNC() {
     const selectedFiles = Array.from(e.target.files || []);
     const validFiles = selectedFiles.filter((file) => {
       const isValidType = /\.(jpg|jpeg|png|pdf|doc|docx)$/i.test(file.name);
-      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+      const isValidSize = file.size <= 10 * 1024 * 1024;
       return isValidType && isValidSize;
     });
 
@@ -154,12 +222,48 @@ export default function ReportNC() {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
-  async function onSubmit(data: NCFormData) {
+  async function checkDuplicates(description: string): Promise<SimilarNC[]> {
+    if (!profile?.tenant_id || description.length < 50) return [];
+    
+    try {
+      const { data, error } = await supabase.rpc('find_similar_ncs', {
+        p_description: description,
+        p_tenant_id: profile.tenant_id,
+        p_threshold: 0.3,
+      });
+      
+      if (error) {
+        console.error('Duplicate check error:', error);
+        return [];
+      }
+      
+      return (data || []) as SimilarNC[];
+    } catch {
+      return [];
+    }
+  }
+
+  async function handleSubmitWithDuplicateCheck(data: NCFormData) {
+    // Check for duplicates first
+    const duplicates = await checkDuplicates(data.description);
+    
+    if (duplicates.length > 0) {
+      setSimilarNCs(duplicates);
+      setPendingSubmitData(data);
+      setShowDuplicateModal(true);
+      return;
+    }
+    
+    await performSubmit(data);
+  }
+
+  async function performSubmit(data: NCFormData) {
     if (!profile) return;
 
     setIsSubmitting(true);
     try {
-      // Create NC record
+      const afterHours = isAfterHours();
+      
       const insertData = {
         reported_by: profile.id,
         department_id: data.department_id,
@@ -170,11 +274,11 @@ export default function ReportNC() {
         category_other: data.category === 'other' ? data.category_other : null,
         severity: data.severity,
         description: data.description,
-        
         responsible_person: data.responsible_person,
         due_date: format(data.due_date, 'yyyy-MM-dd'),
         status: 'open' as const,
         current_step: 1,
+        is_after_hours: afterHours,
       };
       
       const { data: nc, error: ncError } = await supabase
@@ -208,13 +312,19 @@ export default function ReportNC() {
       await supabase.from('nc_activity_log').insert({
         nc_id: nc.id,
         action: 'NC Submitted',
-        details: { submitted_by: profile.full_name },
+        details: { 
+          submitted_by: profile.full_name,
+          is_after_hours: afterHours,
+        },
         performed_by: profile.id,
       });
 
+      // Clear draft on successful submission
+      clearDraft();
+
       toast({
         title: 'NC Submitted Successfully',
-        description: `Non-conformance ${nc.nc_number} has been created.`,
+        description: `Non-conformance ${nc.nc_number} has been created.${afterHours ? ' (After-hours submission flagged)' : ''}`,
       });
 
       navigate(`/nc/${nc.id}`);
@@ -233,6 +343,36 @@ export default function ReportNC() {
   return (
     <AppLayout>
       <div className="max-w-3xl mx-auto space-y-6">
+        {/* Draft Restore Prompt */}
+        {showDraftPrompt && (
+          <Alert className="border-blue-200 bg-blue-50">
+            <RotateCcw className="h-4 w-4 text-blue-600" />
+            <AlertTitle className="text-blue-800">Resume previous draft?</AlertTitle>
+            <AlertDescription className="flex items-center justify-between">
+              <span className="text-blue-700">You have an unsaved NC form draft.</span>
+              <div className="flex gap-2 ml-4">
+                <Button size="sm" variant="outline" onClick={() => { clearDraft(); setShowDraftPrompt(false); }}>
+                  Discard
+                </Button>
+                <Button size="sm" onClick={() => { restoreDraft(); setShowDraftPrompt(false); }}>
+                  Restore Draft
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* After-hours indicator */}
+        {isAfterHours() && (
+          <Alert className="border-amber-200 bg-amber-50">
+            <Clock className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-800">After-Hours Submission</AlertTitle>
+            <AlertDescription className="text-amber-700">
+              This NC is being submitted outside business hours (07:00-17:00 SAST). Non-urgent notifications will be delayed to the next business day.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -250,7 +390,7 @@ export default function ReportNC() {
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleSubmitWithDuplicateCheck)} className="space-y-6">
             {/* Section 1: Identification */}
             <Card>
               <CardHeader>
@@ -476,16 +616,48 @@ export default function ReportNC() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description *</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        Description *
+                        {voiceSupported && (
+                          <Button
+                            type="button"
+                            variant={isListening ? 'destructive' : 'outline'}
+                            size="sm"
+                            className="h-7 px-2 text-xs gap-1"
+                            onClick={toggleListening}
+                          >
+                            {isListening ? (
+                              <>
+                                <MicOff className="h-3 w-3" />
+                                Stop
+                              </>
+                            ) : (
+                              <>
+                                <Mic className="h-3 w-3" />
+                                Voice Input
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </FormLabel>
                       <FormControl>
-                        <Textarea
-                          placeholder="Describe the non-conformance in detail (minimum 50 characters)..."
-                          className="min-h-32"
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Textarea
+                            placeholder="Describe the non-conformance in detail (minimum 50 characters)..."
+                            className={cn('min-h-32', isListening && 'border-red-400 ring-1 ring-red-400')}
+                            {...field}
+                          />
+                          {isListening && (
+                            <div className="absolute top-2 right-2 flex items-center gap-1 text-xs text-red-600 bg-red-50 px-2 py-1 rounded-full">
+                              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                              Listening...
+                            </div>
+                          )}
+                        </div>
                       </FormControl>
                       <FormDescription>
                         {field.value?.length || 0}/50 characters minimum
+                        {voiceSupported && ' • Tap "Voice Input" to dictate'}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -636,6 +808,52 @@ export default function ReportNC() {
             </div>
           </form>
         </Form>
+
+        {/* Duplicate NC Detection Modal */}
+        <Dialog open={showDuplicateModal} onOpenChange={setShowDuplicateModal}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-amber-600">
+                <AlertTriangle className="h-5 w-5" />
+                Potential Duplicate NCs Found
+              </DialogTitle>
+              <DialogDescription>
+                The description you entered is similar to existing open NCs. Would you like to link to an existing one or create a new NC?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 max-h-60 overflow-y-auto">
+              {similarNCs.map((nc) => (
+                <div
+                  key={nc.id}
+                  className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                  onClick={() => {
+                    setShowDuplicateModal(false);
+                    navigate(`/nc/${nc.id}`);
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-sm">{nc.nc_number}</span>
+                    <Badge variant="secondary">
+                      {Math.round(nc.similarity_score * 100)}% match
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{nc.description}</p>
+                </div>
+              ))}
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => { setShowDuplicateModal(false); setPendingSubmitData(null); }}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                setShowDuplicateModal(false);
+                if (pendingSubmitData) performSubmit(pendingSubmitData);
+              }}>
+                Create New NC Anyway
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
