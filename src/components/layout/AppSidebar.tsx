@@ -20,6 +20,7 @@ import {
   ChevronDown,
   Activity,
   Trash2,
+  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -96,6 +97,7 @@ const contractorEvalNavItems: NavItem[] = [
 ];
 
 const adminNavItems: NavItem[] = [
+  { title: 'Automations', href: '/automations', icon: Zap, roles: ['super_admin', 'site_admin'] },
   { title: 'Activity Log', href: '/activity', icon: Activity, roles: ['super_admin', 'site_admin', 'manager'] },
   { title: 'Reports', href: '/reports', icon: BarChart3, roles: ['super_admin', 'site_admin', 'manager'] },
   { title: 'Users', href: '/users', icon: Users, roles: ['super_admin', 'site_admin'] },

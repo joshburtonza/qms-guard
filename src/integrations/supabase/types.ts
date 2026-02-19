@@ -2206,6 +2206,135 @@ export type Database = {
           },
         ]
       }
+      workflow_configurations: {
+        Row: {
+          actions: Json
+          conditions: Json
+          created_at: string
+          description: string | null
+          email_body_template: string | null
+          email_subject_template: string | null
+          execution_count: number
+          id: string
+          is_enabled: boolean
+          last_executed_at: string | null
+          recipients: Json
+          schedule_interval: string | null
+          tenant_id: string
+          trigger_config: Json
+          trigger_type: string
+          updated_at: string
+          workflow_key: string
+          workflow_name: string
+        }
+        Insert: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          description?: string | null
+          email_body_template?: string | null
+          email_subject_template?: string | null
+          execution_count?: number
+          id?: string
+          is_enabled?: boolean
+          last_executed_at?: string | null
+          recipients?: Json
+          schedule_interval?: string | null
+          tenant_id: string
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+          workflow_key: string
+          workflow_name: string
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          description?: string | null
+          email_body_template?: string | null
+          email_subject_template?: string | null
+          execution_count?: number
+          id?: string
+          is_enabled?: boolean
+          last_executed_at?: string | null
+          recipients?: Json
+          schedule_interval?: string | null
+          tenant_id?: string
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+          workflow_key?: string
+          workflow_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_configurations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_execution_log: {
+        Row: {
+          error_message: string | null
+          executed_at: string
+          execution_details: Json | null
+          id: string
+          nc_id: string | null
+          recipients_notified: string[] | null
+          status: string
+          tenant_id: string
+          workflow_id: string
+        }
+        Insert: {
+          error_message?: string | null
+          executed_at?: string
+          execution_details?: Json | null
+          id?: string
+          nc_id?: string | null
+          recipients_notified?: string[] | null
+          status?: string
+          tenant_id: string
+          workflow_id: string
+        }
+        Update: {
+          error_message?: string | null
+          executed_at?: string
+          execution_details?: Json | null
+          id?: string
+          nc_id?: string | null
+          recipients_notified?: string[] | null
+          status?: string
+          tenant_id?: string
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_execution_log_nc_id_fkey"
+            columns: ["nc_id"]
+            isOneToOne: false
+            referencedRelation: "non_conformances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_execution_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_execution_log_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       edith_usage_daily: {
