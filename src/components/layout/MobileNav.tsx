@@ -27,23 +27,23 @@ export function MobileNav() {
 
   return (
     <>
-      {/* Top Header Bar */}
-      <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-sidebar border-b border-sidebar-border md:hidden safe-top">
+      {/* Top Header Bar — frosted glass */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-card/80 backdrop-blur-xl border-b border-border/50 md:hidden safe-top">
         <div className="flex items-center justify-between h-full px-4">
-          <div className="flex items-center gap-2 text-sidebar-foreground">
-            <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center">
-              <span className="font-bold text-sm text-sidebar-primary-foreground">A</span>
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-xl bg-foreground flex items-center justify-center">
+              <span className="font-bold text-sm text-background">A</span>
             </div>
-            <span className="font-semibold">ASCEND QMS</span>
+            <span className="font-display font-semibold tracking-tight">ASCEND QMS</span>
           </div>
           
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-sidebar-foreground">
+              <Button variant="ghost" size="icon" className="rounded-xl">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64">
+            <SheetContent side="left" className="p-0 w-64 border-r border-border/50">
               <SheetHeader className="sr-only">
                 <SheetTitle>Navigation Menu</SheetTitle>
               </SheetHeader>
@@ -53,8 +53,8 @@ export function MobileNav() {
         </div>
       </header>
 
-      {/* Bottom Tab Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t md:hidden safe-bottom">
+      {/* Bottom Tab Bar — frosted glass */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-xl border-t border-border/50 md:hidden safe-bottom">
         <div className="flex items-center justify-around h-16">
           {mobileNavItems.map((item) => {
             const Icon = item.icon;
@@ -67,12 +67,17 @@ export function MobileNav() {
                 className={cn(
                   'flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors touch-target',
                   active
-                    ? 'text-primary'
+                    ? 'text-foreground'
                     : 'text-muted-foreground'
                 )}
               >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs font-medium">{item.title}</span>
+                <div className={cn(
+                  'flex items-center justify-center w-10 h-7 rounded-full transition-all',
+                  active && 'bg-foreground/10'
+                )}>
+                  <Icon className="h-[18px] w-[18px]" />
+                </div>
+                <span className="text-[10px] font-medium">{item.title}</span>
               </Link>
             );
           })}
@@ -80,11 +85,13 @@ export function MobileNav() {
           <Sheet>
             <SheetTrigger asChild>
               <button className="flex flex-col items-center justify-center flex-1 h-full gap-1 text-muted-foreground touch-target">
-                <Menu className="h-5 w-5" />
-                <span className="text-xs font-medium">Menu</span>
+                <div className="flex items-center justify-center w-10 h-7 rounded-full">
+                  <Menu className="h-[18px] w-[18px]" />
+                </div>
+                <span className="text-[10px] font-medium">Menu</span>
               </button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64">
+            <SheetContent side="left" className="p-0 w-64 border-r border-border/50">
               <SheetHeader className="sr-only">
                 <SheetTitle>Navigation Menu</SheetTitle>
               </SheetHeader>

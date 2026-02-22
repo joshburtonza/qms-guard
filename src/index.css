@@ -1,122 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ASCEND LC Design System
-   Enterprise Mining QMS Platform
-   Professional, trustworthy, safety-focused
-*/
+/* QMS Guard — Glassmorphism Monochrome Design System */
 
 @layer base {
   :root {
-    /* Core brand colors - Deep navy for trust and reliability */
-    --background: 210 20% 98%;
-    --foreground: 215 25% 15%;
+    /* Core — crisp whites and deep blacks */
+    --background: 0 0% 96%;
+    --foreground: 0 0% 8%;
 
-    /* Card surfaces */
+    /* Glass card surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 0 0% 8%;
 
     /* Popover/Modal surfaces */
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 0 0% 8%;
 
-    /* Primary - Deep Navy Blue */
-    --primary: 213 50% 20%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary — near-black for authority */
+    --primary: 0 0% 10%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Slate gray for secondary elements */
-    --secondary: 210 15% 94%;
-    --secondary-foreground: 215 25% 25%;
+    /* Secondary — soft neutral gray */
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 20%;
 
-    /* Muted - Subtle backgrounds */
-    --muted: 210 15% 96%;
-    --muted-foreground: 215 15% 45%;
+    /* Muted — whisper gray */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    /* Accent - Industrial orange for CTAs and alerts */
-    --accent: 24 95% 53%;
+    /* Accent — subtle teal for key actions */
+    --accent: 174 60% 40%;
     --accent-foreground: 0 0% 100%;
 
-    /* Destructive - Red for errors */
-    --destructive: 0 84% 60%;
+    /* Destructive */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
     /* Status colors */
     --status-open: 38 92% 50%;
-    --status-in-progress: 217 91% 60%;
-    --status-pending-review: 280 65% 60%;
-    --status-pending-verification: 45 93% 47%;
-    --status-closed: 142 71% 45%;
-    --status-rejected: 0 84% 60%;
-    --status-overdue: 0 84% 60%;
+    --status-in-progress: 0 0% 30%;
+    --status-pending-review: 0 0% 50%;
+    --status-pending-verification: 45 80% 47%;
+    --status-closed: 160 60% 40%;
+    --status-rejected: 0 72% 51%;
+    --status-overdue: 0 72% 51%;
 
-    /* Severity colors */
-    --severity-critical: 0 84% 60%;
+    /* Severity */
+    --severity-critical: 0 72% 51%;
     --severity-major: 38 92% 50%;
-    --severity-minor: 217 91% 60%;
+    --severity-minor: 0 0% 45%;
 
     /* Border and input */
-    --border: 214 20% 88%;
-    --input: 214 20% 88%;
-    --ring: 213 50% 20%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 174 60% 40%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
-    /* Sidebar */
-    --sidebar-background: 213 50% 15%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 24 95% 53%;
+    /* Sidebar — frosted dark glass */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 0 0% 10%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 213 45% 22%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 213 40% 25%;
-    --sidebar-ring: 24 95% 53%;
+    --sidebar-accent: 0 0% 94%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 174 60% 40%;
 
-    /* Chart colors for analytics */
-    --chart-1: 213 50% 20%;
-    --chart-2: 24 95% 53%;
-    --chart-3: 142 71% 45%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 38 92% 50%;
+    /* Chart colors — monochrome spectrum with teal accent */
+    --chart-1: 0 0% 10%;
+    --chart-2: 174 60% 40%;
+    --chart-3: 0 0% 40%;
+    --chart-4: 0 0% 65%;
+    --chart-5: 0 0% 80%;
+
+    /* Glass effect tokens */
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    --glass-blur: 20px;
   }
 
   .dark {
-    --background: 215 25% 10%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 6%;
+    --foreground: 0 0% 95%;
 
-    --card: 215 25% 12%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 215 25% 12%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 213 50% 20%;
+    --primary: 0 0% 95%;
+    --primary-foreground: 0 0% 10%;
 
-    --secondary: 215 20% 18%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 90%;
 
-    --muted: 215 20% 18%;
-    --muted-foreground: 215 15% 60%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 24 95% 53%;
+    --accent: 174 60% 45%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 45%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 95%;
 
-    --border: 215 20% 22%;
-    --input: 215 20% 22%;
-    --ring: 210 40% 80%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 174 60% 45%;
 
-    --sidebar-background: 215 25% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 24 95% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 20% 15%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 20% 18%;
-    --sidebar-ring: 24 95% 53%;
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 0 0% 90%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 174 60% 45%;
+
+    --glass-bg: rgba(20, 20, 20, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -127,43 +136,70 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
   }
 }
 
 @layer components {
-  /* Status badge variants */
+  /* Glass Card — the core design element */
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    @apply rounded-2xl transition-all duration-300;
+  }
+
+  .glass-card:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Glass Card Subtle — less transparency */
+  .glass-card-solid {
+    @apply bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-sm transition-all duration-300;
+  }
+
+  .glass-card-solid:hover {
+    @apply shadow-md;
+  }
+
+  /* Status badge variants — monochrome with subtle differentiation */
   .badge-open {
-    @apply bg-amber-100 text-amber-800 border-amber-200;
+    @apply bg-foreground/10 text-foreground border-foreground/20;
   }
   
   .badge-in-progress {
-    @apply bg-blue-100 text-blue-800 border-blue-200;
+    @apply bg-foreground/5 text-foreground/80 border-foreground/10;
   }
   
   .badge-pending-review {
-    @apply bg-purple-100 text-purple-800 border-purple-200;
+    @apply bg-foreground/8 text-foreground/70 border-foreground/15;
   }
   
   .badge-pending-verification {
-    @apply bg-yellow-100 text-yellow-800 border-yellow-200;
+    @apply bg-amber-50 text-amber-800 border-amber-200;
   }
   
   .badge-closed {
-    @apply bg-green-100 text-green-800 border-green-200;
+    @apply bg-emerald-50 text-emerald-800 border-emerald-200;
   }
   
   .badge-rejected {
-    @apply bg-red-100 text-red-800 border-red-200;
+    @apply bg-red-50 text-red-800 border-red-200;
   }
   
   .badge-overdue {
-    @apply bg-red-100 text-red-800 border-red-200 animate-pulse;
+    @apply bg-red-50 text-red-800 border-red-200 animate-pulse;
   }
 
   /* Severity indicators */
@@ -176,80 +212,80 @@
   }
   
   .severity-minor {
-    @apply text-blue-600 font-semibold;
+    @apply text-muted-foreground font-semibold;
   }
 
   /* Card hover effect */
   .card-interactive {
-    @apply transition-all duration-200 hover:shadow-md hover:border-primary/20;
+    @apply transition-all duration-300 hover:shadow-lg hover:border-border/80 hover:-translate-y-0.5;
   }
 
-  /* Dashboard KPI cards */
+  /* Dashboard KPI cards — glass style */
   .kpi-card {
-    @apply relative overflow-hidden rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    @apply relative overflow-hidden rounded-2xl p-6 transition-all duration-300;
   }
 
-  .kpi-card::before {
-    content: '';
-    @apply absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity duration-200;
+  .kpi-card:hover {
+    @apply shadow-lg -translate-y-0.5;
   }
 
-  .kpi-card:hover::before {
-    @apply opacity-100;
-  }
-
-  /* Workflow progress indicator */
+  /* Workflow progress */
   .workflow-step {
     @apply flex items-center gap-2;
   }
 
   .workflow-step-active {
-    @apply text-primary font-medium;
+    @apply text-foreground font-medium;
   }
 
   .workflow-step-complete {
-    @apply text-green-600;
+    @apply text-emerald-600;
   }
 
   .workflow-step-pending {
     @apply text-muted-foreground;
   }
 
-  /* Form section styling */
+  /* Form section styling — glass */
   .form-section {
-    @apply space-y-4 rounded-lg border bg-card p-6;
+    @apply space-y-4 rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm p-6;
   }
 
   .form-section-header {
-    @apply text-lg font-semibold text-foreground mb-4 pb-2 border-b;
+    @apply text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border/50;
   }
 
   /* Table row hover */
   .table-row-interactive {
-    @apply transition-colors hover:bg-muted/50 cursor-pointer;
+    @apply transition-colors hover:bg-foreground/[0.02] cursor-pointer;
   }
 
-  /* Mining industry visual elements */
+  /* Industrial border — now uses accent teal */
   .industrial-border {
-    @apply border-l-4 border-l-primary;
+    @apply border-l-4 border-l-accent;
   }
 
-  /* Alert/notification styling */
+  /* Alert styling */
   .alert-overdue {
-    @apply bg-red-50 border-red-200 text-red-800;
+    @apply bg-red-50/80 border-red-200/50 text-red-800 backdrop-blur-sm;
   }
 
   .alert-warning {
-    @apply bg-amber-50 border-amber-200 text-amber-800;
+    @apply bg-amber-50/80 border-amber-200/50 text-amber-800 backdrop-blur-sm;
   }
 
   .alert-success {
-    @apply bg-green-50 border-green-200 text-green-800;
+    @apply bg-emerald-50/80 border-emerald-200/50 text-emerald-800 backdrop-blur-sm;
   }
 
   /* Navigation active state */
   .nav-item-active {
-    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+    @apply bg-foreground text-background;
   }
 
   /* Mobile-friendly touch targets */
@@ -257,25 +293,25 @@
     @apply min-h-[44px] min-w-[44px];
   }
 
-  /* Loading skeleton with mining theme */
+  /* Loading skeleton */
   .skeleton-loading {
-    @apply animate-pulse bg-gradient-to-r from-muted via-muted/70 to-muted;
+    @apply animate-pulse bg-gradient-to-r from-muted via-muted/70 to-muted rounded-2xl;
   }
 }
 
 @layer utilities {
   /* Text gradients */
   .text-gradient-brand {
-    @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent;
   }
 
-  /* Shadow utilities */
-  .shadow-card {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  /* Glass shadow utilities */
+  .shadow-glass {
+    box-shadow: var(--glass-shadow);
   }
 
-  .shadow-card-hover {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  .shadow-glass-hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
   }
 
   /* Safe area for mobile */
@@ -290,7 +326,6 @@
 
 /* Print Styles for PDF Export */
 @media print {
-  /* Hide non-essential elements */
   .no-print,
   nav,
   aside,
@@ -303,7 +338,6 @@
     display: none !important;
   }
 
-  /* Reset page layout */
   body {
     background: white !important;
     color: black !important;
@@ -311,7 +345,6 @@
     line-height: 1.4;
   }
 
-  /* Full width content */
   main,
   .main-content {
     margin: 0 !important;
@@ -320,13 +353,11 @@
     max-width: 100% !important;
   }
 
-  /* Print container */
   .print-container {
     padding: 0 !important;
     max-width: 100% !important;
   }
 
-  /* Page break handling */
   .page-break-before {
     page-break-before: always;
   }
@@ -339,7 +370,6 @@
     page-break-inside: avoid;
   }
 
-  /* Table styling for print */
   table {
     border-collapse: collapse;
     width: 100%;
@@ -358,21 +388,11 @@
     print-color-adjust: exact;
   }
 
-  /* Ensure colors print correctly */
-  .bg-muted,
-  .bg-muted\/50 {
-    background-color: #f5f5f5 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  /* Page margins */
   @page {
     margin: 1cm;
     size: A4 portrait;
   }
 
-  /* Hide scrollbars */
   ::-webkit-scrollbar {
     display: none;
   }
@@ -381,7 +401,7 @@
 /* Field validation error animation */
 .field-validation-error {
   animation: field-shake 0.4s ease-in-out;
-  border-radius: 0.5rem;
+  border-radius: 1rem;
   box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.5);
 }
 
