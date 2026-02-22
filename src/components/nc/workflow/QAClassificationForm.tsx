@@ -166,7 +166,7 @@ export function QAClassificationForm({ nc, onSuccess }: QAClassificationFormProp
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-amber-500" />
+          <AlertTriangle className="h-5 w-5 text-foreground/70" />
           QA Risk Classification
         </CardTitle>
         <CardDescription>
@@ -199,7 +199,7 @@ export function QAClassificationForm({ nc, onSuccess }: QAClassificationFormProp
                         <SelectItem key={risk} value={risk}>
                           <span className={cn(
                             risk === 'major' && 'text-destructive font-medium',
-                            risk === 'minor' && 'text-amber-600 font-medium'
+                            risk === 'minor' && 'text-foreground/70 font-medium'
                           )}>
                             {RISK_CLASSIFICATIONS[risk]}
                           </span>

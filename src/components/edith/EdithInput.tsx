@@ -152,7 +152,7 @@ export function EdithInput({
     <div
       className={cn(
         "border-t p-4 transition-colors",
-        isDragging && "bg-primary/5 border-primary"
+        isDragging && "bg-foreground/5 border-foreground/30"
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -201,8 +201,8 @@ export function EdithInput({
 
       {/* Drag overlay */}
       {isDragging && (
-        <div className="mb-2 p-4 border-2 border-dashed border-primary rounded-lg bg-primary/5 text-center">
-          <p className="text-sm text-primary">Drop files here</p>
+        <div className="mb-2 p-4 border-2 border-dashed border-foreground/30 rounded-lg bg-foreground/5 text-center">
+          <p className="text-sm text-foreground">Drop files here</p>
         </div>
       )}
 

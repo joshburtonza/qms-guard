@@ -139,7 +139,7 @@ export function EdithContextBar() {
         {/* NC Context (when on NC detail page) */}
         {ncContext && (
           <>
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-mono">
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-foreground/10 text-foreground border border-foreground/20 font-mono">
               {ncContext.ncNumber}
             </span>
             <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border ${
@@ -181,7 +181,7 @@ export function EdithContextBar() {
 
         {/* My Tasks */}
         {stats && stats.myOpenTasks > 0 && (
-          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-foreground/10 text-foreground border border-foreground/20">
             <CheckCircle className="h-2.5 w-2.5" />
             {stats.myOpenTasks} tasks
           </span>

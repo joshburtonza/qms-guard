@@ -38,7 +38,7 @@ export function SmartsheetWidget() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FileSpreadsheet className="h-5 w-5 text-primary" />
+              <FileSpreadsheet className="h-5 w-5 text-foreground" />
               <CardTitle className="text-lg">Smartsheet</CardTitle>
             </div>
             {isConfigured && (
@@ -66,7 +66,7 @@ export function SmartsheetWidget() {
               {/* Last Sync Status */}
               <div className="flex items-center gap-2 text-sm">
                 {lastSyncStatus === 'success' ? (
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <CheckCircle2 className="h-4 w-4 text-foreground" />
                 ) : lastSyncStatus === 'error' ? (
                   <AlertCircle className="h-4 w-4 text-destructive" />
                 ) : (

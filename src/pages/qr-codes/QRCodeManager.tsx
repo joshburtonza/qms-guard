@@ -268,7 +268,7 @@ export default function QRCodeManager() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <QrCode className="h-6 w-6 text-primary" />
+              <QrCode className="h-6 w-6 text-foreground" />
               QR Code Manager
             </h1>
             <p className="text-muted-foreground">

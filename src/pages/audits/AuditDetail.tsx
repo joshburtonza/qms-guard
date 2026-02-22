@@ -57,10 +57,10 @@ interface Audit {
 }
 
 const FINDING_OPTIONS = [
-  { value: 'conforming', label: 'Conforming', icon: CheckCircle, color: 'text-green-600' },
-  { value: 'minor_nc', label: 'Minor NC', icon: AlertTriangle, color: 'text-amber-600' },
-  { value: 'major_nc', label: 'Major NC', icon: XCircle, color: 'text-red-600' },
-  { value: 'opportunity', label: 'Opportunity', icon: Lightbulb, color: 'text-blue-600' },
+  { value: 'conforming', label: 'Conforming', icon: CheckCircle, color: 'text-foreground' },
+  { value: 'minor_nc', label: 'Minor NC', icon: AlertTriangle, color: 'text-foreground/70' },
+  { value: 'major_nc', label: 'Major NC', icon: XCircle, color: 'text-destructive' },
+  { value: 'opportunity', label: 'Opportunity', icon: Lightbulb, color: 'text-muted-foreground' },
   { value: 'not_applicable', label: 'N/A', icon: MinusCircle, color: 'text-muted-foreground' },
 ];
 
@@ -206,7 +206,7 @@ export default function AuditDetail() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
         </div>
       </AppLayout>
     );

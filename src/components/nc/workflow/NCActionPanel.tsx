@@ -127,7 +127,7 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
           canAct: true,
           component: <QAClassificationForm nc={nc} onSuccess={onUpdate} />,
           message: 'Please classify the risk level for this NC.',
-          icon: <Shield className="h-5 w-5 text-primary" />,
+          icon: <Shield className="h-5 w-5 text-foreground" />,
           variant: 'default',
         };
       }
@@ -160,7 +160,7 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
             : 'Please document the root cause and corrective actions.',
           icon: isRework 
             ? <AlertTriangle className="h-5 w-5 text-foreground/70" />
-            : <Shield className="h-5 w-5 text-primary" />,
+            : <Shield className="h-5 w-5 text-foreground" />,
           variant: isRework ? 'warning' : 'default',
         };
       }
@@ -195,7 +195,7 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
             : 'Please review the corrective action and make your decision.',
           icon: isEscalated 
             ? <AlertTriangle className="h-5 w-5 text-foreground/70" />
-            : <Shield className="h-5 w-5 text-primary" />,
+            : <Shield className="h-5 w-5 text-foreground" />,
           variant: isEscalated ? 'warning' : 'default',
         };
       }
@@ -215,7 +215,7 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
           canAct: true,
           component: <QAVerificationForm nc={nc} onSuccess={onUpdate} />,
           message: 'Please verify the corrective actions and confirm effectiveness.',
-          icon: <Shield className="h-5 w-5 text-primary" />,
+          icon: <Shield className="h-5 w-5 text-foreground" />,
           variant: 'default',
         };
       }

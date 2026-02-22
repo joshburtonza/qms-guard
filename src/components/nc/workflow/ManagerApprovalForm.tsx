@@ -218,7 +218,7 @@ export function ManagerApprovalForm({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <CheckCircle className="h-5 w-5 text-primary" />
+          <CheckCircle className="h-5 w-5 text-foreground" />
           Manager Review
         </CardTitle>
         <CardDescription>
@@ -271,16 +271,16 @@ export function ManagerApprovalForm({
                         className={cn(
                           'flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors flex-1',
                           field.value === 'approve'
-                            ? 'border-primary bg-primary/5'
+                            ? 'border-foreground/30 bg-foreground/5'
                             : 'border-border hover:bg-muted/50'
                         )}
                         onClick={() => field.onChange('approve')}
                       >
                         <RadioGroupItem value="approve" id="approve" />
                         <div className="flex items-center gap-2">
-                          <CheckCircle className="h-5 w-5 text-primary" />
+                          <CheckCircle className="h-5 w-5 text-foreground" />
                           <div>
-                            <label htmlFor="approve" className="font-medium text-primary cursor-pointer">
+                            <label htmlFor="approve" className="font-medium text-foreground cursor-pointer">
                               Approve & Close
                             </label>
                             <p className="text-xs text-muted-foreground">

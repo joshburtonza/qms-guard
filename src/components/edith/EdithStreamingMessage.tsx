@@ -109,7 +109,7 @@ export function EdithStreamingMessage({
 
       {/* Streaming cursor */}
       {isStreaming && displayedContent && (
-        <span className="inline-block w-2 h-4 bg-primary animate-pulse ml-0.5" />
+        <span className="inline-block w-2 h-4 bg-foreground animate-pulse ml-0.5" />
       )}
     </div>
   );
