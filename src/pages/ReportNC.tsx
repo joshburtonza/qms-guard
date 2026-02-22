@@ -379,7 +379,7 @@ export default function ReportNC() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-display font-bold tracking-tight flex items-center gap-2">
               <FileWarning className="h-6 w-6 text-accent" />
               Report Non-Conformance
             </h1>
@@ -392,9 +392,9 @@ export default function ReportNC() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmitWithDuplicateCheck)} className="space-y-6">
             {/* Section 1: Identification */}
-            <Card>
+            <Card className="glass-card-solid border-0">
               <CardHeader>
-                <CardTitle className="text-lg">Identification</CardTitle>
+                <CardTitle className="text-lg font-display">Identification</CardTitle>
                 <CardDescription>Where and when did this occur?</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -509,9 +509,9 @@ export default function ReportNC() {
             </Card>
 
             {/* Section 2: NC Details */}
-            <Card>
+            <Card className="glass-card-solid border-0">
               <CardHeader>
-                <CardTitle className="text-lg">Non-Conformance Details</CardTitle>
+                <CardTitle className="text-lg font-display">Non-Conformance Details</CardTitle>
                 <CardDescription>Describe the issue and its severity</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -569,16 +569,16 @@ export default function ReportNC() {
                           className="flex flex-col sm:flex-row gap-4"
                         >
                           {(Object.keys(NC_SEVERITY_LABELS) as NCSeverity[]).map((severity) => (
-                            <div
+                             <div
                               key={severity}
                               className={cn(
-                                'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                                'flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200',
                                 field.value === severity
                                   ? severity === 'critical'
-                                    ? 'border-red-500 bg-red-50'
+                                    ? 'border-destructive bg-destructive/5'
                                     : severity === 'major'
-                                    ? 'border-amber-500 bg-amber-50'
-                                    : 'border-blue-500 bg-blue-50'
+                                    ? 'border-foreground/30 bg-foreground/5'
+                                    : 'border-accent bg-accent/5'
                                   : 'border-border hover:bg-muted/50'
                               )}
                               onClick={() => field.onChange(severity)}
@@ -589,9 +589,9 @@ export default function ReportNC() {
                                   htmlFor={severity}
                                   className={cn(
                                     'font-medium cursor-pointer',
-                                    severity === 'critical' && 'text-red-700',
-                                    severity === 'major' && 'text-amber-700',
-                                    severity === 'minor' && 'text-blue-700'
+                                    severity === 'critical' && 'text-destructive',
+                                    severity === 'major' && 'text-foreground',
+                                    severity === 'minor' && 'text-accent'
                                   )}
                                 >
                                   {NC_SEVERITY_LABELS[severity]}
@@ -714,9 +714,9 @@ export default function ReportNC() {
             </Card>
 
             {/* Section 3: Assignment */}
-            <Card>
+            <Card className="glass-card-solid border-0">
               <CardHeader>
-                <CardTitle className="text-lg">Assignment</CardTitle>
+                <CardTitle className="text-lg font-display">Assignment</CardTitle>
                 <CardDescription>Who will handle this non-conformance?</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

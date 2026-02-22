@@ -102,20 +102,26 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+      {/* Decorative bg */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-1/2 -right-1/4 w-[600px] h-[600px] rounded-full bg-accent/5 blur-3xl" />
+        <div className="absolute -bottom-1/4 -left-1/4 w-[500px] h-[500px] rounded-full bg-foreground/3 blur-3xl" />
+      </div>
+
       {/* Logo and Title */}
-      <div className="flex flex-col items-center mb-8">
+      <div className="relative flex flex-col items-center mb-8">
         <div className="flex items-center gap-3 mb-4">
-          <div className="h-14 w-14 rounded-xl bg-primary flex items-center justify-center shadow-lg">
-            <Shield className="h-8 w-8 text-primary-foreground" />
+          <div className="h-14 w-14 rounded-2xl bg-foreground flex items-center justify-center shadow-lg">
+            <Shield className="h-8 w-8 text-background" />
           </div>
         </div>
-        <h1 className="text-3xl font-bold text-foreground">ASCEND LC</h1>
+        <h1 className="text-3xl font-display font-bold text-foreground">ASCEND LC</h1>
         <p className="text-muted-foreground mt-1">Non-Conformance Management Platform</p>
       </div>
 
       {/* Auth Card */}
-      <Card className="w-full max-w-md shadow-card">
+      <Card className="relative w-full max-w-md glass-card border-0">
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-xl">Welcome</CardTitle>
           <CardDescription>

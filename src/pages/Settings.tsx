@@ -88,14 +88,14 @@ export default function Settings() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+            <h1 className="text-2xl font-display font-bold tracking-tight">Settings</h1>
             <p className="text-muted-foreground">Manage your account settings</p>
           </div>
         </div>
 
-        <Card>
+        <Card className="glass-card-solid border-0">
           <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
+            <CardTitle className="font-display">Profile Information</CardTitle>
             <CardDescription>Update your personal details</CardDescription>
           </CardHeader>
           <CardContent>
@@ -181,9 +181,9 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass-card-solid border-0">
           <CardHeader>
-            <CardTitle>Account</CardTitle>
+            <CardTitle className="font-display">Account</CardTitle>
             <CardDescription>Your account information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -240,9 +240,9 @@ export default function Settings() {
         </Card>
 
         {/* Integrations */}
-        <Card>
+        <Card className="glass-card-solid border-0">
           <CardHeader>
-            <CardTitle>Integrations</CardTitle>
+            <CardTitle className="font-display">Integrations</CardTitle>
             <CardDescription>Connect external services</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

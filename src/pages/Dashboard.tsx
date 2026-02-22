@@ -52,7 +52,7 @@ import {
   Legend,
 } from 'recharts';
 
-const CHART_COLORS = ['hsl(0, 0%, 10%)', 'hsl(174, 60%, 40%)', 'hsl(0, 0%, 40%)', 'hsl(0, 0%, 65%)', 'hsl(0, 0%, 80%)'];
+const CHART_COLORS = ['hsl(0, 0%, 10%)', 'hsl(174, 60%, 40%)', 'hsl(0, 0%, 35%)', 'hsl(0, 0%, 55%)', 'hsl(0, 0%, 75%)'];
 
 export default function Dashboard() {
   const { profile, roles } = useAuth();
@@ -277,30 +277,48 @@ export default function Dashboard() {
         {/* Charts Row */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Monthly Trend Chart */}
-          <Card className="glass-card-solid border-0">
-            <CardHeader>
+          <Card className="glass-card border-0">
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base font-display">
-                <TrendingUp className="h-5 w-5" />
+                <TrendingUp className="h-4 w-4 text-accent" />
                 NC Trend — Last 6 Months
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px]">
+              <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={trendData}>
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
-                    <YAxis axisLine={false} tickLine={false} className="text-xs" />
+                  <BarChart data={trendData} barGap={4}>
+                    <XAxis 
+                      dataKey="month" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
+                      width={30}
+                    />
                     <Tooltip 
+                      cursor={{ fill: 'hsl(0, 0%, 95%)' }}
                       contentStyle={{ 
-                        borderRadius: '12px', 
-                        border: '1px solid hsl(0, 0%, 90%)',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
-                        fontSize: '13px'
+                        borderRadius: '16px', 
+                        border: 'none',
+                        background: 'rgba(255,255,255,0.9)',
+                        backdropFilter: 'blur(12px)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+                        fontSize: '13px',
+                        padding: '12px 16px',
                       }} 
                     />
-                    <Legend />
-                    <Bar dataKey="created" name="Created" fill="hsl(0, 0%, 15%)" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="closed" name="Closed" fill="hsl(174, 60%, 40%)" radius={[6, 6, 0, 0]} />
+                    <Legend 
+                      iconType="circle"
+                      iconSize={8}
+                      wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }}
+                    />
+                    <Bar dataKey="created" name="Created" fill="hsl(0, 0%, 15%)" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="closed" name="Closed" fill="hsl(174, 60%, 40%)" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -308,10 +326,10 @@ export default function Dashboard() {
           </Card>
 
           {/* Category Breakdown */}
-          <Card className="glass-card-solid border-0">
-            <CardHeader>
+          <Card className="glass-card border-0">
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base font-display">
-                <BarChart3 className="h-5 w-5" />
+                <BarChart3 className="h-4 w-4 text-accent" />
                 NC by Category
               </CardTitle>
             </CardHeader>
@@ -321,7 +339,7 @@ export default function Dashboard() {
                   No data available
                 </div>
               ) : (
-                <div className="h-48">
+                <div className="h-52">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -330,9 +348,9 @@ export default function Dashboard() {
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        innerRadius={40}
-                        outerRadius={70}
-                        paddingAngle={2}
+                        innerRadius={45}
+                        outerRadius={75}
+                        paddingAngle={3}
                         strokeWidth={0}
                       >
                         {categoryData.map((_, index) => (
@@ -344,18 +362,21 @@ export default function Dashboard() {
                       </Pie>
                       <Tooltip 
                         contentStyle={{ 
-                          borderRadius: '12px', 
-                          border: '1px solid hsl(0, 0%, 90%)',
-                          boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
-                          fontSize: '13px'
+                          borderRadius: '16px', 
+                          border: 'none',
+                          background: 'rgba(255,255,255,0.9)',
+                          backdropFilter: 'blur(12px)',
+                          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+                          fontSize: '13px',
+                          padding: '12px 16px',
                         }} 
                       />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               )}
-              <div className="mt-4 space-y-2.5">
-                {categoryData.slice(0, 4).map((item, index) => (
+              <div className="mt-3 space-y-2">
+                {categoryData.slice(0, 5).map((item, index) => (
                   <div key={item.name} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2.5">
                       <div

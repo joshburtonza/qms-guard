@@ -200,7 +200,7 @@ export default function NCList() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Non-Conformances</h1>
+            <h1 className="text-2xl font-display font-bold tracking-tight">Non-Conformances</h1>
             <p className="text-muted-foreground">
               {filteredNCs.length} of {ncs.length} records
             </p>
@@ -240,7 +240,7 @@ export default function NCList() {
         />
 
         {/* Filters */}
-        <Card className="p-4">
+        <Card className="glass-card-solid border-0 p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -284,7 +284,7 @@ export default function NCList() {
 
         {/* NC List */}
         {filteredNCs.length === 0 ? (
-          <Card className="p-12 text-center">
+          <Card className="glass-card-solid border-0 p-12 text-center">
             <p className="text-muted-foreground">No non-conformances found</p>
             {searchQuery || statusFilter !== 'all' || categoryFilter !== 'all' ? (
               <Button

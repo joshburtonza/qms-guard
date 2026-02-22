@@ -10,12 +10,12 @@ interface StatusBadgeProps {
 }
 
 const statusStyles: Record<NCStatus, string> = {
-  open: 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100',
-  in_progress: 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100',
-  pending_review: 'bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-100',
-  pending_verification: 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100',
-  closed: 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100',
-  rejected: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100',
+  open: 'bg-foreground/10 text-foreground border-foreground/20 hover:bg-foreground/10',
+  in_progress: 'bg-foreground/5 text-foreground/80 border-foreground/10 hover:bg-foreground/5',
+  pending_review: 'bg-foreground/8 text-foreground/70 border-foreground/15 hover:bg-foreground/8',
+  pending_verification: 'bg-accent/10 text-accent border-accent/20 hover:bg-accent/10',
+  closed: 'bg-accent/10 text-accent border-accent/20 hover:bg-accent/10',
+  rejected: 'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/10',
 };
 
 export function StatusBadge({ status, isOverdue, isEscalated, className }: StatusBadgeProps) {
@@ -25,7 +25,7 @@ export function StatusBadge({ status, isOverdue, isEscalated, className }: Statu
         <Badge 
           variant="outline" 
           className={cn(
-            'bg-red-100 text-red-800 border-red-200 animate-pulse-subtle',
+            'bg-destructive/10 text-destructive border-destructive/20 animate-pulse',
             className
           )}
         >
@@ -42,7 +42,7 @@ export function StatusBadge({ status, isOverdue, isEscalated, className }: Statu
       {isEscalated && (
         <Badge 
           variant="outline" 
-          className="bg-purple-100 text-purple-800 border-purple-200"
+          className="bg-foreground/10 text-foreground border-foreground/20"
         >
           ESCALATED
         </Badge>

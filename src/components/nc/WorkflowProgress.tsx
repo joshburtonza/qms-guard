@@ -36,12 +36,12 @@ export function WorkflowProgress({ currentStep, className }: WorkflowProgressPro
         return (
           <div key={step.step} className="flex items-center flex-1">
             <div className="flex flex-col items-center">
-              <div
+                <div
                 className={cn(
-                  'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors',
-                  status === 'complete' && 'bg-green-500 border-green-500 text-white',
-                  status === 'current' && 'bg-primary border-primary text-primary-foreground',
-                  status === 'pending' && 'bg-muted border-muted-foreground/30 text-muted-foreground'
+                  'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-300',
+                  status === 'complete' && 'bg-accent border-accent text-accent-foreground',
+                  status === 'current' && 'bg-foreground border-foreground text-background',
+                  status === 'pending' && 'bg-muted border-border text-muted-foreground'
                 )}
               >
                 {status === 'complete' ? (
@@ -53,8 +53,8 @@ export function WorkflowProgress({ currentStep, className }: WorkflowProgressPro
               <span
                 className={cn(
                   'mt-2 text-xs font-medium text-center',
-                  status === 'complete' && 'text-green-600',
-                  status === 'current' && 'text-primary',
+                  status === 'complete' && 'text-accent',
+                  status === 'current' && 'text-foreground',
                   status === 'pending' && 'text-muted-foreground'
                 )}
               >
@@ -66,7 +66,7 @@ export function WorkflowProgress({ currentStep, className }: WorkflowProgressPro
               <div
                 className={cn(
                   'flex-1 h-0.5 mx-2 mt-[-20px]',
-                  status === 'complete' ? 'bg-green-500' : 'bg-muted'
+                  status === 'complete' ? 'bg-accent' : 'bg-border'
                 )}
               />
             )}

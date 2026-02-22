@@ -28,8 +28,8 @@ export function NCListItem({ nc, className }: NCListItemProps) {
   return (
     <Link to={`/nc/${nc.id}`}>
       <Card className={cn(
-        'p-4 transition-all hover:shadow-md hover:border-primary/20 cursor-pointer',
-        overdue && 'border-l-4 border-l-red-500',
+        'glass-card-solid p-4 border-0 card-interactive cursor-pointer',
+        overdue && 'border-l-4 !border-l-destructive',
         className
       )}>
         <div className="flex items-start justify-between gap-4">

@@ -129,7 +129,7 @@ export default function MyTasks() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-display font-bold tracking-tight flex items-center gap-2">
               <ListTodo className="h-6 w-6" />
               My Tasks
               <Badge variant="outline" className="ml-2">{tasks.length}</Badge>
@@ -217,8 +217,8 @@ export default function MyTasks() {
 function TaskList({ tasks, emptyMessage = "All caught up! No pending actions." }: { tasks: any[]; emptyMessage?: string }) {
   if (tasks.length === 0) {
     return (
-      <Card className="p-12 text-center">
-        <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-3" />
+      <Card className="glass-card-solid border-0 p-12 text-center">
+        <CheckCircle className="h-12 w-12 mx-auto text-accent mb-3" />
         <p className="font-medium">{emptyMessage}</p>
       </Card>
     );
