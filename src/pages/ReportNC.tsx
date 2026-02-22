@@ -380,7 +380,7 @@ export default function ReportNC() {
           </Button>
           <div>
             <h1 className="text-2xl font-display font-bold tracking-tight flex items-center gap-2">
-              <FileWarning className="h-6 w-6 text-accent" />
+              <FileWarning className="h-6 w-6" />
               Report Non-Conformance
             </h1>
             <p className="text-muted-foreground">
@@ -578,7 +578,7 @@ export default function ReportNC() {
                                     ? 'border-destructive bg-destructive/5'
                                     : severity === 'major'
                                     ? 'border-foreground/30 bg-foreground/5'
-                                    : 'border-accent bg-accent/5'
+                                    : 'border-foreground/20 bg-foreground/5'
                                   : 'border-border hover:bg-muted/50'
                               )}
                               onClick={() => field.onChange(severity)}
@@ -591,7 +591,7 @@ export default function ReportNC() {
                                     'font-medium cursor-pointer',
                                     severity === 'critical' && 'text-destructive',
                                     severity === 'major' && 'text-foreground',
-                                    severity === 'minor' && 'text-accent'
+                                    severity === 'minor' && 'text-foreground/70'
                                   )}
                                 >
                                   {NC_SEVERITY_LABELS[severity]}

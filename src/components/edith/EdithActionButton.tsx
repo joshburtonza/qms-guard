@@ -78,7 +78,7 @@ export function EdithActionButton({
       {loading ? (
         <Loader2 className="h-3 w-3 animate-spin" />
       ) : completed ? (
-        <Check className="h-3 w-3 text-primary" />
+        <Check className="h-3 w-3 text-foreground" />
       ) : (
         <Icon className="h-3 w-3" />
       )}

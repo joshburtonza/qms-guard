@@ -161,7 +161,7 @@ export default function ClauseManagement() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2">
-                <BookOpen className="h-6 w-6 text-primary" />
+                <BookOpen className="h-6 w-6" />
                 Clause Management
               </h1>
               <p className="text-muted-foreground">
@@ -292,7 +292,7 @@ export default function ClauseManagement() {
                         <TableCell className="text-sm">{version.clause_title}</TableCell>
                         <TableCell>
                           {version.active ? (
-                            <Badge className="bg-primary text-primary-foreground">Active</Badge>
+                            <Badge className="bg-foreground text-background">Active</Badge>
                           ) : (
                             <Badge variant="secondary">Inactive</Badge>
                           )}
@@ -305,7 +305,7 @@ export default function ClauseManagement() {
                               onClick={() => handleToggleActive(version)}
                             >
                               {version.active ? (
-                                <ToggleRight className="h-4 w-4 text-primary" />
+                                <ToggleRight className="h-4 w-4 text-foreground" />
                               ) : (
                                 <ToggleLeft className="h-4 w-4 text-muted-foreground" />
                               )}

@@ -172,7 +172,7 @@ export default function EdithSettings() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Sparkles className="h-6 w-6 text-primary" />
+                <Sparkles className="h-6 w-6" />
                 Edith AI Settings
               </h1>
               <p className="text-muted-foreground">

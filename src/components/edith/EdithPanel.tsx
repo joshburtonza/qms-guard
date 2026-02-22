@@ -29,8 +29,8 @@ export function EdithPanel() {
         <div className="border-b p-4 shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-primary-foreground" />
+              <div className="h-8 w-8 rounded-full bg-foreground flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-background" />
               </div>
               <div>
                 <DialogTitle className="text-left text-base">Edith</DialogTitle>

@@ -160,7 +160,7 @@ function MessageBubble({ message }: { message: EdithMessage }) {
         className={cn(
           'max-w-[85%] rounded-lg px-4 py-2',
           isUser
-            ? 'bg-primary text-primary-foreground'
+            ? 'bg-foreground text-background'
             : 'bg-muted'
         )}
       >

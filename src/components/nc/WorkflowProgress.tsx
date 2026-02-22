@@ -39,7 +39,7 @@ export function WorkflowProgress({ currentStep, className }: WorkflowProgressPro
                 <div
                 className={cn(
                   'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-300',
-                  status === 'complete' && 'bg-accent border-accent text-accent-foreground',
+                  status === 'complete' && 'bg-foreground border-foreground text-background',
                   status === 'current' && 'bg-foreground border-foreground text-background',
                   status === 'pending' && 'bg-muted border-border text-muted-foreground'
                 )}
@@ -53,7 +53,7 @@ export function WorkflowProgress({ currentStep, className }: WorkflowProgressPro
               <span
                 className={cn(
                   'mt-2 text-xs font-medium text-center',
-                  status === 'complete' && 'text-accent',
+                  status === 'complete' && 'text-foreground',
                   status === 'current' && 'text-foreground',
                   status === 'pending' && 'text-muted-foreground'
                 )}
@@ -66,7 +66,7 @@ export function WorkflowProgress({ currentStep, className }: WorkflowProgressPro
               <div
                 className={cn(
                   'flex-1 h-0.5 mx-2 mt-[-20px]',
-                  status === 'complete' ? 'bg-accent' : 'bg-border'
+                  status === 'complete' ? 'bg-foreground' : 'bg-border'
                 )}
               />
             )}

@@ -251,7 +251,7 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
               {isTestingConnection ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
       ) : connectionStatus === 'success' ? (
-        <Check className="h-4 w-4 text-primary" />
+        <Check className="h-4 w-4 text-foreground" />
       ) : connectionStatus === 'error' ? (
         <AlertCircle className="h-4 w-4 text-destructive" />
       ) : (

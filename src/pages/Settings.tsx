@@ -193,7 +193,7 @@ export default function Settings() {
                 {roles.map((role) => (
                   <span
                     key={role}
-                    className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded"
+                    className="px-2 py-1 text-xs font-medium bg-foreground/10 text-foreground rounded"
                   >
                     {ROLE_LABELS[role]}
                   </span>
@@ -208,7 +208,7 @@ export default function Settings() {
             </div>
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="flex items-center gap-3">
-                <BookOpen className="h-8 w-8 text-primary" />
+                <BookOpen className="h-8 w-8 text-foreground/70" />
                 <div>
                   <p className="font-medium">Clause Management</p>
                   <p className="text-sm text-muted-foreground">
@@ -248,7 +248,7 @@ export default function Settings() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="flex items-center gap-3">
-                <FileSpreadsheet className="h-8 w-8 text-primary" />
+                <FileSpreadsheet className="h-8 w-8 text-foreground/70" />
                 <div>
                   <p className="font-medium">Smartsheet</p>
                   <p className="text-sm text-muted-foreground">

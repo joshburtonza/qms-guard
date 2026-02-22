@@ -241,7 +241,7 @@ export default function FacilitatorEvaluationDetail() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                <GraduationCap className="h-6 w-6 text-primary" />
+                <GraduationCap className="h-6 w-6" />
                 {evaluation.evaluation_number}
               </h1>
               <p className="text-muted-foreground">
@@ -460,7 +460,7 @@ export default function FacilitatorEvaluationDetail() {
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
-                <div className="w-2 h-2 rounded-full bg-primary" />
+                <div className="w-2 h-2 rounded-full bg-foreground" />
                 <span className="text-muted-foreground">Created:</span>
                 <span>{format(new Date(evaluation.created_at), 'dd MMM yyyy, HH:mm')}</span>
                 <span className="text-muted-foreground">by {evaluation.evaluator?.full_name}</span>

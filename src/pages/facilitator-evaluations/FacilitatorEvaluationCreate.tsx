@@ -189,8 +189,8 @@ export default function FacilitatorEvaluationCreate() {
                       className={cn(
                         'w-10 h-10 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors',
                         field.value === score.toString()
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-muted-foreground/30 hover:border-primary/50'
+                          ? 'border-foreground bg-foreground text-background'
+                          : 'border-muted-foreground/30 hover:border-foreground/50'
                       )}
                     >
                       {score}
@@ -215,7 +215,7 @@ export default function FacilitatorEvaluationCreate() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <GraduationCap className="h-6 w-6 text-primary" />
+              <GraduationCap className="h-6 w-6" />
               New Facilitator Evaluation
             </h1>
             <p className="text-muted-foreground">
