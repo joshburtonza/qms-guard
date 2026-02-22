@@ -116,7 +116,8 @@ export function AppSidebar() {
 
   const isActive = (href: string) => {
     if (href === '/') return location.pathname === '/';
-    return location.pathname.startsWith(href);
+    // Exact match or match with trailing slash/segment to prevent /report matching /reports
+    return location.pathname === href || location.pathname.startsWith(href + '/');
   };
 
   const getInitials = (name: string) => {
