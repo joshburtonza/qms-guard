@@ -283,13 +283,13 @@ export default function Dashboard() {
                 <AreaChart data={trendData}>
                   <defs>
                     <linearGradient id="gradCreated" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.2} />
-                      <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                      <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.2} />
+                      <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <Area type="monotone" dataKey="created" stroke="hsl(var(--foreground) / 0.6)" strokeWidth={2} fill="url(#gradCreated)" dot={false} />
+                  <Area type="monotone" dataKey="created" stroke="hsl(var(--chart-1))" strokeWidth={2} fill="url(#gradCreated)" dot={false} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--popover))', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', fontSize: '12px', padding: '8px 12px', color: 'hsl(var(--popover-foreground))' }}
+                    contentStyle={{ borderRadius: '14px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--popover))', boxShadow: '0 12px 40px rgba(0,0,0,0.12)', fontSize: '12px', padding: '10px 14px', color: 'hsl(var(--popover-foreground))' }}
                     labelStyle={{ display: 'none' }}
                   />
                 </AreaChart>
@@ -312,13 +312,13 @@ export default function Dashboard() {
                 <AreaChart data={trendData}>
                   <defs>
                     <linearGradient id="gradClosed" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
-                      <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                      <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.15} />
+                      <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <Area type="monotone" dataKey="closed" stroke="hsl(var(--muted-foreground))" strokeWidth={2} fill="url(#gradClosed)" dot={false} />
+                  <Area type="monotone" dataKey="closed" stroke="hsl(var(--chart-3))" strokeWidth={2} fill="url(#gradClosed)" dot={false} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--popover))', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', fontSize: '12px', padding: '8px 12px', color: 'hsl(var(--popover-foreground))' }}
+                    contentStyle={{ borderRadius: '14px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--popover))', boxShadow: '0 12px 40px rgba(0,0,0,0.12)', fontSize: '12px', padding: '10px 14px', color: 'hsl(var(--popover-foreground))' }}
                     labelStyle={{ display: 'none' }}
                   />
                 </AreaChart>
@@ -339,10 +339,10 @@ export default function Dashboard() {
             <div className="h-12 mt-3 -mx-1">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendData}>
-                  <Line type="monotone" dataKey="created" stroke="hsl(var(--foreground) / 0.6)" strokeWidth={2} dot={{ r: 2, fill: 'hsl(var(--foreground))' }} />
-                  <Line type="monotone" dataKey="closed" stroke="hsl(var(--muted-foreground))" strokeWidth={2} dot={{ r: 2, fill: 'hsl(var(--muted-foreground))' }} />
+                  <Line type="monotone" dataKey="created" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ r: 3, fill: 'hsl(var(--chart-1))', strokeWidth: 2, stroke: 'hsl(var(--card))' }} />
+                  <Line type="monotone" dataKey="closed" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={{ r: 3, fill: 'hsl(var(--chart-3))', strokeWidth: 2, stroke: 'hsl(var(--card))' }} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--popover))', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', fontSize: '12px', padding: '8px 12px', color: 'hsl(var(--popover-foreground))' }}
+                    contentStyle={{ borderRadius: '14px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--popover))', boxShadow: '0 12px 40px rgba(0,0,0,0.12)', fontSize: '12px', padding: '10px 14px', color: 'hsl(var(--popover-foreground))' }}
                     labelStyle={{ display: 'none' }}
                   />
                 </LineChart>
