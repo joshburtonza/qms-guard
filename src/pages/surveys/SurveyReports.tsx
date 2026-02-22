@@ -25,22 +25,30 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { SurveyStats, CustomerSatisfactionSurvey } from '@/types/database';
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   BarChart,
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from 'recharts';
 
-const CHART_COLORS = ['#22c55e', '#f97316', '#ef4444', '#3b82f6', '#a855f7'];
+const CHART_COLORS = ['hsl(var(--foreground))', 'hsl(var(--muted-foreground))', 'hsl(var(--ring))'];
+
+const tooltipStyle = {
+  borderRadius: '12px',
+  border: '1px solid hsl(var(--border))',
+  background: 'hsl(var(--popover))',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+  fontSize: '12px',
+  padding: '8px 12px',
+  color: 'hsl(var(--popover-foreground))',
+};
 
 export default function SurveyReports() {
   const [surveys, setSurveys] = useState<CustomerSatisfactionSurvey[]>([]);
@@ -198,7 +206,7 @@ export default function SurveyReports() {
 
         {/* KPI Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
+          <Card className="glass-card border-0">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Responses</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -211,7 +219,7 @@ export default function SurveyReports() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="glass-card border-0">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Avg. Overall Rating</CardTitle>
               <Star className="h-4 w-4 text-yellow-500" />
@@ -233,7 +241,7 @@ export default function SurveyReports() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="glass-card border-0">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Facilitator Rating</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -246,7 +254,7 @@ export default function SurveyReports() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="glass-card border-0">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Recommendation Rate</CardTitle>
               <ThumbsUp className="h-4 w-4 text-green-500" />
@@ -263,7 +271,7 @@ export default function SurveyReports() {
         {/* Charts */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Trend Chart */}
-          <Card>
+          <Card className="glass-card-solid border-0">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
@@ -281,28 +289,26 @@ export default function SurveyReports() {
               ) : (
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" domain={[0, 5]} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar
-                        yAxisId="left"
-                        dataKey="responses"
-                        fill="hsl(var(--primary))"
-                        name="Responses"
-                      />
-                      <Line
-                        yAxisId="right"
+                    <AreaChart data={trendData}>
+                      <defs>
+                        <linearGradient id="gradResponses" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
+                          <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Area
                         type="monotone"
-                        dataKey="avgRating"
-                        stroke="#f97316"
-                        name="Avg Rating"
+                        dataKey="responses"
+                        fill="url(#gradResponses)"
+                        stroke="hsl(var(--foreground))"
                         strokeWidth={2}
+                        name="Responses"
+                        dot={{ r: 3, fill: 'hsl(var(--foreground))' }}
                       />
-                    </BarChart>
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
               )}
@@ -310,7 +316,7 @@ export default function SurveyReports() {
           </Card>
 
           {/* Recommendation Pie Chart */}
-          <Card>
+          <Card className="glass-card-solid border-0">
             <CardHeader>
               <CardTitle>Would Recommend</CardTitle>
               <CardDescription>
@@ -344,7 +350,7 @@ export default function SurveyReports() {
                           />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip contentStyle={tooltipStyle} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -353,7 +359,7 @@ export default function SurveyReports() {
           </Card>
 
           {/* Service Type Breakdown */}
-          <Card className="lg:col-span-2">
+          <Card className="glass-card-solid border-0 lg:col-span-2">
             <CardHeader>
               <CardTitle>Responses by Service Type</CardTitle>
               <CardDescription>
@@ -369,11 +375,10 @@ export default function SurveyReports() {
                 <div className="h-48">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={serviceChartData} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={100} />
-                      <Tooltip />
-                      <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                      <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Bar dataKey="value" fill="hsl(var(--foreground))" radius={[0, 6, 6, 0]} fillOpacity={0.8} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

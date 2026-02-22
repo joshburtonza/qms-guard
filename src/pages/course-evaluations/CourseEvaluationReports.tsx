@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Star, TrendingUp, ThumbsUp, Users } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 
 interface FacilitatorStats {
@@ -25,7 +25,17 @@ interface CourseStats {
   evaluationCount: number;
 }
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', '#8884d8', '#82ca9d'];
+const COLORS = ['hsl(var(--foreground))', 'hsl(var(--muted-foreground))', 'hsl(var(--ring))'];
+
+const tooltipStyle = {
+  borderRadius: '12px',
+  border: '1px solid hsl(var(--border))',
+  background: 'hsl(var(--popover))',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+  fontSize: '12px',
+  padding: '8px 12px',
+  color: 'hsl(var(--popover-foreground))',
+};
 
 export default function CourseEvaluationReports() {
   const { tenant } = useTenant();
@@ -202,7 +212,7 @@ export default function CourseEvaluationReports() {
 
         {/* KPI Cards */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card>
+          <Card className="glass-card border-0">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
@@ -211,7 +221,7 @@ export default function CourseEvaluationReports() {
               <CardTitle className="text-3xl">{totalEvaluations}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="glass-card border-0">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-2">
                 <Star className="h-4 w-4" />
@@ -220,7 +230,7 @@ export default function CourseEvaluationReports() {
               <CardTitle className="text-3xl">{avgCourseRating}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="glass-card border-0">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-2">
                 <Star className="h-4 w-4" />
@@ -229,7 +239,7 @@ export default function CourseEvaluationReports() {
               <CardTitle className="text-3xl">{avgFacilitatorRating}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="glass-card border-0">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-2">
                 <ThumbsUp className="h-4 w-4" />
@@ -243,7 +253,7 @@ export default function CourseEvaluationReports() {
         {/* Charts Row */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Rating Trend */}
-          <Card>
+          <Card className="glass-card-solid border-0">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
@@ -253,33 +263,42 @@ export default function CourseEvaluationReports() {
             <CardContent>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="month" className="text-xs" />
-                    <YAxis domain={[0, 5]} className="text-xs" />
-                    <Tooltip />
-                    <Line
+                  <AreaChart data={trendData}>
+                    <defs>
+                      <linearGradient id="gradCourse" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
+                        <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 5]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Area
                       type="monotone"
                       dataKey="courseRating"
                       name="Course"
-                      stroke="hsl(var(--primary))"
+                      stroke="hsl(var(--foreground))"
                       strokeWidth={2}
+                      fill="url(#gradCourse)"
+                      dot={{ r: 3, fill: 'hsl(var(--foreground))' }}
                     />
-                    <Line
+                    <Area
                       type="monotone"
                       dataKey="facilitatorRating"
                       name="Facilitator"
-                      stroke="hsl(var(--secondary))"
+                      stroke="hsl(var(--muted-foreground))"
                       strokeWidth={2}
+                      fill="none"
+                      dot={{ r: 3, fill: 'hsl(var(--muted-foreground))' }}
                     />
-                  </LineChart>
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
 
           {/* Recommendation Distribution */}
-          <Card>
+          <Card className="glass-card-solid border-0">
             <CardHeader>
               <CardTitle>Recommendation Distribution</CardTitle>
             </CardHeader>
@@ -301,7 +320,7 @@ export default function CourseEvaluationReports() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip contentStyle={tooltipStyle} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -310,7 +329,7 @@ export default function CourseEvaluationReports() {
         </div>
 
         {/* Top Facilitators */}
-        <Card>
+        <Card className="glass-card-solid border-0">
           <CardHeader>
             <CardTitle>Top Facilitators</CardTitle>
             <CardDescription>Ranked by average rating</CardDescription>
@@ -319,11 +338,10 @@ export default function CourseEvaluationReports() {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={facilitatorStats.slice(0, 5)} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis type="number" domain={[0, 5]} />
-                  <YAxis dataKey="name" type="category" width={150} className="text-xs" />
-                  <Tooltip />
-                  <Bar dataKey="avgRating" name="Avg Rating" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  <XAxis type="number" domain={[0, 5]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                  <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Bar dataKey="avgRating" name="Avg Rating" fill="hsl(var(--foreground))" radius={[0, 6, 6, 0]} fillOpacity={0.8} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -331,7 +349,7 @@ export default function CourseEvaluationReports() {
         </Card>
 
         {/* Top Courses */}
-        <Card>
+        <Card className="glass-card-solid border-0">
           <CardHeader>
             <CardTitle>Top Rated Courses</CardTitle>
             <CardDescription>Ranked by average rating</CardDescription>
@@ -340,11 +358,10 @@ export default function CourseEvaluationReports() {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={courseStats.slice(0, 5)} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis type="number" domain={[0, 5]} />
-                  <YAxis dataKey="code" type="category" width={100} className="text-xs" />
-                  <Tooltip />
-                  <Bar dataKey="avgRating" name="Avg Rating" fill="hsl(var(--secondary))" radius={[0, 4, 4, 0]} />
+                  <XAxis type="number" domain={[0, 5]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                  <YAxis dataKey="code" type="category" width={100} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Bar dataKey="avgRating" name="Avg Rating" fill="hsl(var(--muted-foreground))" radius={[0, 6, 6, 0]} fillOpacity={0.7} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
