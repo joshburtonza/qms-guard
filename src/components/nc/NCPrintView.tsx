@@ -22,7 +22,7 @@ export function NCPrintView({
   tenantName = 'QMS Guard',
 }: NCPrintViewProps) {
   return (
-    <div className="print-container p-8 max-w-4xl mx-auto bg-white text-foreground">
+    <div className="print-container p-8 max-w-4xl mx-auto bg-background text-foreground">
       {/* Header */}
       <div className="flex justify-between items-start border-b-2 border-foreground pb-4 mb-6">
         <div>

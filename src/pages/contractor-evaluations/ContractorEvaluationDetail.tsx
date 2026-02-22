@@ -241,7 +241,7 @@ export default function ContractorEvaluationDetail() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
         </div>
       </AppLayout>
     );
@@ -490,7 +490,7 @@ export default function ContractorEvaluationDetail() {
               <>
                 <Separator />
                 <div>
-                  <h4 className={`font-medium text-sm mb-2 ${evaluation.status === 'approved' ? 'text-green-600' : 'text-red-600'}`}>
+                  <h4 className={`font-medium text-sm mb-2 ${evaluation.status === 'approved' ? 'text-foreground' : 'text-destructive'}`}>
                     {evaluation.status === 'approved' ? 'Approval' : 'Rejection'} Comments
                   </h4>
                   <p className="text-sm">{evaluation.approval_comments}</p>

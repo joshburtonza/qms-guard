@@ -161,7 +161,7 @@ export function EdithSuggestedPrompts({
           size="sm"
           className={cn(
             "h-7 text-xs px-2 py-1 rounded-full",
-            "bg-background hover:bg-primary/10 hover:text-primary",
+            "bg-background hover:bg-foreground/10 hover:text-foreground",
             "border border-border"
           )}
           onClick={() => onSelectPrompt(prompt)}

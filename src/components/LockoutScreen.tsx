@@ -42,15 +42,15 @@ export function LockoutScreen({ overdueCount }: LockoutScreenProps) {
             <h4 className="font-medium text-foreground">What you can do:</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
-                <span className="text-primary">1.</span>
+                <span className="text-foreground font-medium">1.</span>
                 <span>Contact your Training Manager to discuss your overdue items</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-primary">2.</span>
+                <span className="text-foreground font-medium">2.</span>
                 <span>Request a temporary unlock to address urgent items</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-primary">3.</span>
+                <span className="text-foreground font-medium">3.</span>
                 <span>Work with your team to reassign items if needed</span>
               </li>
             </ul>
@@ -61,7 +61,7 @@ export function LockoutScreen({ overdueCount }: LockoutScreenProps) {
             <div className="flex flex-col gap-2 text-sm">
               <a 
                 href="mailto:support@qms-guard.com" 
-                className="flex items-center gap-2 text-primary hover:underline"
+                className="flex items-center gap-2 text-foreground hover:underline"
               >
                 <Mail className="w-4 h-4" />
                 support@qms-guard.com
