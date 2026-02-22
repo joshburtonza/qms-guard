@@ -98,13 +98,13 @@ const TRIGGER_LABELS: Record<string, string> = {
 };
 
 const WF_COLORS: Record<string, string> = {
-  wf1_qa_classify: 'bg-blue-500',
-  wf2_rp_investigation: 'bg-emerald-500',
-  wf3_declined_rework: 'bg-red-500',
-  wf4_second_approval: 'bg-purple-500',
-  wf5_first_approval: 'bg-amber-500',
-  wf6_tm_notification: 'bg-teal-500',
-  wf7_reminder: 'bg-orange-500',
+  wf1_qa_classify: 'bg-foreground/80',
+  wf2_rp_investigation: 'bg-foreground/70',
+  wf3_declined_rework: 'bg-foreground/60',
+  wf4_second_approval: 'bg-foreground/50',
+  wf5_first_approval: 'bg-foreground/40',
+  wf6_tm_notification: 'bg-foreground/30',
+  wf7_reminder: 'bg-foreground/20',
 };
 
 export default function AutomationsDashboard() {
@@ -260,8 +260,8 @@ export default function AutomationsDashboard() {
                   <p className="text-sm font-medium text-muted-foreground">Active Workflows</p>
                   <p className="text-3xl font-bold">{activeCount}<span className="text-lg text-muted-foreground">/{workflows.length}</span></p>
                 </div>
-                <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <Play className="h-6 w-6 text-emerald-600" />
+                <div className="h-12 w-12 rounded-full bg-foreground/10 flex items-center justify-center">
+                  <Play className="h-6 w-6 text-foreground/60" />
                 </div>
               </div>
             </CardContent>
@@ -273,8 +273,8 @@ export default function AutomationsDashboard() {
                   <p className="text-sm font-medium text-muted-foreground">Total Executions</p>
                   <p className="text-3xl font-bold">{totalExecutions}</p>
                 </div>
-                <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Activity className="h-6 w-6 text-blue-600" />
+                <div className="h-12 w-12 rounded-full bg-foreground/10 flex items-center justify-center">
+                  <Activity className="h-6 w-6 text-foreground/60" />
                 </div>
               </div>
             </CardContent>
@@ -286,14 +286,11 @@ export default function AutomationsDashboard() {
                   <p className="text-sm font-medium text-muted-foreground">Recent Failures</p>
                   <p className="text-3xl font-bold">{recentFailures}</p>
                 </div>
-                <div className={cn(
-                  "h-12 w-12 rounded-full flex items-center justify-center",
-                  recentFailures > 0 ? "bg-red-100" : "bg-emerald-100"
-                )}>
+                <div className="h-12 w-12 rounded-full bg-foreground/10 flex items-center justify-center">
                   {recentFailures > 0 ? (
-                    <XCircle className="h-6 w-6 text-red-600" />
+                    <XCircle className="h-6 w-6 text-foreground/70" />
                   ) : (
-                    <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                    <CheckCircle2 className="h-6 w-6 text-foreground/50" />
                   )}
                 </div>
               </div>
@@ -314,7 +311,7 @@ export default function AutomationsDashboard() {
               const TriggerIcon = TRIGGER_ICONS[wf.trigger_type] || Database;
               const wfLogs = executionLogs.filter(l => l.workflow_id === wf.id);
               const lastLog = wfLogs[0];
-              const colorClass = WF_COLORS[wf.workflow_key] || 'bg-gray-500';
+              const colorClass = WF_COLORS[wf.workflow_key] || 'bg-foreground/20';
 
               return (
                 <Card key={wf.id} className={cn(!wf.is_enabled && 'opacity-60')}>
@@ -358,7 +355,7 @@ export default function AutomationsDashboard() {
                             {lastLog && (
                               <span className={cn(
                                 "flex items-center gap-1",
-                                lastLog.status === 'failed' ? 'text-destructive' : 'text-emerald-600'
+                                lastLog.status === 'failed' ? 'text-destructive' : 'text-foreground/60'
                               )}>
                                 {lastLog.status === 'failed' ? (
                                   <XCircle className="h-3 w-3" />
@@ -431,11 +428,11 @@ export default function AutomationsDashboard() {
                           className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
                         >
                           {log.status === 'success' ? (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                            <CheckCircle2 className="h-4 w-4 text-foreground/50 flex-shrink-0" />
                           ) : log.status === 'failed' ? (
                             <XCircle className="h-4 w-4 text-destructive flex-shrink-0" />
                           ) : (
-                            <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                            <AlertTriangle className="h-4 w-4 text-foreground/60 flex-shrink-0" />
                           )}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">

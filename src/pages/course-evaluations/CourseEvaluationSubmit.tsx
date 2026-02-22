@@ -77,7 +77,6 @@ const StarRating = ({
 }) => {
   const [hovered, setHovered] = useState(0);
   const display = hovered || value;
-  const uid = label.replace(/\W/g, '');
 
   return (
     <div className="space-y-1.5">
@@ -93,24 +92,12 @@ const StarRating = ({
               onMouseEnter={() => setHovered(star)}
               className="p-0.5 cursor-pointer"
             >
-              <svg viewBox="0 0 24 24" className="h-6 w-6">
-                <defs>
-                  <linearGradient id={`sg-${uid}-${star}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="hsl(48, 96%, 53%)" />
-                    <stop offset="100%" stopColor="hsl(32, 95%, 50%)" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                  fill={filled ? `url(#sg-${uid}-${star})` : 'hsl(var(--muted) / 0.5)'}
-                  stroke={filled ? 'hsl(40, 90%, 45%)' : 'hsl(var(--muted-foreground) / 0.2)'}
-                  strokeWidth="1"
-                  strokeLinejoin="round"
-                  style={{
-                    transition: 'fill 0.15s ease, stroke 0.15s ease',
-                  }}
-                />
-              </svg>
+              <Star
+                className="h-6 w-6 transition-all duration-150 ease-out"
+                fill={filled ? 'hsl(var(--foreground))' : 'transparent'}
+                stroke={filled ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.3)'}
+                strokeWidth={1.5}
+              />
             </button>
           );
         })}

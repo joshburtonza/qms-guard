@@ -42,11 +42,11 @@ export function EdithNCReference({
   const getSeverityIcon = () => {
     switch (nc.severity) {
       case 'critical':
-        return <AlertTriangle className="h-3 w-3 text-red-500" />;
+        return <AlertTriangle className="h-3 w-3 text-foreground" />;
       case 'major':
-        return <AlertCircle className="h-3 w-3 text-orange-500" />;
+        return <AlertCircle className="h-3 w-3 text-foreground/70" />;
       case 'minor':
-        return <Info className="h-3 w-3 text-blue-500" />;
+        return <Info className="h-3 w-3 text-muted-foreground" />;
       default:
         return null;
     }
@@ -68,19 +68,19 @@ export function EdithNCReference({
   const getStatusColor = () => {
     switch (nc.status) {
       case 'open':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+        return 'bg-foreground/10 text-foreground';
       case 'in_progress':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+        return 'bg-foreground/8 text-foreground/80';
       case 'pending_review':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+        return 'bg-foreground/6 text-foreground/70';
       case 'pending_verification':
-        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
+        return 'bg-foreground/8 text-foreground/70';
       case 'closed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+        return 'bg-foreground/5 text-foreground/50';
       case 'rejected':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+        return 'bg-foreground/10 text-foreground/70';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+        return 'bg-foreground/5 text-muted-foreground';
     }
   };
 
