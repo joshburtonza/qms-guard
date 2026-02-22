@@ -77,58 +77,38 @@ const StarRating = ({
 }) => {
   const [hovered, setHovered] = useState(0);
   const display = hovered || value;
+  const uid = label.replace(/\W/g, '');
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <Label className="text-sm font-medium">{label}</Label>
-      <div className="flex gap-1">
+      <div className="flex gap-0.5" onMouseLeave={() => setHovered(0)}>
         {[1, 2, 3, 4, 5].map((star) => {
           const filled = star <= display;
-          const delay = star * 60;
           return (
             <button
               key={star}
               type="button"
               onClick={() => onChange(star)}
               onMouseEnter={() => setHovered(star)}
-              onMouseLeave={() => setHovered(0)}
-              className="p-1 group relative"
-              style={{ transitionDelay: `${delay}ms` }}
+              className="p-0.5 cursor-pointer"
             >
-              {/* Glow behind */}
-              <span
-                className="absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 blur-md"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(var(--chart-4)), hsl(var(--chart-1)))',
-                  opacity: filled ? 0.35 : 0,
-                  transitionDelay: `${delay}ms`,
-                }}
-              />
-              {/* Gradient-filled star via SVG */}
-              <svg
-                viewBox="0 0 24 24"
-                className="h-7 w-7 relative z-10 transition-transform duration-200 ease-out"
-                style={{
-                  transform: filled ? 'scale(1.15)' : 'scale(1)',
-                  transitionDelay: `${delay}ms`,
-                }}
-              >
+              <svg viewBox="0 0 24 24" className="h-6 w-6">
                 <defs>
-                  <linearGradient id={`star-grad-${label.replace(/\s/g, '')}-${star}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="hsl(45, 93%, 58%)" />
-                    <stop offset="50%" stopColor="hsl(36, 95%, 55%)" />
-                    <stop offset="100%" stopColor="hsl(25, 95%, 53%)" />
+                  <linearGradient id={`sg-${uid}-${star}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="hsl(48, 96%, 53%)" />
+                    <stop offset="100%" stopColor="hsl(32, 95%, 50%)" />
                   </linearGradient>
                 </defs>
                 <path
                   d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                  fill={filled ? `url(#star-grad-${label.replace(/\s/g, '')}-${star})` : 'none'}
-                  stroke={filled ? 'hsl(36, 95%, 50%)' : 'hsl(var(--muted-foreground) / 0.3)'}
-                  strokeWidth="1.5"
+                  fill={filled ? `url(#sg-${uid}-${star})` : 'hsl(var(--muted) / 0.5)'}
+                  stroke={filled ? 'hsl(40, 90%, 45%)' : 'hsl(var(--muted-foreground) / 0.2)'}
+                  strokeWidth="1"
                   strokeLinejoin="round"
-                  strokeLinecap="round"
-                  className="transition-all duration-300"
-                  style={{ transitionDelay: `${delay}ms` }}
+                  style={{
+                    transition: 'fill 0.15s ease, stroke 0.15s ease',
+                  }}
                 />
               </svg>
             </button>
