@@ -14,7 +14,7 @@ export function EdithFloatingButton() {
         onClick={toggleEdith}
         className={cn(
           'h-14 w-14 rounded-full shadow-lg',
-          'bg-primary hover:bg-primary/90',
+          'bg-foreground hover:bg-foreground/90 text-background',
           'transition-all duration-300 ease-in-out',
           isOpen && 'scale-0 opacity-0',
           isLoading && 'animate-pulse'
