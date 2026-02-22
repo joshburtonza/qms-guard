@@ -7,115 +7,107 @@
 /* QMS Guard — Glassmorphism Monochrome Design System */
 
 @layer base {
-  :root {
-    /* Core — dark charcoal foundation */
-    --background: 220 10% 14%;
-    --foreground: 0 0% 92%;
-
-    /* Glass card surfaces — dark glass */
-    --card: 220 10% 18%;
-    --card-foreground: 0 0% 92%;
-
-    /* Popover/Modal surfaces */
-    --popover: 220 10% 16%;
-    --popover-foreground: 0 0% 92%;
-
-    /* Primary — light on dark */
-    --primary: 0 0% 92%;
-    --primary-foreground: 220 10% 12%;
-
-    /* Secondary — darker shade */
-    --secondary: 220 8% 22%;
-    --secondary-foreground: 0 0% 80%;
-
-    /* Muted — subtle dark gray */
-    --muted: 220 8% 20%;
-    --muted-foreground: 0 0% 55%;
-
-    /* Accent — subtle warm gray highlight */
-    --accent: 220 6% 26%;
-    --accent-foreground: 0 0% 92%;
-
-    /* Destructive */
-    --destructive: 0 62% 50%;
+  /* LIGHT MODE — clean, bright, minimal */
+  :root, .light {
+    --background: 0 0% 97%;
+    --foreground: 220 15% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 12%;
+    --primary: 220 15% 12%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 8% 93%;
+    --secondary-foreground: 220 15% 20%;
+    --muted: 220 8% 94%;
+    --muted-foreground: 220 8% 46%;
+    --accent: 220 6% 90%;
+    --accent-foreground: 220 15% 12%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-
-    /* Status colors — muted for dark theme */
-    --status-open: 38 72% 55%;
-    --status-in-progress: 210 30% 55%;
-    --status-pending-review: 0 0% 55%;
-    --status-pending-verification: 45 60% 55%;
-    --status-closed: 160 45% 50%;
-    --status-rejected: 0 55% 55%;
-    --status-overdue: 0 62% 55%;
-
-    /* Severity */
-    --severity-critical: 0 62% 55%;
-    --severity-major: 38 72% 55%;
-    --severity-minor: 0 0% 50%;
-
-    /* Border and input — subtle dark borders */
-    --border: 220 8% 24%;
-    --input: 220 8% 22%;
-    --ring: 0 0% 50%;
-
+    --status-open: 38 92% 50%;
+    --status-in-progress: 210 60% 50%;
+    --status-pending-review: 220 8% 50%;
+    --status-pending-verification: 45 80% 47%;
+    --status-closed: 160 60% 40%;
+    --status-rejected: 0 72% 51%;
+    --status-overdue: 0 72% 51%;
+    --severity-critical: 0 72% 51%;
+    --severity-major: 38 92% 50%;
+    --severity-minor: 220 8% 46%;
+    --border: 220 8% 88%;
+    --input: 220 8% 90%;
+    --ring: 220 15% 30%;
     --radius: 1rem;
-
-    /* Sidebar — dark panel */
-    --sidebar-background: 220 10% 11%;
-    --sidebar-foreground: 0 0% 75%;
-    --sidebar-primary: 0 0% 92%;
-    --sidebar-primary-foreground: 220 10% 12%;
-    --sidebar-accent: 220 8% 18%;
-    --sidebar-accent-foreground: 0 0% 92%;
-    --sidebar-border: 220 8% 20%;
-    --sidebar-ring: 0 0% 50%;
-
-    /* Chart colors — monochrome spectrum */
-    --chart-1: 0 0% 85%;
-    --chart-2: 0 0% 65%;
-    --chart-3: 0 0% 45%;
-    --chart-4: 0 0% 35%;
-    --chart-5: 0 0% 25%;
-
-    /* Glass effect tokens — dark glass */
-    --glass-bg: rgba(30, 33, 40, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.06);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 15% 25%;
+    --sidebar-primary: 220 15% 12%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 6% 94%;
+    --sidebar-accent-foreground: 220 15% 12%;
+    --sidebar-border: 220 8% 90%;
+    --sidebar-ring: 220 15% 30%;
+    --chart-1: 220 15% 15%;
+    --chart-2: 220 10% 40%;
+    --chart-3: 220 8% 55%;
+    --chart-4: 220 6% 70%;
+    --chart-5: 220 4% 82%;
+    --glass-bg: rgba(255, 255, 255, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
     --glass-blur: 20px;
+    --glass-glow: none;
   }
 
+  /* DARK MODE — charcoal with chrome/liquid glow */
   .dark {
-    --background: 220 12% 8%;
-    --foreground: 0 0% 95%;
-    --card: 220 12% 12%;
-    --card-foreground: 0 0% 95%;
-    --popover: 220 12% 10%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 0 0% 95%;
-    --primary-foreground: 220 12% 8%;
-    --secondary: 220 10% 16%;
-    --secondary-foreground: 0 0% 85%;
-    --muted: 220 10% 14%;
-    --muted-foreground: 0 0% 50%;
-    --accent: 220 8% 20%;
-    --accent-foreground: 0 0% 95%;
-    --destructive: 0 55% 45%;
-    --destructive-foreground: 0 0% 95%;
-    --border: 220 10% 18%;
-    --input: 220 10% 16%;
-    --ring: 0 0% 45%;
-    --sidebar-background: 220 12% 6%;
-    --sidebar-foreground: 0 0% 70%;
-    --sidebar-primary: 0 0% 95%;
-    --sidebar-primary-foreground: 220 12% 8%;
-    --sidebar-accent: 220 10% 14%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 10% 16%;
-    --sidebar-ring: 0 0% 45%;
-    --glass-bg: rgba(15, 17, 22, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.04);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --background: 225 12% 10%;
+    --foreground: 0 0% 93%;
+    --card: 225 12% 14%;
+    --card-foreground: 0 0% 93%;
+    --popover: 225 12% 12%;
+    --popover-foreground: 0 0% 93%;
+    --primary: 0 0% 96%;
+    --primary-foreground: 225 12% 8%;
+    --secondary: 225 10% 20%;
+    --secondary-foreground: 0 0% 82%;
+    --muted: 225 10% 18%;
+    --muted-foreground: 0 0% 52%;
+    --accent: 225 8% 24%;
+    --accent-foreground: 0 0% 93%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --status-open: 38 72% 58%;
+    --status-in-progress: 210 40% 58%;
+    --status-pending-review: 0 0% 55%;
+    --status-pending-verification: 45 60% 58%;
+    --status-closed: 160 50% 52%;
+    --status-rejected: 0 55% 58%;
+    --status-overdue: 0 62% 58%;
+    --severity-critical: 0 62% 58%;
+    --severity-major: 38 72% 58%;
+    --severity-minor: 0 0% 50%;
+    --border: 225 10% 22%;
+    --input: 225 10% 20%;
+    --ring: 0 0% 55%;
+    --sidebar-background: 225 14% 7%;
+    --sidebar-foreground: 0 0% 72%;
+    --sidebar-primary: 0 0% 96%;
+    --sidebar-primary-foreground: 225 14% 7%;
+    --sidebar-accent: 225 10% 16%;
+    --sidebar-accent-foreground: 0 0% 93%;
+    --sidebar-border: 225 10% 18%;
+    --sidebar-ring: 0 0% 50%;
+    --chart-1: 0 0% 88%;
+    --chart-2: 0 0% 68%;
+    --chart-3: 0 0% 48%;
+    --chart-4: 0 0% 35%;
+    --chart-5: 0 0% 25%;
+    --glass-bg: rgba(20, 22, 30, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.07);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    --glass-blur: 24px;
+    --glass-glow: 0 0 60px rgba(255, 255, 255, 0.03);
   }
 }
 
@@ -140,21 +132,27 @@
 }
 
 @layer components {
-  /* Glass Card — the core design element */
+  /* Glass Card — chrome/liquid effect */
   .glass-card {
     background: var(--glass-bg);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
+    box-shadow: var(--glass-shadow), var(--glass-glow, none);
     @apply rounded-2xl transition-all duration-300;
   }
 
   .glass-card:hover {
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--glass-shadow), 0 0 80px rgba(255, 255, 255, 0.04);
+    transform: translateY(-1px);
   }
 
-  /* Glass Card Subtle — less transparency */
+  .dark .glass-card:hover {
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 80px rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Glass Card Solid */
   .glass-card-solid {
     @apply bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-sm transition-all duration-300;
   }
@@ -163,44 +161,59 @@
     @apply shadow-md;
   }
 
-  /* Status badge variants — monochrome with subtle differentiation */
+  .dark .glass-card-solid:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 60px rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /* Status badge variants — adaptive for light/dark */
   .badge-open {
     @apply bg-foreground/10 text-foreground border-foreground/20;
   }
-  
   .badge-in-progress {
     @apply bg-foreground/5 text-foreground/80 border-foreground/10;
   }
-  
   .badge-pending-review {
     @apply bg-foreground/8 text-foreground/70 border-foreground/15;
   }
-  
   .badge-pending-verification {
+    @apply bg-amber-100 text-amber-800 border-amber-200;
+  }
+  .dark .badge-pending-verification {
     @apply bg-amber-900/30 text-amber-300 border-amber-700/30;
   }
-  
   .badge-closed {
+    @apply bg-emerald-100 text-emerald-800 border-emerald-200;
+  }
+  .dark .badge-closed {
     @apply bg-emerald-900/30 text-emerald-300 border-emerald-700/30;
   }
-  
   .badge-rejected {
+    @apply bg-red-100 text-red-800 border-red-200;
+  }
+  .dark .badge-rejected {
     @apply bg-red-900/30 text-red-300 border-red-700/30;
   }
-  
   .badge-overdue {
+    @apply bg-red-100 text-red-800 border-red-200 animate-pulse;
+  }
+  .dark .badge-overdue {
     @apply bg-red-900/30 text-red-300 border-red-700/30 animate-pulse;
   }
 
-  /* Severity indicators */
+  /* Severity indicators — adaptive */
   .severity-critical {
-    @apply text-red-400 font-semibold;
+    @apply text-red-600 font-semibold;
   }
-  
+  .dark .severity-critical {
+    @apply text-red-400;
+  }
   .severity-major {
-    @apply text-amber-400 font-semibold;
+    @apply text-amber-600 font-semibold;
   }
-  
+  .dark .severity-major {
+    @apply text-amber-400;
+  }
   .severity-minor {
     @apply text-muted-foreground font-semibold;
   }
@@ -210,18 +223,24 @@
     @apply transition-all duration-300 hover:shadow-lg hover:border-border/80 hover:-translate-y-0.5;
   }
 
-  /* Dashboard KPI cards — glass style */
+  /* KPI cards — chrome glass with glow */
   .kpi-card {
     background: var(--glass-bg);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
+    box-shadow: var(--glass-shadow), var(--glass-glow, none);
     @apply relative overflow-hidden rounded-2xl p-6 transition-all duration-300;
   }
 
   .kpi-card:hover {
-    @apply shadow-lg -translate-y-0.5;
+    @apply -translate-y-0.5;
+    box-shadow: var(--glass-shadow), 0 0 40px rgba(255, 255, 255, 0.03);
+  }
+
+  .dark .kpi-card:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 0 60px rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
   }
 
   /* Workflow progress */
@@ -232,11 +251,12 @@
   .workflow-step-active {
     @apply text-foreground font-medium;
   }
-
   .workflow-step-complete {
+    @apply text-emerald-600;
+  }
+  .dark .workflow-step-complete {
     @apply text-emerald-400;
   }
-
   .workflow-step-pending {
     @apply text-muted-foreground;
   }
@@ -260,17 +280,24 @@
     @apply border-l-4 border-l-accent;
   }
 
-  /* Alert styling */
+  /* Alert styling — adaptive */
   .alert-overdue {
-    @apply bg-red-950/50 border-red-800/30 text-red-300 backdrop-blur-sm;
+    @apply bg-red-50/80 border-red-200/50 text-red-800 backdrop-blur-sm;
   }
-
+  .dark .alert-overdue {
+    @apply bg-red-950/50 border-red-800/30 text-red-300;
+  }
   .alert-warning {
-    @apply bg-amber-950/50 border-amber-800/30 text-amber-300 backdrop-blur-sm;
+    @apply bg-amber-50/80 border-amber-200/50 text-amber-800 backdrop-blur-sm;
   }
-
+  .dark .alert-warning {
+    @apply bg-amber-950/50 border-amber-800/30 text-amber-300;
+  }
   .alert-success {
-    @apply bg-emerald-950/50 border-emerald-800/30 text-emerald-300 backdrop-blur-sm;
+    @apply bg-emerald-50/80 border-emerald-200/50 text-emerald-800 backdrop-blur-sm;
+  }
+  .dark .alert-success {
+    @apply bg-emerald-950/50 border-emerald-800/30 text-emerald-300;
   }
 
   /* Navigation active state */

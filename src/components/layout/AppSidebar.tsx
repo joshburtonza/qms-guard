@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   LayoutDashboard,
   FileWarning,
@@ -325,6 +326,10 @@ export function AppSidebar() {
           </div>
         )}
         
+        <div className="mb-2">
+          <ThemeToggle collapsed={collapsed} />
+        </div>
+
         <div className="flex gap-1 mt-1">
           {collapsed ? (
             <>
