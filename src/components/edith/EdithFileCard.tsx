@@ -21,16 +21,16 @@ export function EdithFileCard({
 
   const getFileIcon = () => {
     if (fileType.startsWith('image/')) {
-      return <ImageIcon className="h-5 w-5 text-blue-500" />;
+      return <ImageIcon className="h-5 w-5 text-foreground/60" />;
     }
     if (fileType.includes('spreadsheet') || fileType.includes('excel') || fileType === 'text/csv') {
-      return <Sheet className="h-5 w-5 text-green-500" />;
+      return <Sheet className="h-5 w-5 text-foreground/60" />;
     }
     if (fileType.includes('pdf')) {
-      return <FileText className="h-5 w-5 text-red-500" />;
+      return <FileText className="h-5 w-5 text-foreground/70" />;
     }
     if (fileType.includes('word')) {
-      return <FileText className="h-5 w-5 text-blue-600" />;
+      return <FileText className="h-5 w-5 text-foreground/60" />;
     }
     return <FileText className="h-5 w-5 text-muted-foreground" />;
   };

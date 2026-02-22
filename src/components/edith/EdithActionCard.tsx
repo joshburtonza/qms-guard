@@ -46,8 +46,8 @@ export function EdithActionCard({
 
   if (isCompleted) {
     return (
-      <Card className="p-4 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-        <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+      <Card className="p-4 bg-muted/50 border-border">
+        <div className="flex items-center gap-2 text-foreground/70">
           <Check className="h-5 w-5" />
           <span className="font-medium">Action completed</span>
         </div>

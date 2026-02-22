@@ -105,7 +105,7 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
         canAct: false,
         component: null,
         message: 'This non-conformance has been approved and closed.',
-        icon: <CheckCircle className="h-5 w-5 text-green-600" />,
+        icon: <CheckCircle className="h-5 w-5 text-foreground/60" />,
         variant: 'success',
       };
     }
@@ -115,7 +115,7 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
         canAct: false,
         component: null,
         message: 'This non-conformance was rejected (legacy status). Contact an administrator for resolution.',
-        icon: <Ban className="h-5 w-5 text-red-600" />,
+        icon: <Ban className="h-5 w-5 text-foreground/70" />,
         variant: 'warning',
       };
     }
@@ -159,7 +159,7 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
             ? 'Your previous submission was declined. Please provide revised corrective actions.'
             : 'Please document the root cause and corrective actions.',
           icon: isRework 
-            ? <AlertTriangle className="h-5 w-5 text-amber-500" />
+            ? <AlertTriangle className="h-5 w-5 text-foreground/70" />
             : <Shield className="h-5 w-5 text-primary" />,
           variant: isRework ? 'warning' : 'default',
         };
@@ -194,7 +194,7 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
             ? 'This NC has been escalated after multiple declines. Please review carefully.'
             : 'Please review the corrective action and make your decision.',
           icon: isEscalated 
-            ? <AlertTriangle className="h-5 w-5 text-amber-500" />
+            ? <AlertTriangle className="h-5 w-5 text-foreground/70" />
             : <Shield className="h-5 w-5 text-primary" />,
           variant: isEscalated ? 'warning' : 'default',
         };
@@ -269,9 +269,9 @@ export function NCActionPanel({ nc, onUpdate }: NCActionPanelProps) {
 
   // Otherwise show status message with role badge
   const alertVariants: Record<string, string> = {
-    success: 'border-green-200 bg-green-50',
-    warning: 'border-amber-200 bg-amber-50',
-    info: 'border-blue-200 bg-blue-50',
+    success: 'border-border bg-muted/50',
+    warning: 'border-border bg-muted/50',
+    info: 'border-border bg-muted/50',
     default: 'border-border',
   };
 

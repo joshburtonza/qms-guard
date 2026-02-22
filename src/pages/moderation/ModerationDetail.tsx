@@ -62,11 +62,11 @@ interface Attachment {
 }
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  in_review: 'bg-blue-100 text-blue-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800',
-  resubmitted: 'bg-purple-100 text-purple-800',
+  pending: 'bg-foreground/10 text-foreground',
+  in_review: 'bg-foreground/8 text-foreground/80',
+  approved: 'bg-foreground/6 text-foreground/60',
+  rejected: 'bg-foreground/10 text-foreground/70',
+  resubmitted: 'bg-foreground/8 text-foreground/70',
 };
 
 const concernOptions = [
@@ -520,7 +520,7 @@ export default function ModerationDetail() {
                           <RadioGroupItem value="approved" id="approved" />
                           <div className="flex-1">
                             <Label htmlFor="approved" className="flex items-center gap-2">
-                              <CheckCircle2 className="h-4 w-4 text-green-600" />
+                              <CheckCircle2 className="h-4 w-4 text-foreground/60" />
                               Approved - Assessment Valid
                             </Label>
                             <p className="text-sm text-muted-foreground">
@@ -532,7 +532,7 @@ export default function ModerationDetail() {
                           <RadioGroupItem value="approved_with_recommendations" id="approved_with_recommendations" />
                           <div className="flex-1">
                             <Label htmlFor="approved_with_recommendations" className="flex items-center gap-2">
-                              <AlertCircle className="h-4 w-4 text-yellow-600" />
+                              <AlertCircle className="h-4 w-4 text-foreground/60" />
                               Approved with Recommendations
                             </Label>
                             <p className="text-sm text-muted-foreground">
@@ -544,7 +544,7 @@ export default function ModerationDetail() {
                           <RadioGroupItem value="rejected" id="rejected" />
                           <div className="flex-1">
                             <Label htmlFor="rejected" className="flex items-center gap-2">
-                              <XCircle className="h-4 w-4 text-red-600" />
+                              <XCircle className="h-4 w-4 text-foreground/70" />
                               Rejected - Reassessment Required
                             </Label>
                             <p className="text-sm text-muted-foreground">
@@ -654,9 +654,9 @@ export default function ModerationDetail() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     {moderation.moderation_decision === 'rejected' ? (
-                      <XCircle className="h-5 w-5 text-red-600" />
+                      <XCircle className="h-5 w-5 text-foreground/70" />
                     ) : (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <CheckCircle2 className="h-5 w-5 text-foreground/60" />
                     )}
                     Moderation Outcome
                   </CardTitle>

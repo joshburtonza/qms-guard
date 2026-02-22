@@ -224,7 +224,7 @@ export function ResponsiblePersonForm({
       </CardHeader>
       <CardContent>
         {isRework && previousDeclineComments && (
-          <Alert className="mb-6 border-amber-200 bg-amber-50">
+          <Alert className="mb-6 border-border bg-muted/50">
             <AlertDescription>
               <strong>Manager Feedback:</strong> {previousDeclineComments}
             </AlertDescription>

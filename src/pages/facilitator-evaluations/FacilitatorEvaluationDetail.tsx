@@ -77,9 +77,9 @@ const SCORE_CATEGORIES = [
 
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline'; color: string }> = {
   draft: { label: 'Draft', variant: 'secondary', color: 'text-muted-foreground' },
-  submitted: { label: 'Submitted', variant: 'default', color: 'text-blue-600' },
-  reviewed: { label: 'Reviewed', variant: 'outline', color: 'text-amber-600' },
-  acknowledged: { label: 'Acknowledged', variant: 'outline', color: 'text-green-600' },
+  submitted: { label: 'Submitted', variant: 'default', color: 'text-foreground/80' },
+  reviewed: { label: 'Reviewed', variant: 'outline', color: 'text-foreground/70' },
+  acknowledged: { label: 'Acknowledged', variant: 'outline', color: 'text-foreground/60' },
 };
 
 export default function FacilitatorEvaluationDetail() {
@@ -225,9 +225,9 @@ export default function FacilitatorEvaluationDetail() {
 
   const getScoreColor = (score: number | null) => {
     if (!score) return 'text-muted-foreground';
-    if (score >= 4) return 'text-green-600';
-    if (score >= 3) return 'text-amber-600';
-    return 'text-red-600';
+    if (score >= 4) return 'text-foreground';
+    if (score >= 3) return 'text-foreground/70';
+    return 'text-foreground/80';
   };
 
   return (
@@ -256,13 +256,13 @@ export default function FacilitatorEvaluationDetail() {
 
         {/* Workflow Actions */}
         {evaluation.status === 'draft' && isEvaluator && (
-          <Card className="border-blue-200 bg-blue-50/50">
+          <Card className="border-border bg-muted/50">
             <CardContent className="pt-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-blue-600" />
+                <AlertCircle className="h-5 w-5 text-foreground/60" />
                 <div>
-                  <p className="font-medium text-blue-900">Ready to submit?</p>
-                  <p className="text-sm text-blue-700">Once submitted, the facilitator will be notified to review and acknowledge.</p>
+                  <p className="font-medium text-foreground">Ready to submit?</p>
+                  <p className="text-sm text-muted-foreground">Once submitted, the facilitator will be notified to review and acknowledge.</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -280,13 +280,13 @@ export default function FacilitatorEvaluationDetail() {
         )}
 
         {evaluation.status === 'submitted' && isAdmin && (
-          <Card className="border-amber-200 bg-amber-50/50">
+          <Card className="border-border bg-muted/50">
             <CardContent className="pt-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-600" />
+                <AlertCircle className="h-5 w-5 text-foreground/60" />
                 <div>
-                  <p className="font-medium text-amber-900">Pending Manager Review</p>
-                  <p className="text-sm text-amber-700">Review the evaluation and mark it as reviewed if satisfactory.</p>
+                  <p className="font-medium text-foreground">Pending Manager Review</p>
+                  <p className="text-sm text-muted-foreground">Review the evaluation and mark it as reviewed if satisfactory.</p>
                 </div>
               </div>
               <Button onClick={handleMarkReviewed} disabled={isSubmitting}>
@@ -298,13 +298,13 @@ export default function FacilitatorEvaluationDetail() {
         )}
 
         {evaluation.status === 'reviewed' && isFacilitator && (
-          <Card className="border-green-200 bg-green-50/50">
+          <Card className="border-border bg-muted/50">
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-green-600" />
+                <AlertCircle className="h-5 w-5 text-foreground/60" />
                 <div>
-                  <p className="font-medium text-green-900">Your evaluation is ready for acknowledgement</p>
-                  <p className="text-sm text-green-700">Please review and acknowledge this evaluation. You may add comments below.</p>
+                  <p className="font-medium text-foreground">Your evaluation is ready for acknowledgement</p>
+                  <p className="text-sm text-muted-foreground">Please review and acknowledge this evaluation. You may add comments below.</p>
                 </div>
               </div>
               <Textarea
@@ -357,7 +357,7 @@ export default function FacilitatorEvaluationDetail() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-amber-500" />
+              <Star className="h-5 w-5 text-foreground/60" />
               Overall Score
             </CardTitle>
           </CardHeader>
@@ -444,7 +444,7 @@ export default function FacilitatorEvaluationDetail() {
               <>
                 <Separator />
                 <div>
-                  <h4 className="font-medium text-sm text-green-600 mb-2">Facilitator's Response</h4>
+                  <h4 className="font-medium text-sm text-foreground/70 mb-2">Facilitator's Response</h4>
                   <p className="text-sm">{evaluation.facilitator_comments}</p>
                 </div>
               </>
@@ -467,21 +467,21 @@ export default function FacilitatorEvaluationDetail() {
               </div>
               {evaluation.submitted_at && (
                 <div className="flex items-center gap-3 text-sm">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <div className="w-2 h-2 rounded-full bg-foreground/40" />
                   <span className="text-muted-foreground">Submitted:</span>
                   <span>{format(new Date(evaluation.submitted_at), 'dd MMM yyyy, HH:mm')}</span>
                 </div>
               )}
               {evaluation.reviewed_at && (
                 <div className="flex items-center gap-3 text-sm">
-                  <div className="w-2 h-2 rounded-full bg-amber-500" />
+                  <div className="w-2 h-2 rounded-full bg-foreground/30" />
                   <span className="text-muted-foreground">Reviewed:</span>
                   <span>{format(new Date(evaluation.reviewed_at), 'dd MMM yyyy, HH:mm')}</span>
                 </div>
               )}
               {evaluation.acknowledged_at && (
                 <div className="flex items-center gap-3 text-sm">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <div className="w-2 h-2 rounded-full bg-foreground/20" />
                   <span className="text-muted-foreground">Acknowledged:</span>
                   <span>{format(new Date(evaluation.acknowledged_at), 'dd MMM yyyy, HH:mm')}</span>
                 </div>

@@ -253,16 +253,16 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
                         className={cn(
                           'flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors',
                           field.value === 'requires_rework'
-                            ? 'border-amber-500 bg-amber-50'
+                            ? 'border-foreground/30 bg-foreground/5'
                             : 'border-border hover:bg-muted/50'
                         )}
                         onClick={() => field.onChange('requires_rework')}
                       >
                         <RadioGroupItem value="requires_rework" id="requires_rework" />
                         <div className="flex items-center gap-2 flex-1">
-                          <RotateCcw className="h-5 w-5 text-amber-600" />
+                          <RotateCcw className="h-5 w-5 text-foreground/70" />
                           <div>
-                            <label htmlFor="requires_rework" className="font-medium text-amber-700 cursor-pointer">
+                            <label htmlFor="requires_rework" className="font-medium text-foreground cursor-pointer">
                               Requires Rework — Send back for revision
                             </label>
                             <p className="text-xs text-muted-foreground">

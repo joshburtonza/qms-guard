@@ -54,10 +54,10 @@ const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secon
 };
 
 const RECOMMENDATION_CONFIG: Record<string, { label: string; icon: typeof CheckCircle; color: string }> = {
-  highly_recommended: { label: 'Highly Recommended', icon: CheckCircle, color: 'text-green-600' },
-  recommended: { label: 'Recommended', icon: CheckCircle, color: 'text-blue-600' },
-  conditional: { label: 'Conditional', icon: AlertTriangle, color: 'text-amber-600' },
-  not_recommended: { label: 'Not Recommended', icon: XCircle, color: 'text-red-600' },
+  highly_recommended: { label: 'Highly Recommended', icon: CheckCircle, color: 'text-foreground' },
+  recommended: { label: 'Recommended', icon: CheckCircle, color: 'text-foreground/70' },
+  conditional: { label: 'Conditional', icon: AlertTriangle, color: 'text-foreground/60' },
+  not_recommended: { label: 'Not Recommended', icon: XCircle, color: 'text-foreground/80' },
 };
 
 const CONTRACTOR_TYPES: Record<string, string> = {
@@ -146,7 +146,7 @@ export default function ContractorEvaluationList() {
                   <p className="text-sm text-muted-foreground">Recommended</p>
                   <p className="text-2xl font-bold">{stats.recommended}</p>
                 </div>
-                <CheckCircle className="h-8 w-8 text-green-500" />
+                <CheckCircle className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
@@ -157,7 +157,7 @@ export default function ContractorEvaluationList() {
                   <p className="text-sm text-muted-foreground">Conditional</p>
                   <p className="text-2xl font-bold">{stats.conditional}</p>
                 </div>
-                <AlertTriangle className="h-8 w-8 text-amber-500" />
+                <AlertTriangle className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
@@ -168,7 +168,7 @@ export default function ContractorEvaluationList() {
                   <p className="text-sm text-muted-foreground">Not Recommended</p>
                   <p className="text-2xl font-bold">{stats.notRecommended}</p>
                 </div>
-                <XCircle className="h-8 w-8 text-red-500" />
+                <XCircle className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>

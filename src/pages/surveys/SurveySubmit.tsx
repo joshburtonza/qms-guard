@@ -80,8 +80,8 @@ function RatingSelector({
             <Star
               className={`h-8 w-8 transition-colors ${
                 value && star <= value
-                  ? 'fill-yellow-400 text-yellow-400'
-                  : 'text-muted-foreground hover:text-yellow-300'
+                  ? 'fill-foreground text-foreground'
+                  : 'text-muted-foreground hover:text-foreground/50'
               }`}
             />
           </button>

@@ -83,7 +83,7 @@ export default function CourseEvaluationList() {
         <Star
           key={star}
           className={`h-4 w-4 ${
-            star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+            star <= rating ? 'fill-foreground text-foreground' : 'text-muted-foreground/30'
           }`}
         />
       ))}
@@ -121,7 +121,7 @@ export default function CourseEvaluationList() {
               <CardDescription>Avg. Course Rating</CardDescription>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 {avgCourseRating}
-                <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                <Star className="h-5 w-5 fill-foreground text-foreground" />
               </CardTitle>
             </CardHeader>
           </Card>
@@ -130,7 +130,7 @@ export default function CourseEvaluationList() {
               <CardDescription>Avg. Facilitator Rating</CardDescription>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 {avgFacilitatorRating}
-                <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                <Star className="h-5 w-5 fill-foreground text-foreground" />
               </CardTitle>
             </CardHeader>
           </Card>

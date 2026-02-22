@@ -194,56 +194,38 @@
     border-color: rgba(255, 255, 255, 0.1);
   }
 
-  /* Status badge variants — adaptive for light/dark */
+  /* Status badge variants — monochrome */
   .badge-open {
     @apply bg-foreground/10 text-foreground border-foreground/20;
   }
   .badge-in-progress {
-    @apply bg-foreground/5 text-foreground/80 border-foreground/10;
+    @apply bg-foreground/8 text-foreground/80 border-foreground/15;
   }
   .badge-pending-review {
-    @apply bg-foreground/8 text-foreground/70 border-foreground/15;
+    @apply bg-foreground/6 text-foreground/60 border-foreground/10;
   }
   .badge-pending-verification {
-    @apply bg-amber-100 text-amber-800 border-amber-200;
-  }
-  .dark .badge-pending-verification {
-    @apply bg-amber-900/30 text-amber-300 border-amber-700/30;
+    @apply bg-foreground/8 text-foreground/70 border-foreground/15;
   }
   .badge-closed {
-    @apply bg-emerald-100 text-emerald-800 border-emerald-200;
-  }
-  .dark .badge-closed {
-    @apply bg-emerald-900/30 text-emerald-300 border-emerald-700/30;
+    @apply bg-foreground/5 text-foreground/50 border-foreground/10;
   }
   .badge-rejected {
-    @apply bg-red-100 text-red-800 border-red-200;
-  }
-  .dark .badge-rejected {
-    @apply bg-red-900/30 text-red-300 border-red-700/30;
+    @apply bg-foreground/10 text-foreground/70 border-foreground/20;
   }
   .badge-overdue {
-    @apply bg-red-100 text-red-800 border-red-200 animate-pulse;
-  }
-  .dark .badge-overdue {
-    @apply bg-red-900/30 text-red-300 border-red-700/30 animate-pulse;
+    @apply bg-foreground/12 text-foreground border-foreground/25 animate-pulse;
   }
 
-  /* Severity indicators — adaptive */
+  /* Severity indicators — monochrome */
   .severity-critical {
-    @apply text-red-600 font-semibold;
-  }
-  .dark .severity-critical {
-    @apply text-red-400;
+    @apply text-foreground font-bold;
   }
   .severity-major {
-    @apply text-amber-600 font-semibold;
-  }
-  .dark .severity-major {
-    @apply text-amber-400;
+    @apply text-foreground/80 font-semibold;
   }
   .severity-minor {
-    @apply text-muted-foreground font-semibold;
+    @apply text-muted-foreground font-medium;
   }
 
   /* Card hover effect */
@@ -293,10 +275,7 @@
     @apply text-foreground font-medium;
   }
   .workflow-step-complete {
-    @apply text-emerald-600;
-  }
-  .dark .workflow-step-complete {
-    @apply text-emerald-400;
+    @apply text-foreground/60;
   }
   .workflow-step-pending {
     @apply text-muted-foreground;
@@ -316,29 +295,20 @@
     @apply transition-colors hover:bg-foreground/[0.02] cursor-pointer;
   }
 
-  /* Industrial border — now uses accent teal */
+  /* Industrial border */
   .industrial-border {
     @apply border-l-4 border-l-accent;
   }
 
-  /* Alert styling — adaptive */
+  /* Alert styling — monochrome */
   .alert-overdue {
-    @apply bg-red-50/80 border-red-200/50 text-red-800 backdrop-blur-sm;
-  }
-  .dark .alert-overdue {
-    @apply bg-red-950/50 border-red-800/30 text-red-300;
+    @apply bg-foreground/5 border-foreground/10 text-foreground/80 backdrop-blur-sm;
   }
   .alert-warning {
-    @apply bg-amber-50/80 border-amber-200/50 text-amber-800 backdrop-blur-sm;
-  }
-  .dark .alert-warning {
-    @apply bg-amber-950/50 border-amber-800/30 text-amber-300;
+    @apply bg-foreground/5 border-foreground/10 text-foreground/70 backdrop-blur-sm;
   }
   .alert-success {
-    @apply bg-emerald-50/80 border-emerald-200/50 text-emerald-800 backdrop-blur-sm;
-  }
-  .dark .alert-success {
-    @apply bg-emerald-950/50 border-emerald-800/30 text-emerald-300;
+    @apply bg-foreground/5 border-foreground/10 text-foreground/60 backdrop-blur-sm;
   }
 
   /* Navigation active state */

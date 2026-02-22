@@ -80,16 +80,16 @@ const SCORE_CATEGORIES = [
 
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive'; color: string }> = {
   draft: { label: 'Draft', variant: 'secondary', color: 'text-muted-foreground' },
-  submitted: { label: 'Submitted', variant: 'default', color: 'text-blue-600' },
-  approved: { label: 'Approved', variant: 'outline', color: 'text-green-600' },
-  rejected: { label: 'Rejected', variant: 'destructive', color: 'text-red-600' },
+  submitted: { label: 'Submitted', variant: 'default', color: 'text-foreground/80' },
+  approved: { label: 'Approved', variant: 'outline', color: 'text-foreground/60' },
+  rejected: { label: 'Rejected', variant: 'destructive', color: 'text-foreground/70' },
 };
 
 const RECOMMENDATION_CONFIG: Record<string, { label: string; icon: typeof CheckCircle; bgColor: string; textColor: string }> = {
-  highly_recommended: { label: 'Highly Recommended', icon: CheckCircle, bgColor: 'bg-green-100', textColor: 'text-green-800' },
-  recommended: { label: 'Recommended', icon: CheckCircle, bgColor: 'bg-blue-100', textColor: 'text-blue-800' },
-  conditional: { label: 'Conditional', icon: AlertTriangle, bgColor: 'bg-amber-100', textColor: 'text-amber-800' },
-  not_recommended: { label: 'Not Recommended', icon: XCircle, bgColor: 'bg-red-100', textColor: 'text-red-800' },
+  highly_recommended: { label: 'Highly Recommended', icon: CheckCircle, bgColor: 'bg-foreground/10', textColor: 'text-foreground' },
+  recommended: { label: 'Recommended', icon: CheckCircle, bgColor: 'bg-foreground/8', textColor: 'text-foreground/80' },
+  conditional: { label: 'Conditional', icon: AlertTriangle, bgColor: 'bg-foreground/6', textColor: 'text-foreground/70' },
+  not_recommended: { label: 'Not Recommended', icon: XCircle, bgColor: 'bg-foreground/10', textColor: 'text-foreground/80' },
 };
 
 const CONTRACTOR_TYPES: Record<string, string> = {
@@ -249,9 +249,9 @@ export default function ContractorEvaluationDetail() {
 
   const getScoreColor = (score: number | null) => {
     if (!score) return 'text-muted-foreground';
-    if (score >= 4) return 'text-green-600';
-    if (score >= 3) return 'text-amber-600';
-    return 'text-red-600';
+    if (score >= 4) return 'text-foreground';
+    if (score >= 3) return 'text-foreground/70';
+    return 'text-foreground/80';
   };
 
   const recommendationConfig = evaluation.recommendation 
@@ -285,13 +285,13 @@ export default function ContractorEvaluationDetail() {
 
         {/* Workflow Actions */}
         {evaluation.status === 'draft' && isEvaluator && (
-          <Card className="border-blue-200 bg-blue-50/50">
+          <Card className="border-border bg-muted/50">
             <CardContent className="pt-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-blue-600" />
+                <AlertCircle className="h-5 w-5 text-foreground/60" />
                 <div>
-                  <p className="font-medium text-blue-900">Ready to submit?</p>
-                  <p className="text-sm text-blue-700">Submit this evaluation for manager approval.</p>
+                  <p className="font-medium text-foreground">Ready to submit?</p>
+                  <p className="text-sm text-muted-foreground">Submit this evaluation for manager approval.</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -309,13 +309,13 @@ export default function ContractorEvaluationDetail() {
         )}
 
         {evaluation.status === 'submitted' && isAdmin && (
-          <Card className="border-amber-200 bg-amber-50/50">
+          <Card className="border-border bg-muted/50">
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-600" />
+                <AlertCircle className="h-5 w-5 text-foreground/60" />
                 <div>
-                  <p className="font-medium text-amber-900">Pending Approval</p>
-                  <p className="text-sm text-amber-700">Review this evaluation and approve or reject it.</p>
+                  <p className="font-medium text-foreground">Pending Approval</p>
+                  <p className="text-sm text-muted-foreground">Review this evaluation and approve or reject it.</p>
                 </div>
               </div>
               <Textarea
@@ -410,7 +410,7 @@ export default function ContractorEvaluationDetail() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-amber-500" />
+              <Star className="h-5 w-5 text-foreground/60" />
               Overall Score
             </CardTitle>
           </CardHeader>
@@ -518,14 +518,14 @@ export default function ContractorEvaluationDetail() {
               </div>
               {evaluation.submitted_at && (
                 <div className="flex items-center gap-3 text-sm">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <div className="w-2 h-2 rounded-full bg-foreground/40" />
                   <span className="text-muted-foreground">Submitted:</span>
                   <span>{format(new Date(evaluation.submitted_at), 'dd MMM yyyy, HH:mm')}</span>
                 </div>
               )}
               {evaluation.approved_at && (
                 <div className="flex items-center gap-3 text-sm">
-                  <div className={`w-2 h-2 rounded-full ${evaluation.status === 'approved' ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <div className={`w-2 h-2 rounded-full ${evaluation.status === 'approved' ? 'bg-foreground/40' : 'bg-foreground/60'}`} />
                   <span className="text-muted-foreground">{evaluation.status === 'approved' ? 'Approved' : 'Rejected'}:</span>
                   <span>{format(new Date(evaluation.approved_at), 'dd MMM yyyy, HH:mm')}</span>
                   <span className="text-muted-foreground">by {evaluation.approver?.full_name}</span>

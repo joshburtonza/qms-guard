@@ -409,9 +409,9 @@ export default function DepartmentManagerMapping() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Mapped</p>
-                  <p className="text-2xl font-bold text-green-600">{mappings.length}</p>
+                  <p className="text-2xl font-bold">{mappings.length}</p>
                 </div>
-                <Users className="h-8 w-8 text-green-500" />
+                <Users className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
@@ -420,9 +420,9 @@ export default function DepartmentManagerMapping() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Unmapped</p>
-                  <p className="text-2xl font-bold text-amber-600">{availableDepartments.length}</p>
+                  <p className="text-2xl font-bold">{availableDepartments.length}</p>
                 </div>
-                <AlertCircle className="h-8 w-8 text-amber-500" />
+                <AlertCircle className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>

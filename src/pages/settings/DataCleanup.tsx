@@ -311,7 +311,7 @@ export default function DataCleanup() {
     const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
     const parts = text.split(regex);
     return parts.map((part, i) =>
-      regex.test(part) ? <mark key={i} className="bg-yellow-200 dark:bg-yellow-800 px-0.5 rounded">{part}</mark> : part
+      regex.test(part) ? <mark key={i} className="bg-foreground/10 px-0.5 rounded">{part}</mark> : part
     );
   };
 
@@ -465,7 +465,7 @@ export default function DataCleanup() {
             </Button>
 
             {tenantCheckDone && tenantIssues.length === 0 && (
-              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <div className="flex items-center gap-2 text-foreground/60">
                 <CheckCircle className="h-5 w-5" />
                 <span className="text-sm font-medium">All records have proper tenant isolation.</span>
               </div>
