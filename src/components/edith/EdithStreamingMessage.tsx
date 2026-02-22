@@ -30,7 +30,7 @@ export function EdithStreamingMessage({
       case 'running':
         return <Loader2 className="h-3 w-3 animate-spin" />;
       case 'completed':
-        return <CheckCircle2 className="h-3 w-3 text-green-500" />;
+        return <CheckCircle2 className="h-3 w-3 text-foreground/60" />;
       case 'error':
         return <span className="h-3 w-3 text-destructive">✗</span>;
       default:
@@ -60,7 +60,7 @@ export function EdithStreamingMessage({
               className={cn(
                 "flex items-center gap-1 text-xs",
                 tool.status === 'running' && "animate-pulse",
-                tool.status === 'completed' && "bg-green-100 dark:bg-green-900/30",
+                tool.status === 'completed' && "bg-foreground/5",
                 tool.status === 'error' && "bg-destructive/10"
               )}
             >

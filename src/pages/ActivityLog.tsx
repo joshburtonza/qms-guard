@@ -68,18 +68,18 @@ interface UserActivitySummary {
 }
 
 const ACTION_ICONS: Record<string, React.ReactNode> = {
-  'NC Submitted': <FileText className="h-4 w-4 text-blue-500" />,
-  'QA Classification': <CheckCircle className="h-4 w-4 text-green-500" />,
-  'Corrective Action Submitted': <Edit className="h-4 w-4 text-purple-500" />,
-  'Manager Approved': <CheckCircle className="h-4 w-4 text-green-500" />,
-  'Manager Declined': <XCircle className="h-4 w-4 text-red-500" />,
-  'NC Closed': <CheckCircle className="h-4 w-4 text-green-600" />,
-  'NC Rejected': <XCircle className="h-4 w-4 text-red-600" />,
-  'Attachment Uploaded': <Upload className="h-4 w-4 text-blue-500" />,
+  'NC Submitted': <FileText className="h-4 w-4 text-foreground/70" />,
+  'QA Classification': <CheckCircle className="h-4 w-4 text-foreground/60" />,
+  'Corrective Action Submitted': <Edit className="h-4 w-4 text-foreground/70" />,
+  'Manager Approved': <CheckCircle className="h-4 w-4 text-foreground/60" />,
+  'Manager Declined': <XCircle className="h-4 w-4 text-foreground/70" />,
+  'NC Closed': <CheckCircle className="h-4 w-4 text-foreground/50" />,
+  'NC Rejected': <XCircle className="h-4 w-4 text-foreground/80" />,
+  'Attachment Uploaded': <Upload className="h-4 w-4 text-foreground/60" />,
   'NC Viewed': <Eye className="h-4 w-4 text-muted-foreground" />,
-  'Reminder Sent': <Mail className="h-4 w-4 text-amber-500" />,
-  'User Locked Out': <Lock className="h-4 w-4 text-red-500" />,
-  'Login': <LogIn className="h-4 w-4 text-green-500" />,
+  'Reminder Sent': <Mail className="h-4 w-4 text-foreground/60" />,
+  'User Locked Out': <Lock className="h-4 w-4 text-foreground/80" />,
+  'Login': <LogIn className="h-4 w-4 text-foreground/60" />,
   'Logout': <LogOut className="h-4 w-4 text-muted-foreground" />,
 };
 
@@ -194,7 +194,7 @@ export default function ActivityLog() {
         <div className="flex items-center justify-center h-96">
           <Card className="max-w-md">
             <CardContent className="pt-6 text-center">
-              <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+              <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h2 className="text-lg font-semibold mb-2">Access Restricted</h2>
               <p className="text-muted-foreground">
                 Activity logs are only available to administrators and managers.

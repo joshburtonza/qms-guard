@@ -129,7 +129,7 @@ export default function FacilitatorEvaluationList() {
                   <p className="text-sm text-muted-foreground">Average Score</p>
                   <p className="text-2xl font-bold">{avgScore.toFixed(1)}/5.0</p>
                 </div>
-                <Star className="h-8 w-8 text-amber-500" />
+                <Star className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
@@ -142,7 +142,7 @@ export default function FacilitatorEvaluationList() {
                     {evaluations.filter((e) => e.status === 'submitted').length}
                   </p>
                 </div>
-                <Calendar className="h-8 w-8 text-blue-500" />
+                <Calendar className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>

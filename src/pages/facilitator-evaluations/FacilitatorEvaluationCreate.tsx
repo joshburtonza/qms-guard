@@ -334,7 +334,7 @@ export default function FacilitatorEvaluationCreate() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-amber-500" />
+                  <Star className="h-5 w-5 text-foreground/60" />
                   Performance Scores
                 </CardTitle>
                 <CardDescription>Rate each category from 1 (Poor) to 5 (Excellent)</CardDescription>

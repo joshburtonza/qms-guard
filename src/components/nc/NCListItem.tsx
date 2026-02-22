@@ -69,7 +69,7 @@ export function NCListItem({ nc, className }: NCListItemProps) {
               )}
               <span className={cn(
                 'flex items-center gap-1',
-                overdue && 'text-red-600 font-medium'
+                overdue && 'text-foreground font-medium'
               )}>
                 <Clock className="h-3 w-3" />
                 {isToday ? 'Due today' : (

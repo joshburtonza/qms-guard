@@ -223,7 +223,7 @@ export default function SurveyReports() {
           <Card className="glass-card border-0">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Avg. Overall Rating</CardTitle>
-              <Star className="h-4 w-4 text-yellow-500" />
+              <Star className="h-4 w-4 text-foreground/50" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.avg_overall_rating.toFixed(1)}</div>
@@ -233,7 +233,7 @@ export default function SurveyReports() {
                     key={star}
                     className={`h-3 w-3 ${
                       star <= Math.round(stats.avg_overall_rating)
-                        ? 'fill-yellow-400 text-yellow-400'
+                        ? 'fill-foreground text-foreground'
                         : 'text-muted-foreground'
                     }`}
                   />
@@ -258,7 +258,7 @@ export default function SurveyReports() {
           <Card className="glass-card border-0">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Recommendation Rate</CardTitle>
-              <ThumbsUp className="h-4 w-4 text-green-500" />
+              <ThumbsUp className="h-4 w-4 text-foreground/50" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.recommendation_rate.toFixed(0)}%</div>

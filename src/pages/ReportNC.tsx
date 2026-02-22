@@ -345,11 +345,11 @@ export default function ReportNC() {
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Draft Restore Prompt */}
         {showDraftPrompt && (
-          <Alert className="border-blue-200 bg-blue-50">
-            <RotateCcw className="h-4 w-4 text-blue-600" />
-            <AlertTitle className="text-blue-800">Resume previous draft?</AlertTitle>
+          <Alert className="border-border bg-muted/50">
+            <RotateCcw className="h-4 w-4 text-foreground/60" />
+            <AlertTitle className="text-foreground">Resume previous draft?</AlertTitle>
             <AlertDescription className="flex items-center justify-between">
-              <span className="text-blue-700">You have an unsaved NC form draft.</span>
+              <span className="text-muted-foreground">You have an unsaved NC form draft.</span>
               <div className="flex gap-2 ml-4">
                 <Button size="sm" variant="outline" onClick={() => { clearDraft(); setShowDraftPrompt(false); }}>
                   Discard
@@ -364,10 +364,10 @@ export default function ReportNC() {
 
         {/* After-hours indicator */}
         {isAfterHours() && (
-          <Alert className="border-amber-200 bg-amber-50">
-            <Clock className="h-4 w-4 text-amber-600" />
-            <AlertTitle className="text-amber-800">After-Hours Submission</AlertTitle>
-            <AlertDescription className="text-amber-700">
+          <Alert className="border-border bg-muted/50">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            <AlertTitle className="text-foreground">After-Hours Submission</AlertTitle>
+            <AlertDescription className="text-muted-foreground">
               This NC is being submitted outside business hours (07:00-17:00 SAST). Non-urgent notifications will be delayed to the next business day.
             </AlertDescription>
           </Alert>
@@ -644,12 +644,12 @@ export default function ReportNC() {
                         <div className="relative">
                           <Textarea
                             placeholder="Describe the non-conformance in detail (minimum 50 characters)..."
-                            className={cn('min-h-32', isListening && 'border-red-400 ring-1 ring-red-400')}
+                            className={cn('min-h-32', isListening && 'border-foreground/30 ring-1 ring-foreground/30')}
                             {...field}
                           />
                           {isListening && (
-                            <div className="absolute top-2 right-2 flex items-center gap-1 text-xs text-red-600 bg-red-50 px-2 py-1 rounded-full">
-                              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                            <div className="absolute top-2 right-2 flex items-center gap-1 text-xs text-foreground bg-muted px-2 py-1 rounded-full">
+                              <span className="w-2 h-2 bg-foreground rounded-full animate-pulse" />
                               Listening...
                             </div>
                           )}
@@ -813,7 +813,7 @@ export default function ReportNC() {
         <Dialog open={showDuplicateModal} onOpenChange={setShowDuplicateModal}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <DialogTitle className="flex items-center gap-2 text-foreground">
                 <AlertTriangle className="h-5 w-5" />
                 Potential Duplicate NCs Found
               </DialogTitle>

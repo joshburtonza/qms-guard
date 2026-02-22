@@ -40,12 +40,12 @@ export function CurrentRoleBadge({ userRole, currentStep }: CurrentRoleBadgeProp
   const stepLabel = getStepDescription(currentStep);
   
   const colorMap: Record<string, string> = {
-    admin: 'bg-purple-100 text-purple-700 border-purple-200',
-    qa: 'bg-blue-100 text-blue-700 border-blue-200',
-    responsible_person: 'bg-amber-100 text-amber-700 border-amber-200',
-    manager: 'bg-green-100 text-green-700 border-green-200',
-    verifier: 'bg-teal-100 text-teal-700 border-teal-200',
-    viewer: 'bg-gray-100 text-gray-600 border-gray-200',
+    admin: 'bg-foreground/10 text-foreground border-foreground/20',
+    qa: 'bg-foreground/8 text-foreground/80 border-foreground/15',
+    responsible_person: 'bg-foreground/6 text-foreground/70 border-foreground/10',
+    manager: 'bg-foreground/8 text-foreground/70 border-foreground/15',
+    verifier: 'bg-foreground/6 text-foreground/60 border-foreground/10',
+    viewer: 'bg-foreground/5 text-muted-foreground border-foreground/10',
   };
 
   return (
@@ -84,7 +84,7 @@ interface FieldLockSummaryProps {
 export function FieldLockSummary({ editableCount, totalCount, userRole }: FieldLockSummaryProps) {
   if (userRole === 'admin') {
     return (
-      <div className="flex items-center gap-2 text-sm text-purple-600">
+      <div className="flex items-center gap-2 text-sm text-foreground/70">
         <Unlock className="h-4 w-4" />
         <span>Admin mode: All fields editable</span>
       </div>
@@ -102,7 +102,7 @@ export function FieldLockSummary({ editableCount, totalCount, userRole }: FieldL
 
   return (
     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-      <Unlock className="h-4 w-4 text-green-500" />
+      <Unlock className="h-4 w-4 text-foreground/50" />
       <span>
         {editableCount} of {totalCount} fields editable
       </span>

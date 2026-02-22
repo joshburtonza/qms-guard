@@ -31,11 +31,11 @@ interface ModerationRequest {
 }
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-  in_review: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  approved: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  rejected: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-  resubmitted: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+  pending: 'bg-foreground/10 text-foreground',
+  in_review: 'bg-foreground/8 text-foreground/80',
+  approved: 'bg-foreground/6 text-foreground/60',
+  rejected: 'bg-foreground/10 text-foreground/70',
+  resubmitted: 'bg-foreground/8 text-foreground/70',
 };
 
 const statusLabels: Record<string, string> = {

@@ -11,11 +11,11 @@ interface StatusBadgeProps {
 
 const statusStyles: Record<NCStatus, string> = {
   open: 'bg-foreground/10 text-foreground border-foreground/20 hover:bg-foreground/10',
-  in_progress: 'bg-foreground/5 text-foreground/80 border-foreground/10 hover:bg-foreground/5',
-  pending_review: 'bg-foreground/8 text-foreground/70 border-foreground/15 hover:bg-foreground/8',
-  pending_verification: 'bg-accent/10 text-accent border-accent/20 hover:bg-accent/10',
-  closed: 'bg-accent/10 text-accent border-accent/20 hover:bg-accent/10',
-  rejected: 'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/10',
+  in_progress: 'bg-foreground/8 text-foreground/80 border-foreground/15 hover:bg-foreground/8',
+  pending_review: 'bg-foreground/6 text-foreground/70 border-foreground/10 hover:bg-foreground/6',
+  pending_verification: 'bg-foreground/8 text-foreground/70 border-foreground/15 hover:bg-foreground/8',
+  closed: 'bg-foreground/5 text-foreground/50 border-foreground/10 hover:bg-foreground/5',
+  rejected: 'bg-foreground/10 text-foreground/70 border-foreground/20 hover:bg-foreground/10',
 };
 
 export function StatusBadge({ status, isOverdue, isEscalated, className }: StatusBadgeProps) {
@@ -25,7 +25,7 @@ export function StatusBadge({ status, isOverdue, isEscalated, className }: Statu
         <Badge 
           variant="outline" 
           className={cn(
-            'bg-destructive/10 text-destructive border-destructive/20 animate-pulse',
+            'bg-foreground/12 text-foreground border-foreground/25 animate-pulse',
             className
           )}
         >

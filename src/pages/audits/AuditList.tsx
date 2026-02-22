@@ -53,10 +53,10 @@ const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secon
 };
 
 const RESULT_CONFIG: Record<string, { label: string; color: string }> = {
-  conforming: { label: 'Conforming', color: 'text-green-600' },
-  minor_nc: { label: 'Minor NC', color: 'text-amber-600' },
-  major_nc: { label: 'Major NC', color: 'text-red-600' },
-  opportunity: { label: 'Opportunity', color: 'text-blue-600' },
+  conforming: { label: 'Conforming', color: 'text-foreground/60' },
+  minor_nc: { label: 'Minor NC', color: 'text-foreground/70' },
+  major_nc: { label: 'Major NC', color: 'text-foreground' },
+  opportunity: { label: 'Opportunity', color: 'text-muted-foreground' },
 };
 
 export default function AuditList() {
@@ -135,7 +135,7 @@ export default function AuditList() {
                   <p className="text-sm text-muted-foreground">In Progress</p>
                   <p className="text-2xl font-bold">{stats.inProgress}</p>
                 </div>
-                <Clock className="h-8 w-8 text-blue-500" />
+                <Clock className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
@@ -146,7 +146,7 @@ export default function AuditList() {
                   <p className="text-sm text-muted-foreground">Completed</p>
                   <p className="text-2xl font-bold">{stats.completed}</p>
                 </div>
-                <CheckCircle className="h-8 w-8 text-green-500" />
+                <CheckCircle className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
@@ -157,7 +157,7 @@ export default function AuditList() {
                   <p className="text-sm text-muted-foreground">With NCs</p>
                   <p className="text-2xl font-bold">{stats.withNCs}</p>
                 </div>
-                <AlertTriangle className="h-8 w-8 text-amber-500" />
+                <AlertTriangle className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>

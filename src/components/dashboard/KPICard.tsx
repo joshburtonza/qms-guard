@@ -17,9 +17,9 @@ interface KPICardProps {
 
 const iconVariantStyles = {
   default: 'bg-foreground/5 text-foreground',
-  warning: 'bg-amber-500/10 text-amber-600',
-  danger: 'bg-red-500/10 text-red-600',
-  success: 'bg-emerald-500/10 text-emerald-600',
+  warning: 'bg-foreground/8 text-foreground/70',
+  danger: 'bg-foreground/10 text-foreground/80',
+  success: 'bg-foreground/5 text-foreground/60',
 };
 
 export function KPICard({
@@ -51,7 +51,7 @@ export function KPICard({
           {trend && (
             <div className={cn(
               'text-xs font-medium',
-              trend.isPositive ? 'text-emerald-600' : 'text-red-600'
+              trend.isPositive ? 'text-foreground/60' : 'text-foreground/80'
             )}>
               {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}% from last month
             </div>

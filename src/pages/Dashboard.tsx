@@ -397,8 +397,8 @@ export default function Dashboard() {
               <CardContent>
                 {myTasks.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 dark:bg-emerald-900/20 flex items-center justify-center mb-3">
-                      <CheckCircle className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+                    <div className="h-14 w-14 rounded-2xl bg-foreground/5 flex items-center justify-center mb-3">
+                      <CheckCircle className="h-7 w-7 text-foreground/50" />
                     </div>
                     <p className="font-display font-semibold">All caught up!</p>
                     <p className="text-sm text-muted-foreground">

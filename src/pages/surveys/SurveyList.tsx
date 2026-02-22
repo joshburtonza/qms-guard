@@ -34,7 +34,7 @@ function RatingStars({ rating }: { rating: number | null }) {
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
           key={star}
-          className={`h-4 w-4 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`}
+          className={`h-4 w-4 ${star <= rating ? 'fill-foreground text-foreground' : 'text-muted-foreground'}`}
         />
       ))}
       <span className="ml-1 text-sm font-medium">{rating}</span>
@@ -238,13 +238,13 @@ export default function SurveyList() {
                         </TableCell>
                         <TableCell>
                           {survey.would_recommend === 'yes' && (
-                            <Badge className="bg-green-100 text-green-800">Yes</Badge>
+                            <Badge className="bg-foreground/10 text-foreground">Yes</Badge>
                           )}
                           {survey.would_recommend === 'no' && (
-                            <Badge className="bg-red-100 text-red-800">No</Badge>
+                            <Badge className="bg-foreground/10 text-foreground/70">No</Badge>
                           )}
                           {survey.would_recommend === 'maybe' && (
-                            <Badge className="bg-yellow-100 text-yellow-800">Maybe</Badge>
+                            <Badge className="bg-foreground/8 text-foreground/60">Maybe</Badge>
                           )}
                           {!survey.would_recommend && '-'}
                         </TableCell>

@@ -370,7 +370,7 @@ export default function QRCodeManager() {
                           title={location.is_active ? 'Deactivate' : 'Activate'}
                         >
                           {location.is_active ? (
-                            <ToggleRight className="h-4 w-4 text-green-600" />
+                            <ToggleRight className="h-4 w-4 text-foreground" />
                           ) : (
                             <ToggleLeft className="h-4 w-4 text-muted-foreground" />
                           )}

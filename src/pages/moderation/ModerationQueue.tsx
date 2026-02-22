@@ -150,7 +150,7 @@ export default function ModerationQueue() {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center py-12">
-                <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
+                <CheckCircle className="mx-auto h-12 w-12 text-foreground/40" />
                 <h3 className="mt-4 text-lg font-semibold">All caught up!</h3>
                 <p className="text-muted-foreground">
                   You have no pending moderation requests.
@@ -178,9 +178,9 @@ export default function ModerationQueue() {
                             variant="outline" 
                             className={
                               item.status === 'in_review' 
-                                ? 'bg-blue-100 text-blue-800' 
+                                ? 'bg-foreground/10 text-foreground/80' 
                                 : item.status === 'resubmitted'
-                                ? 'bg-purple-100 text-purple-800'
+                                ? 'bg-foreground/8 text-foreground/70'
                                 : ''
                             }
                           >

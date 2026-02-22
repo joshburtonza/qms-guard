@@ -11,18 +11,18 @@ interface SeverityIndicatorProps {
 const severityConfig = {
   critical: {
     icon: AlertTriangle,
-    color: 'text-red-600',
-    bgColor: 'bg-red-100',
+    color: 'text-foreground',
+    bgColor: 'bg-foreground/10',
   },
   major: {
     icon: AlertCircle,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-100',
+    color: 'text-foreground/70',
+    bgColor: 'bg-foreground/8',
   },
   minor: {
     icon: Info,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
+    color: 'text-muted-foreground',
+    bgColor: 'bg-foreground/5',
   },
 };
 
