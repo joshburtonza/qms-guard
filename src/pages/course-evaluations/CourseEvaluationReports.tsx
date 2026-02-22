@@ -25,16 +25,17 @@ interface CourseStats {
   evaluationCount: number;
 }
 
-const COLORS = ['hsl(var(--foreground))', 'hsl(var(--muted-foreground))', 'hsl(var(--ring))'];
+const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-3))', 'hsl(var(--chart-5))'];
 
-const tooltipStyle = {
-  borderRadius: '12px',
+const tooltipStyle: React.CSSProperties = {
+  borderRadius: '14px',
   border: '1px solid hsl(var(--border))',
   background: 'hsl(var(--popover))',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+  boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
   fontSize: '12px',
-  padding: '8px 12px',
+  padding: '10px 14px',
   color: 'hsl(var(--popover-foreground))',
+  backdropFilter: 'blur(12px)',
 };
 
 export default function CourseEvaluationReports() {
@@ -265,31 +266,33 @@ export default function CourseEvaluationReports() {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData}>
                     <defs>
-                      <linearGradient id="gradCourse" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
-                        <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                      <linearGradient id="evalGradCourse" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.2} />
+                        <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
                     <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
                     <YAxis domain={[0, 5]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={tooltipStyle} />
+                    <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: 'hsl(var(--border))', strokeDasharray: '4 4' }} />
                     <Area
                       type="monotone"
                       dataKey="courseRating"
                       name="Course"
-                      stroke="hsl(var(--foreground))"
-                      strokeWidth={2}
-                      fill="url(#gradCourse)"
-                      dot={{ r: 3, fill: 'hsl(var(--foreground))' }}
+                      stroke="hsl(var(--chart-1))"
+                      strokeWidth={2.5}
+                      fill="url(#evalGradCourse)"
+                      dot={{ r: 4, fill: 'hsl(var(--chart-1))', strokeWidth: 2, stroke: 'hsl(var(--card))' }}
+                      activeDot={{ r: 6, fill: 'hsl(var(--chart-1))', strokeWidth: 2, stroke: 'hsl(var(--card))' }}
                     />
                     <Area
                       type="monotone"
                       dataKey="facilitatorRating"
                       name="Facilitator"
-                      stroke="hsl(var(--muted-foreground))"
+                      stroke="hsl(var(--chart-3))"
                       strokeWidth={2}
                       fill="none"
-                      dot={{ r: 3, fill: 'hsl(var(--muted-foreground))' }}
+                      dot={{ r: 3, fill: 'hsl(var(--chart-3))', strokeWidth: 2, stroke: 'hsl(var(--card))' }}
+                      strokeDasharray="6 3"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -305,23 +308,26 @@ export default function CourseEvaluationReports() {
             <CardContent>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={recommendData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {recommendData.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={tooltipStyle} />
-                  </PieChart>
+                   <PieChart>
+                     <Pie
+                       data={recommendData}
+                       cx="50%"
+                       cy="50%"
+                       labelLine={false}
+                       label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                       innerRadius={60}
+                       outerRadius={100}
+                       paddingAngle={4}
+                       strokeWidth={2}
+                       stroke="hsl(var(--card))"
+                       dataKey="value"
+                     >
+                       {recommendData.map((_, index) => (
+                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                       ))}
+                     </Pie>
+                     <Tooltip contentStyle={tooltipStyle} />
+                   </PieChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
@@ -338,10 +344,16 @@ export default function CourseEvaluationReports() {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={facilitatorStats.slice(0, 5)} layout="vertical">
+                  <defs>
+                    <linearGradient id="evalFacBarGrad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.7} />
+                    </linearGradient>
+                  </defs>
                   <XAxis type="number" domain={[0, 5]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
                   <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="avgRating" name="Avg Rating" fill="hsl(var(--foreground))" radius={[0, 6, 6, 0]} fillOpacity={0.8} />
+                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
+                  <Bar dataKey="avgRating" name="Avg Rating" fill="url(#evalFacBarGrad)" radius={[0, 8, 8, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -358,10 +370,16 @@ export default function CourseEvaluationReports() {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={courseStats.slice(0, 5)} layout="vertical">
+                  <defs>
+                    <linearGradient id="evalCourseBarGrad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.6} />
+                    </linearGradient>
+                  </defs>
                   <XAxis type="number" domain={[0, 5]} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
                   <YAxis dataKey="code" type="category" width={100} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="avgRating" name="Avg Rating" fill="hsl(var(--muted-foreground))" radius={[0, 6, 6, 0]} fillOpacity={0.7} />
+                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
+                  <Bar dataKey="avgRating" name="Avg Rating" fill="url(#evalCourseBarGrad)" radius={[0, 8, 8, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

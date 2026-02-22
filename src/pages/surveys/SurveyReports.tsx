@@ -38,16 +38,17 @@ import {
   Cell,
 } from 'recharts';
 
-const CHART_COLORS = ['hsl(var(--foreground))', 'hsl(var(--muted-foreground))', 'hsl(var(--ring))'];
+const CHART_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-3))', 'hsl(var(--chart-5))'];
 
-const tooltipStyle = {
-  borderRadius: '12px',
+const tooltipStyle: React.CSSProperties = {
+  borderRadius: '14px',
   border: '1px solid hsl(var(--border))',
   background: 'hsl(var(--popover))',
-  boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+  boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
   fontSize: '12px',
-  padding: '8px 12px',
+  padding: '10px 14px',
   color: 'hsl(var(--popover-foreground))',
+  backdropFilter: 'blur(12px)',
 };
 
 export default function SurveyReports() {
@@ -291,22 +292,23 @@ export default function SurveyReports() {
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={trendData}>
                       <defs>
-                        <linearGradient id="gradResponses" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
-                          <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                        <linearGradient id="surveyGradResponses" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.2} />
+                          <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.02} />
                         </linearGradient>
                       </defs>
                       <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                      <Tooltip contentStyle={tooltipStyle} />
+                      <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                      <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: 'hsl(var(--border))', strokeDasharray: '4 4' }} />
                       <Area
                         type="monotone"
                         dataKey="responses"
-                        fill="url(#gradResponses)"
-                        stroke="hsl(var(--foreground))"
-                        strokeWidth={2}
+                        fill="url(#surveyGradResponses)"
+                        stroke="hsl(var(--chart-1))"
+                        strokeWidth={2.5}
                         name="Responses"
-                        dot={{ r: 3, fill: 'hsl(var(--foreground))' }}
+                        dot={{ r: 4, fill: 'hsl(var(--chart-1))', strokeWidth: 2, stroke: 'hsl(var(--card))' }}
+                        activeDot={{ r: 6, fill: 'hsl(var(--chart-1))', strokeWidth: 2, stroke: 'hsl(var(--card))' }}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -338,9 +340,11 @@ export default function SurveyReports() {
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        innerRadius={50}
-                        outerRadius={80}
-                        paddingAngle={3}
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={4}
+                        strokeWidth={2}
+                        stroke="hsl(var(--card))"
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                       >
                         {recommendationData.map((_, index) => (
@@ -375,10 +379,16 @@ export default function SurveyReports() {
                 <div className="h-48">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={serviceChartData} layout="vertical">
+                      <defs>
+                        <linearGradient id="surveyBarGrad" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.4} />
+                          <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.7} />
+                        </linearGradient>
+                      </defs>
                       <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
                       <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                      <Tooltip contentStyle={tooltipStyle} />
-                      <Bar dataKey="value" fill="hsl(var(--foreground))" radius={[0, 6, 6, 0]} fillOpacity={0.8} />
+                      <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
+                      <Bar dataKey="value" fill="url(#surveyBarGrad)" radius={[0, 8, 8, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
