@@ -283,13 +283,13 @@ export default function Dashboard() {
                 <AreaChart data={trendData}>
                   <defs>
                     <linearGradient id="gradCreated" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(0, 0%, 15%)" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="hsl(0, 0%, 15%)" stopOpacity={0} />
+                      <stop offset="0%" stopColor="hsl(0, 0%, 85%)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(0, 0%, 85%)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <Area type="monotone" dataKey="created" stroke="hsl(0, 0%, 15%)" strokeWidth={2} fill="url(#gradCreated)" dot={false} />
+                  <Area type="monotone" dataKey="created" stroke="hsl(0, 0%, 75%)" strokeWidth={2} fill="url(#gradCreated)" dot={false} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', fontSize: '12px', padding: '8px 12px' }}
+                    contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(30,33,40,0.95)', backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', fontSize: '12px', padding: '8px 12px', color: 'hsl(0,0%,85%)' }}
                     labelStyle={{ display: 'none' }}
                   />
                 </AreaChart>
@@ -312,13 +312,13 @@ export default function Dashboard() {
                 <AreaChart data={trendData}>
                   <defs>
                     <linearGradient id="gradClosed" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(174, 60%, 40%)" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="hsl(174, 60%, 40%)" stopOpacity={0} />
+                      <stop offset="0%" stopColor="hsl(0, 0%, 65%)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(0, 0%, 65%)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <Area type="monotone" dataKey="closed" stroke="hsl(174, 60%, 40%)" strokeWidth={2} fill="url(#gradClosed)" dot={false} />
+                  <Area type="monotone" dataKey="closed" stroke="hsl(0, 0%, 60%)" strokeWidth={2} fill="url(#gradClosed)" dot={false} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', fontSize: '12px', padding: '8px 12px' }}
+                    contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(30,33,40,0.95)', backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', fontSize: '12px', padding: '8px 12px', color: 'hsl(0,0%,85%)' }}
                     labelStyle={{ display: 'none' }}
                   />
                 </AreaChart>
@@ -339,10 +339,10 @@ export default function Dashboard() {
             <div className="h-12 mt-3 -mx-1">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendData}>
-                  <Line type="monotone" dataKey="created" stroke="hsl(0, 0%, 15%)" strokeWidth={2} dot={{ r: 2, fill: 'hsl(0, 0%, 15%)' }} />
-                  <Line type="monotone" dataKey="closed" stroke="hsl(174, 60%, 40%)" strokeWidth={2} dot={{ r: 2, fill: 'hsl(174, 60%, 40%)' }} />
+                  <Line type="monotone" dataKey="created" stroke="hsl(0, 0%, 75%)" strokeWidth={2} dot={{ r: 2, fill: 'hsl(0, 0%, 75%)' }} />
+                  <Line type="monotone" dataKey="closed" stroke="hsl(0, 0%, 50%)" strokeWidth={2} dot={{ r: 2, fill: 'hsl(0, 0%, 50%)' }} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', fontSize: '12px', padding: '8px 12px' }}
+                    contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(30,33,40,0.95)', backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', fontSize: '12px', padding: '8px 12px', color: 'hsl(0,0%,85%)' }}
                     labelStyle={{ display: 'none' }}
                   />
                 </LineChart>
@@ -397,8 +397,8 @@ export default function Dashboard() {
               <CardContent>
                 {myTasks.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-3">
-                      <CheckCircle className="h-7 w-7 text-emerald-600" />
+                    <div className="h-14 w-14 rounded-2xl bg-emerald-900/20 flex items-center justify-center mb-3">
+                      <CheckCircle className="h-7 w-7 text-emerald-400" />
                     </div>
                     <p className="font-display font-semibold">All caught up!</p>
                     <p className="text-sm text-muted-foreground">
