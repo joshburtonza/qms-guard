@@ -46,13 +46,6 @@ interface NavItem {
   roles?: string[];
 }
 
-interface NavGroup {
-  title: string;
-  icon: React.ComponentType<{ className?: string }>;
-  items: NavItem[];
-  roles?: string[];
-}
-
 const mainNavItems: NavItem[] = [
   { title: 'Dashboard', href: '/', icon: LayoutDashboard },
   { title: 'My Tasks', href: '/tasks', icon: ListTodo },
@@ -147,14 +140,14 @@ export function AppSidebar() {
       <Link
         to={item.href}
         className={cn(
-          'flex items-center gap-3 rounded-lg px-3 py-2 transition-colors touch-target',
+          'flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 touch-target',
           active
-            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-            : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+            ? 'bg-foreground text-background font-medium shadow-sm'
+            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
         )}
       >
-        <Icon className="h-5 w-5 flex-shrink-0" />
-        {!collapsed && <span className="font-medium text-sm">{item.title}</span>}
+        <Icon className="h-[18px] w-[18px] flex-shrink-0" />
+        {!collapsed && <span className="text-sm">{item.title}</span>}
       </Link>
     );
 
@@ -162,7 +155,7 @@ export function AppSidebar() {
       return (
         <Tooltip key={item.href} delayDuration={0}>
           <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-          <TooltipContent side="right">{item.title}</TooltipContent>
+          <TooltipContent side="right" className="rounded-xl">{item.title}</TooltipContent>
         </Tooltip>
       );
     }
@@ -188,25 +181,25 @@ export function AppSidebar() {
         <CollapsibleTrigger className="w-full">
           <div
             className={cn(
-              'flex items-center justify-between gap-3 rounded-lg px-3 py-2 transition-colors',
+              'flex items-center justify-between gap-3 rounded-xl px-3 py-2 transition-colors',
               hasActiveItem
                 ? 'text-sidebar-foreground'
-                : 'text-sidebar-foreground/70 hover:text-sidebar-foreground'
+                : 'text-sidebar-foreground/60 hover:text-sidebar-foreground'
             )}
           >
             <div className="flex items-center gap-3">
-              <Icon className="h-5 w-5 flex-shrink-0" />
-              <span className="font-medium text-sm">{title}</span>
+              <Icon className="h-[18px] w-[18px] flex-shrink-0" />
+              <span className="text-sm font-medium">{title}</span>
             </div>
             <ChevronDown
               className={cn(
-                'h-4 w-4 transition-transform',
+                'h-4 w-4 transition-transform duration-200',
                 isOpen && 'rotate-180'
               )}
             />
           </div>
         </CollapsibleTrigger>
-        <CollapsibleContent className="ml-4 mt-1 space-y-1">
+        <CollapsibleContent className="ml-4 mt-1 space-y-0.5">
           {items.map(renderNavItem)}
         </CollapsibleContent>
       </Collapsible>
@@ -216,84 +209,83 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        'flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 shadow-sidebar h-screen sticky top-0',
+        'flex flex-col bg-card/80 backdrop-blur-xl text-sidebar-foreground transition-all duration-300 border-r border-border/50 h-screen sticky top-0',
         collapsed ? 'w-16' : 'w-64'
       )}
     >
       {/* Header */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
+      <div className="flex h-16 items-center justify-between px-4 border-b border-border/50">
         {!collapsed && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {tenant?.logo_url ? (
-              <img src={tenant.logo_url} alt={tenant.platform_name} className="h-8 w-8 rounded-lg object-contain" />
+              <img src={tenant.logo_url} alt={tenant.platform_name} className="h-8 w-8 rounded-xl object-contain" />
             ) : (
-              <Shield className="h-8 w-8 text-sidebar-primary" />
+              <div className="h-8 w-8 rounded-xl bg-foreground flex items-center justify-center">
+                <Shield className="h-4 w-4 text-background" />
+              </div>
             )}
             <div>
-              <h1 className="font-bold text-lg leading-none">{tenant?.platform_name?.split(' ')[0] || 'ASCEND'}</h1>
-              <p className="text-xs text-sidebar-foreground/70">{tenant?.platform_name?.includes(' ') ? tenant.platform_name.split(' ').slice(1).join(' ') : 'QMS Platform'}</p>
+              <h1 className="font-display font-bold text-base leading-none tracking-tight">{tenant?.platform_name?.split(' ')[0] || 'ASCEND'}</h1>
+              <p className="text-[11px] text-muted-foreground">{tenant?.platform_name?.includes(' ') ? tenant.platform_name.split(' ').slice(1).join(' ') : 'QMS Platform'}</p>
             </div>
           </div>
         )}
         {collapsed && (
           tenant?.logo_url ? (
-            <img src={tenant.logo_url} alt={tenant.platform_name} className="h-8 w-8 rounded-lg object-contain mx-auto" />
+            <img src={tenant.logo_url} alt={tenant.platform_name} className="h-8 w-8 rounded-xl object-contain mx-auto" />
           ) : (
-            <Shield className="h-8 w-8 text-sidebar-primary mx-auto" />
+            <div className="h-8 w-8 rounded-xl bg-foreground flex items-center justify-center mx-auto">
+              <Shield className="h-4 w-4 text-background" />
+            </div>
           )
         )}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(!collapsed)}
-          className="h-8 w-8 text-sidebar-foreground hover:bg-sidebar-accent"
+          className="h-7 w-7 rounded-lg text-muted-foreground hover:bg-secondary"
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
         </Button>
       </div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
-        {/* Core items */}
+      <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto">
         {mainNavItems.map(renderNavItem)}
         
-        <Separator className="my-3 bg-sidebar-border" />
+        <Separator className="my-3 bg-border/50" />
         
-        {/* Non-Conformances Group */}
         {!collapsed && (
-          <p className="px-3 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider mb-2">
+          <p className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-2">
             Non-Conformances
           </p>
         )}
         {renderCollapsibleGroup('NCs', FileWarning, ncNavItems, ncOpen, setNcOpen)}
         
-        <Separator className="my-3 bg-sidebar-border" />
+        <Separator className="my-3 bg-border/50" />
         
-        {/* Feedback & Surveys Group */}
         {!collapsed && (
-          <p className="px-3 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider mb-2">
+          <p className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-2">
             Feedback & Surveys
           </p>
         )}
         {renderCollapsibleGroup('Surveys', MessageSquareHeart, feedbackNavItems, feedbackOpen, setFeedbackOpen)}
         {renderCollapsibleGroup('Course Evaluations', GraduationCap, courseEvalNavItems, courseEvalOpen, setCourseEvalOpen)}
 
-        <Separator className="my-3 bg-sidebar-border" />
+        <Separator className="my-3 bg-border/50" />
         
-        {/* Moderation Group */}
         {!collapsed && (
-          <p className="px-3 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider mb-2">
+          <p className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-2">
             Quality Assurance
           </p>
         )}
         {renderCollapsibleGroup('Moderation', GraduationCap, moderationNavItems, moderationOpen, setModerationOpen)}
         {renderCollapsibleGroup('Internal Audits', ClipboardCheck, auditNavItems, auditOpen, setAuditOpen)}
 
-        <Separator className="my-3 bg-sidebar-border" />
+        <Separator className="my-3 bg-border/50" />
         
-        {/* Evaluations Group */}
         {!collapsed && (
-          <p className="px-3 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider mb-2">
+          <p className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-2">
             Evaluations
           </p>
         )}
@@ -302,9 +294,9 @@ export function AppSidebar() {
 
         {filteredAdminItems.length > 0 && (
           <>
-            <Separator className="my-3 bg-sidebar-border" />
+            <Separator className="my-3 bg-border/50" />
             {!collapsed && (
-              <p className="px-3 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider mb-2">
+              <p className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-2">
                 Admin
               </p>
             )}
@@ -314,18 +306,18 @@ export function AppSidebar() {
       </nav>
 
       {/* User Section */}
-      <div className="border-t border-sidebar-border p-2">
+      <div className="border-t border-border/50 p-3">
         {profile && (
-          <div className={cn('flex items-center gap-3 p-2', collapsed && 'justify-center')}>
+          <div className={cn('flex items-center gap-3 p-2 rounded-xl', collapsed && 'justify-center')}>
             <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm">
+              <AvatarFallback className="bg-foreground text-background text-xs font-medium rounded-xl">
                 {getInitials(profile.full_name)}
               </AvatarFallback>
             </Avatar>
             {!collapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{profile.full_name}</p>
-                <p className="text-xs text-sidebar-foreground/60 truncate">
+                <p className="text-[11px] text-muted-foreground truncate">
                   {profile.employee_id || 'No ID'}
                 </p>
               </div>
@@ -333,7 +325,7 @@ export function AppSidebar() {
           </div>
         )}
         
-        <div className="flex gap-1 mt-2">
+        <div className="flex gap-1 mt-1">
           {collapsed ? (
             <>
               <Tooltip delayDuration={0}>
@@ -342,14 +334,14 @@ export function AppSidebar() {
                     variant="ghost"
                     size="icon"
                     asChild
-                    className="flex-1 text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
+                    className="flex-1 text-muted-foreground hover:bg-secondary rounded-xl"
                   >
                     <Link to="/settings">
                       <Settings className="h-4 w-4" />
                     </Link>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right">Settings</TooltipContent>
+                <TooltipContent side="right" className="rounded-xl">Settings</TooltipContent>
               </Tooltip>
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
@@ -357,12 +349,12 @@ export function AppSidebar() {
                     variant="ghost"
                     size="icon"
                     onClick={signOut}
-                    className="flex-1 text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
+                    className="flex-1 text-muted-foreground hover:bg-secondary rounded-xl"
                   >
                     <LogOut className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right">Sign Out</TooltipContent>
+                <TooltipContent side="right" className="rounded-xl">Sign Out</TooltipContent>
               </Tooltip>
             </>
           ) : (
@@ -371,7 +363,7 @@ export function AppSidebar() {
                 variant="ghost"
                 size="sm"
                 asChild
-                className="flex-1 justify-start text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
+                className="flex-1 justify-start text-muted-foreground hover:bg-secondary rounded-xl"
               >
                 <Link to="/settings">
                   <Settings className="h-4 w-4 mr-2" />
@@ -382,7 +374,7 @@ export function AppSidebar() {
                 variant="ghost"
                 size="icon"
                 onClick={signOut}
-                className="text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
+                className="text-muted-foreground hover:bg-secondary rounded-xl"
               >
                 <LogOut className="h-4 w-4" />
               </Button>

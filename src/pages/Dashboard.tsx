@@ -52,7 +52,7 @@ import {
   Legend,
 } from 'recharts';
 
-const CHART_COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+const CHART_COLORS = ['hsl(0, 0%, 10%)', 'hsl(174, 60%, 40%)', 'hsl(0, 0%, 40%)', 'hsl(0, 0%, 65%)', 'hsl(0, 0%, 80%)'];
 
 export default function Dashboard() {
   const { profile, roles } = useAuth();
@@ -77,7 +77,6 @@ export default function Dashboard() {
     if (!profile) return;
 
     try {
-      // Fetch NCs
       const { data: ncs, error } = await supabase
         .from('non_conformances')
         .select(`
@@ -92,7 +91,6 @@ export default function Dashboard() {
 
       setAllNCs(ncs || []);
 
-      // Calculate stats
       const newStats: DashboardStats = {
         open: 0,
         in_progress: 0,
@@ -105,25 +103,21 @@ export default function Dashboard() {
       const categoryCount: Record<string, number> = {};
 
       (ncs || []).forEach((nc: any) => {
-        // Count by status
         const status = nc.status as NCStatus;
         if (status in newStats) {
           (newStats as any)[status === 'pending_verification' ? 'pending_verification' : status]++;
         }
 
-        // Count overdue
         if (isOverdue(nc.due_date, nc.status)) {
           newStats.overdue++;
         }
 
-        // Count by category
         const category = NC_CATEGORY_LABELS[nc.category as keyof typeof NC_CATEGORY_LABELS];
         categoryCount[category] = (categoryCount[category] || 0) + 1;
       });
 
       setStats(newStats);
 
-      // Set category data for chart
       setCategoryData(
         Object.entries(categoryCount).map(([name, value]) => ({
           name: name.length > 15 ? name.slice(0, 15) + '...' : name,
@@ -131,7 +125,6 @@ export default function Dashboard() {
         }))
       );
 
-      // Get my tasks (NCs where I'm the responsible person)
       const myTasksList = (ncs || []).filter(
         (nc: any) =>
           (nc.responsible_person === profile.id || nc.reported_by === profile.id) &&
@@ -147,14 +140,12 @@ export default function Dashboard() {
     }
   }
 
-  // Calculate closure rate
   const closureRate = useMemo(() => {
     const total = allNCs.length;
     if (total === 0) return null;
     return Math.round((stats.closed / total) * 100);
   }, [allNCs.length, stats.closed]);
 
-  // Calculate average resolution time
   const avgResolutionDays = useMemo(() => {
     const closedNCs = allNCs.filter(nc => nc.status === 'closed' && nc.closed_at && nc.created_at);
     if (closedNCs.length === 0) return null;
@@ -167,7 +158,6 @@ export default function Dashboard() {
     return Math.round(totalDays / closedNCs.length);
   }, [allNCs]);
 
-  // Calculate monthly trend data
   const trendData = useMemo(() => {
     const months = [];
     const now = new Date();
@@ -198,7 +188,6 @@ export default function Dashboard() {
     return months;
   }, [allNCs]);
 
-  // Get overdue NCs list
   const overdueNCs = useMemo(() => {
     return allNCs
       .filter(nc => isOverdue(nc.due_date, nc.status))
@@ -216,10 +205,10 @@ export default function Dashboard() {
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32" />
+              <Skeleton key={i} className="h-32 rounded-2xl" />
             ))}
           </div>
-          <Skeleton className="h-96" />
+          <Skeleton className="h-96 rounded-2xl" />
         </div>
       </AppLayout>
     );
@@ -231,12 +220,12 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl font-display font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
               Welcome back, {profile?.full_name?.split(' ')[0] || 'User'}
             </p>
           </div>
-          <Button asChild>
+          <Button asChild className="rounded-xl shadow-sm">
             <Link to="/report">
               <Plus className="mr-2 h-4 w-4" />
               Report NC
@@ -279,7 +268,7 @@ export default function Dashboard() {
           />
           <KPICard
             title="Avg Resolution"
-            value={avgResolutionDays !== null ? `${avgResolutionDays} days` : 'N/A'}
+            value={avgResolutionDays !== null ? `${avgResolutionDays}d` : 'N/A'}
             icon={Timer}
             variant="default"
           />
@@ -288,9 +277,9 @@ export default function Dashboard() {
         {/* Charts Row */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Monthly Trend Chart */}
-          <Card>
+          <Card className="glass-card-solid border-0">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
+              <CardTitle className="flex items-center gap-2 text-base font-display">
                 <TrendingUp className="h-5 w-5" />
                 NC Trend — Last 6 Months
               </CardTitle>
@@ -299,12 +288,19 @@ export default function Dashboard() {
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={trendData}>
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs" />
+                    <YAxis axisLine={false} tickLine={false} className="text-xs" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        borderRadius: '12px', 
+                        border: '1px solid hsl(0, 0%, 90%)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
+                        fontSize: '13px'
+                      }} 
+                    />
                     <Legend />
-                    <Bar dataKey="created" name="Created" fill="#1e3a5f" />
-                    <Bar dataKey="closed" name="Closed" fill="#22c55e" />
+                    <Bar dataKey="created" name="Created" fill="hsl(0, 0%, 15%)" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="closed" name="Closed" fill="hsl(174, 60%, 40%)" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -312,9 +308,9 @@ export default function Dashboard() {
           </Card>
 
           {/* Category Breakdown */}
-          <Card>
+          <Card className="glass-card-solid border-0">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
+              <CardTitle className="flex items-center gap-2 text-base font-display">
                 <BarChart3 className="h-5 w-5" />
                 NC by Category
               </CardTitle>
@@ -337,6 +333,7 @@ export default function Dashboard() {
                         innerRadius={40}
                         outerRadius={70}
                         paddingAngle={2}
+                        strokeWidth={0}
                       >
                         {categoryData.map((_, index) => (
                           <Cell
@@ -345,22 +342,29 @@ export default function Dashboard() {
                           />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip 
+                        contentStyle={{ 
+                          borderRadius: '12px', 
+                          border: '1px solid hsl(0, 0%, 90%)',
+                          boxShadow: '0 8px 32px rgba(0,0,0,0.06)',
+                          fontSize: '13px'
+                        }} 
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               )}
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 space-y-2.5">
                 {categoryData.slice(0, 4).map((item, index) => (
                   <div key={item.name} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                       <div
-                        className="h-3 w-3 rounded-full"
+                        className="h-2.5 w-2.5 rounded-full"
                         style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
                       />
                       <span className="text-muted-foreground">{item.name}</span>
                     </div>
-                    <span className="font-medium">{item.value}</span>
+                    <span className="font-display font-semibold">{item.value}</span>
                   </div>
                 ))}
               </div>
@@ -372,10 +376,10 @@ export default function Dashboard() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* My Action Items */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="glass-card-solid border-0">
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 font-display">
                     <ListTodo className="h-5 w-5" />
                     My Action Items
                   </CardTitle>
@@ -383,7 +387,7 @@ export default function Dashboard() {
                     Non-conformances requiring your attention
                   </CardDescription>
                 </div>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="rounded-xl">
                   <Link to="/tasks">
                     View All
                     <ChevronRight className="ml-1 h-4 w-4" />
@@ -393,8 +397,10 @@ export default function Dashboard() {
               <CardContent>
                 {myTasks.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <CheckCircle className="h-12 w-12 text-primary mb-3" />
-                    <p className="font-medium">All caught up!</p>
+                    <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-3">
+                      <CheckCircle className="h-7 w-7 text-emerald-600" />
+                    </div>
+                    <p className="font-display font-semibold">All caught up!</p>
                     <p className="text-sm text-muted-foreground">
                       No pending actions at the moment
                     </p>
@@ -412,37 +418,36 @@ export default function Dashboard() {
 
           {/* Quick Stats & Integrations */}
           <div className="space-y-6">
-            <Card>
+            <Card className="glass-card-solid border-0">
               <CardHeader>
-                <CardTitle className="text-base">Status Overview</CardTitle>
+                <CardTitle className="text-base font-display">Status Overview</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Closed This Month</span>
-                  <span className="font-semibold text-primary">{stats.closed}</span>
+                  <span className="font-display font-bold text-lg">{stats.closed}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Pending Review</span>
-                  <span className="font-semibold text-primary">{stats.pending_review}</span>
+                  <span className="font-display font-bold text-lg">{stats.pending_review}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Awaiting Verification</span>
-                  <span className="font-semibold text-primary">{stats.pending_verification}</span>
+                  <span className="font-display font-bold text-lg">{stats.pending_verification}</span>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Smartsheet Integration Widget */}
             <SmartsheetWidget />
           </div>
         </div>
 
         {/* Overdue NCs Table */}
         {overdueNCs.length > 0 && (
-          <Card>
+          <Card className="glass-card-solid border-0">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="flex items-center gap-2 text-destructive">
+                <CardTitle className="flex items-center gap-2 text-destructive font-display">
                   <AlertTriangle className="h-5 w-5" />
                   Overdue Actions
                 </CardTitle>
@@ -450,7 +455,7 @@ export default function Dashboard() {
                   NCs past their due date requiring immediate attention
                 </CardDescription>
               </div>
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="ghost" size="sm" asChild className="rounded-xl">
                 <Link to="/nc?status=overdue">
                   View All Overdue
                   <ChevronRight className="ml-1 h-4 w-4" />
@@ -460,7 +465,7 @@ export default function Dashboard() {
             <CardContent>
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="border-border/50">
                     <TableHead>NC Number</TableHead>
                     <TableHead>Responsible Person</TableHead>
                     <TableHead>Due Date</TableHead>
@@ -470,21 +475,21 @@ export default function Dashboard() {
                 </TableHeader>
                 <TableBody>
                   {overdueNCs.map((nc) => (
-                    <TableRow key={nc.id}>
+                    <TableRow key={nc.id} className="border-border/30">
                       <TableCell>
-                        <Link to={`/nc/${nc.id}`} className="font-medium text-primary hover:underline">
+                        <Link to={`/nc/${nc.id}`} className="font-medium text-foreground hover:text-accent transition-colors">
                           {nc.nc_number}
                         </Link>
                       </TableCell>
-                      <TableCell>{nc.responsible?.full_name || 'Unassigned'}</TableCell>
+                      <TableCell className="text-muted-foreground">{nc.responsible?.full_name || 'Unassigned'}</TableCell>
                       <TableCell className="text-destructive font-medium">
                         {format(new Date(nc.due_date), 'MMM d, yyyy')}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="destructive">{nc.daysOverdue} days</Badge>
+                        <Badge variant="destructive" className="rounded-full">{nc.daysOverdue} days</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{NC_STATUS_LABELS[nc.status as NCStatus]}</Badge>
+                        <Badge variant="outline" className="rounded-full">{NC_STATUS_LABELS[nc.status as NCStatus]}</Badge>
                       </TableCell>
                     </TableRow>
                   ))}

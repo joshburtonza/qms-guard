@@ -57,7 +57,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Status colors
         status: {
           open: "hsl(var(--status-open))",
           "in-progress": "hsl(var(--status-in-progress))",
@@ -67,13 +66,11 @@ export default {
           rejected: "hsl(var(--status-rejected))",
           overdue: "hsl(var(--status-overdue))",
         },
-        // Severity colors
         severity: {
           critical: "hsl(var(--severity-critical))",
           major: "hsl(var(--severity-major))",
           minor: "hsl(var(--severity-minor))",
         },
-        // Chart colors
         chart: {
           "1": "hsl(var(--chart-1))",
           "2": "hsl(var(--chart-2))",
@@ -86,9 +83,12 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "2xl": "1rem",
+        "3xl": "1.5rem",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {
@@ -115,6 +115,10 @@ export default {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.7" },
         },
+        "float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-4px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -123,11 +127,17 @@ export default {
         "slide-in-from-top": "slide-in-from-top 0.3s ease-out",
         "slide-in-from-bottom": "slide-in-from-bottom 0.3s ease-out",
         "pulse-subtle": "pulse-subtle 2s ease-in-out infinite",
+        "float": "float 3s ease-in-out infinite",
       },
       boxShadow: {
-        "card": "0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05)",
-        "card-hover": "0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)",
-        "sidebar": "2px 0 8px -2px rgb(0 0 0 / 0.1)",
+        "card": "0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04)",
+        "card-hover": "0 8px 25px -5px rgb(0 0 0 / 0.08), 0 4px 10px -3px rgb(0 0 0 / 0.04)",
+        "glass": "0 8px 32px rgba(0, 0, 0, 0.06)",
+        "glass-hover": "0 12px 40px rgba(0, 0, 0, 0.1)",
+        "sidebar": "1px 0 0 0 hsl(var(--sidebar-border))",
+      },
+      backdropBlur: {
+        "glass": "20px",
       },
     },
   },
