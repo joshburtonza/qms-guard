@@ -52,11 +52,13 @@
     --chart-3: 220 8% 55%;
     --chart-4: 220 6% 70%;
     --chart-5: 220 4% 82%;
-    --glass-bg: rgba(255, 255, 255, 0.65);
-    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-bg: rgba(255, 255, 255, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.7);
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-    --glass-blur: 20px;
+    --glass-blur: 24px;
     --glass-glow: none;
+    --glass-highlight: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 50%);
+    --glass-inner-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6);
   }
 
   /* DARK MODE — charcoal with chrome/liquid glow */
@@ -103,11 +105,13 @@
     --chart-3: 0 0% 48%;
     --chart-4: 0 0% 35%;
     --chart-5: 0 0% 25%;
-    --glass-bg: rgba(20, 22, 30, 0.65);
-    --glass-border: rgba(255, 255, 255, 0.07);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-    --glass-blur: 24px;
-    --glass-glow: 0 0 60px rgba(255, 255, 255, 0.03);
+    --glass-bg: rgba(20, 22, 30, 0.5);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --glass-blur: 28px;
+    --glass-glow: 0 0 80px rgba(255, 255, 255, 0.03), 0 0 20px rgba(255, 255, 255, 0.02);
+    --glass-highlight: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 50%);
+    --glass-inner-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06);
   }
 }
 
@@ -135,35 +139,59 @@
   /* Glass Card — chrome/liquid effect */
   .glass-card {
     background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
     border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow), var(--glass-glow, none);
-    @apply rounded-2xl transition-all duration-300;
+    box-shadow: var(--glass-shadow), var(--glass-glow, none), var(--glass-inner-shadow);
+    @apply rounded-2xl transition-all duration-300 relative overflow-hidden;
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--glass-highlight);
+    pointer-events: none;
+    border-radius: inherit;
+    z-index: 1;
   }
 
   .glass-card:hover {
-    box-shadow: var(--glass-shadow), 0 0 80px rgba(255, 255, 255, 0.04);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+  }
+
+  .light .glass-card:hover {
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.9);
   }
 
   .dark .glass-card:hover {
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 80px rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 80px rgba(255, 255, 255, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.14);
   }
 
   /* Glass Card Solid */
   .glass-card-solid {
-    @apply bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-sm transition-all duration-300;
+    @apply bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-sm transition-all duration-300 relative overflow-hidden;
+  }
+
+  .glass-card-solid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--glass-highlight);
+    pointer-events: none;
+    border-radius: inherit;
+    z-index: 1;
   }
 
   .glass-card-solid:hover {
-    @apply shadow-md;
+    @apply shadow-md -translate-y-0.5;
   }
 
   .dark .glass-card-solid:hover {
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 60px rgba(255, 255, 255, 0.02);
-    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
   }
 
   /* Status badge variants — adaptive for light/dark */
@@ -226,21 +254,34 @@
   /* KPI cards — chrome glass with glow */
   .kpi-card {
     background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
     border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow), var(--glass-glow, none);
+    box-shadow: var(--glass-shadow), var(--glass-glow, none), var(--glass-inner-shadow);
     @apply relative overflow-hidden rounded-2xl p-6 transition-all duration-300;
   }
 
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--glass-highlight);
+    pointer-events: none;
+    border-radius: inherit;
+    z-index: 1;
+  }
+
   .kpi-card:hover {
-    @apply -translate-y-0.5;
-    box-shadow: var(--glass-shadow), 0 0 40px rgba(255, 255, 255, 0.03);
+    @apply -translate-y-1;
+  }
+
+  .light .kpi-card:hover {
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8);
   }
 
   .dark .kpi-card:hover {
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 0 60px rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45), 0 0 80px rgba(255, 255, 255, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.12);
   }
 
   /* Workflow progress */
