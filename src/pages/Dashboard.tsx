@@ -40,19 +40,13 @@ import {
   isOverdue,
 } from '@/types/database';
 import {
-  PieChart,
-  Pie,
-  Cell,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
+  AreaChart,
+  Area,
+  LineChart,
+  Line,
   Tooltip,
-  Legend,
 } from 'recharts';
-
-const CHART_COLORS = ['hsl(0, 0%, 10%)', 'hsl(174, 60%, 40%)', 'hsl(0, 0%, 35%)', 'hsl(0, 0%, 55%)', 'hsl(0, 0%, 75%)'];
 
 export default function Dashboard() {
   const { profile, roles } = useAuth();
@@ -274,122 +268,107 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Charts Row */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Monthly Trend Chart */}
-          <Card className="glass-card border-0">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base font-display">
-                <TrendingUp className="h-4 w-4 text-accent" />
-                NC Trend — Last 6 Months
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[280px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={trendData} barGap={4}>
-                    <XAxis 
-                      dataKey="month" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
-                    />
-                    <YAxis 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: 'hsl(0, 0%, 45%)', fontSize: 12 }}
-                      width={30}
-                    />
-                    <Tooltip 
-                      cursor={{ fill: 'hsl(0, 0%, 95%)' }}
-                      contentStyle={{ 
-                        borderRadius: '16px', 
-                        border: 'none',
-                        background: 'rgba(255,255,255,0.9)',
-                        backdropFilter: 'blur(12px)',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-                        fontSize: '13px',
-                        padding: '12px 16px',
-                      }} 
-                    />
-                    <Legend 
-                      iconType="circle"
-                      iconSize={8}
-                      wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }}
-                    />
-                    <Bar dataKey="created" name="Created" fill="hsl(0, 0%, 15%)" radius={[8, 8, 0, 0]} />
-                    <Bar dataKey="closed" name="Closed" fill="hsl(174, 60%, 40%)" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
+        {/* Stat Cards with Sparklines */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {/* Total NCs */}
+          <Card className="glass-card border-0 p-6">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Total NCs</span>
+              <BarChart3 className="h-4 w-4 text-muted-foreground/50" />
+            </div>
+            <div className="text-4xl font-display font-bold tracking-tight">{allNCs.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">All time records</p>
+            <div className="h-12 mt-3 -mx-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendData}>
+                  <defs>
+                    <linearGradient id="gradCreated" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(0, 0%, 15%)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(0, 0%, 15%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <Area type="monotone" dataKey="created" stroke="hsl(0, 0%, 15%)" strokeWidth={2} fill="url(#gradCreated)" dot={false} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', fontSize: '12px', padding: '8px 12px' }}
+                    labelStyle={{ display: 'none' }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </Card>
 
-          {/* Category Breakdown */}
-          <Card className="glass-card border-0">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base font-display">
-                <BarChart3 className="h-4 w-4 text-accent" />
-                NC by Category
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {categoryData.length === 0 ? (
-                <div className="flex items-center justify-center h-48 text-muted-foreground">
-                  No data available
-                </div>
-              ) : (
-                <div className="h-52">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={categoryData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={45}
-                        outerRadius={75}
-                        paddingAngle={3}
-                        strokeWidth={0}
-                      >
-                        {categoryData.map((_, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={CHART_COLORS[index % CHART_COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          borderRadius: '16px', 
-                          border: 'none',
-                          background: 'rgba(255,255,255,0.9)',
-                          backdropFilter: 'blur(12px)',
-                          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-                          fontSize: '13px',
-                          padding: '12px 16px',
-                        }} 
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-              <div className="mt-3 space-y-2">
-                {categoryData.slice(0, 5).map((item, index) => (
-                  <div key={item.name} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-                      />
-                      <span className="text-muted-foreground">{item.name}</span>
-                    </div>
-                    <span className="font-display font-semibold">{item.value}</span>
+          {/* Closed NCs */}
+          <Card className="glass-card border-0 p-6">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Closed</span>
+              <CheckCircle className="h-4 w-4 text-muted-foreground/50" />
+            </div>
+            <div className="text-4xl font-display font-bold tracking-tight">{stats.closed}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {closureRate !== null ? `${closureRate}% closure rate` : 'No data yet'}
+            </p>
+            <div className="h-12 mt-3 -mx-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendData}>
+                  <defs>
+                    <linearGradient id="gradClosed" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(174, 60%, 40%)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(174, 60%, 40%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <Area type="monotone" dataKey="closed" stroke="hsl(174, 60%, 40%)" strokeWidth={2} fill="url(#gradClosed)" dot={false} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', fontSize: '12px', padding: '8px 12px' }}
+                    labelStyle={{ display: 'none' }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          {/* NC Trend */}
+          <Card className="glass-card border-0 p-6">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Trend</span>
+              <TrendingUp className="h-4 w-4 text-muted-foreground/50" />
+            </div>
+            <div className="text-4xl font-display font-bold tracking-tight">
+              {trendData.length > 0 ? trendData[trendData.length - 1].created : 0}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Created this month</p>
+            <div className="h-12 mt-3 -mx-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendData}>
+                  <Line type="monotone" dataKey="created" stroke="hsl(0, 0%, 15%)" strokeWidth={2} dot={{ r: 2, fill: 'hsl(0, 0%, 15%)' }} />
+                  <Line type="monotone" dataKey="closed" stroke="hsl(174, 60%, 40%)" strokeWidth={2} dot={{ r: 2, fill: 'hsl(174, 60%, 40%)' }} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', border: 'none', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', fontSize: '12px', padding: '8px 12px' }}
+                    labelStyle={{ display: 'none' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          {/* Categories Breakdown */}
+          <Card className="glass-card border-0 p-6">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Categories</span>
+              <BarChart3 className="h-4 w-4 text-muted-foreground/50" />
+            </div>
+            <div className="text-4xl font-display font-bold tracking-tight">{categoryData.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Active categories</p>
+            <div className="mt-4 space-y-2">
+              {categoryData.slice(0, 4).map((item, index) => (
+                <div key={item.name} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-foreground" style={{ opacity: 1 - index * 0.2 }} />
+                    <span className="text-muted-foreground truncate max-w-[120px]">{item.name}</span>
                   </div>
-                ))}
-              </div>
-            </CardContent>
+                  <span className="font-display font-semibold">{item.value}</span>
+                </div>
+              ))}
+            </div>
           </Card>
         </div>
 
