@@ -84,16 +84,16 @@ const ACTION_ICONS: Record<string, React.ReactNode> = {
 };
 
 const ACTION_COLORS: Record<string, string> = {
-  'NC Submitted': 'bg-blue-100 text-blue-700',
-  'QA Classification': 'bg-green-100 text-green-700',
-  'Corrective Action Submitted': 'bg-purple-100 text-purple-700',
-  'Manager Approved': 'bg-green-100 text-green-700',
-  'Manager Declined': 'bg-red-100 text-red-700',
-  'NC Closed': 'bg-green-100 text-green-700',
-  'NC Rejected': 'bg-red-100 text-red-700',
-  'Attachment Uploaded': 'bg-blue-100 text-blue-700',
-  'Reminder Sent': 'bg-amber-100 text-amber-700',
-  'User Locked Out': 'bg-red-100 text-red-700',
+  'NC Submitted': 'bg-foreground/10 text-foreground',
+  'QA Classification': 'bg-accent/10 text-accent',
+  'Corrective Action Submitted': 'bg-foreground/8 text-foreground/80',
+  'Manager Approved': 'bg-accent/10 text-accent',
+  'Manager Declined': 'bg-destructive/10 text-destructive',
+  'NC Closed': 'bg-accent/10 text-accent',
+  'NC Rejected': 'bg-destructive/10 text-destructive',
+  'Attachment Uploaded': 'bg-foreground/10 text-foreground',
+  'Reminder Sent': 'bg-foreground/8 text-foreground/70',
+  'User Locked Out': 'bg-destructive/10 text-destructive',
 };
 
 export default function ActivityLog() {
@@ -223,7 +223,7 @@ export default function ActivityLog() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-display font-bold tracking-tight flex items-center gap-2">
               <Activity className="h-6 w-6 text-accent" />
               Activity Log
             </h1>
@@ -243,30 +243,30 @@ export default function ActivityLog() {
 
         {/* Stats Summary */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card>
+          <Card className="glass-card border-0">
             <CardHeader className="pb-2">
               <CardDescription>Total Activities</CardDescription>
-              <CardTitle className="text-3xl">{activities.length}</CardTitle>
+              <CardTitle className="text-3xl font-display">{activities.length}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="glass-card border-0">
             <CardHeader className="pb-2">
               <CardDescription>Active Users</CardDescription>
-              <CardTitle className="text-3xl">{userSummaries.length}</CardTitle>
+              <CardTitle className="text-3xl font-display">{userSummaries.length}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="glass-card border-0">
             <CardHeader className="pb-2">
               <CardDescription>NCs Created</CardDescription>
-              <CardTitle className="text-3xl">
+              <CardTitle className="text-3xl font-display">
                 {activities.filter(a => a.action === 'NC Submitted').length}
               </CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="glass-card border-0">
             <CardHeader className="pb-2">
               <CardDescription>NCs Closed</CardDescription>
-              <CardTitle className="text-3xl">
+              <CardTitle className="text-3xl font-display">
                 {activities.filter(a => a.action === 'NC Closed').length}
               </CardTitle>
             </CardHeader>
@@ -309,7 +309,7 @@ export default function ActivityLog() {
             </div>
 
             {/* Activity Table */}
-            <Card>
+            <Card className="glass-card-solid border-0">
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>

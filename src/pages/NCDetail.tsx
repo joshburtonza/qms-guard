@@ -143,7 +143,7 @@ export default function NCDetail() {
           </Button>
           <div className="flex-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold tracking-tight font-mono">
+              <h1 className="text-2xl font-display font-bold tracking-tight font-mono">
                 {nc.nc_number}
               </h1>
               <StatusBadge status={nc.status} isOverdue={overdue} isEscalated={((nc as any).workflow_history || []).filter((h: any) => h.action === 'manager_declined').length >= 3} />
@@ -175,7 +175,7 @@ export default function NCDetail() {
         </div>
 
         {/* Workflow Progress */}
-        <Card>
+        <Card className="glass-card border-0">
           <CardContent className="py-6">
             <WorkflowProgress currentStep={nc.current_step || 1} />
           </CardContent>
@@ -199,9 +199,9 @@ export default function NCDetail() {
           <TabsContent value="details" className="mt-6">
             <div className="grid gap-6 lg:grid-cols-3">
               {/* Main Details */}
-              <Card className="lg:col-span-2">
+              <Card className="glass-card-solid border-0 lg:col-span-2">
                 <CardHeader>
-                  <CardTitle>Non-Conformance Details</CardTitle>
+                  <CardTitle className="font-display">Non-Conformance Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
@@ -228,9 +228,9 @@ export default function NCDetail() {
 
               {/* Sidebar Info */}
               <div className="space-y-6">
-                <Card>
+                <Card className="glass-card-solid border-0">
                   <CardHeader>
-                    <CardTitle className="text-base">Information</CardTitle>
+                    <CardTitle className="text-base font-display">Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-start gap-3">
@@ -305,9 +305,9 @@ export default function NCDetail() {
           </TabsContent>
 
           <TabsContent value="history" className="mt-6">
-            <Card>
+            <Card className="glass-card-solid border-0">
               <CardHeader>
-                <CardTitle>Activity History</CardTitle>
+                <CardTitle className="font-display">Activity History</CardTitle>
                 <CardDescription>Complete audit trail of all actions</CardDescription>
               </CardHeader>
               <CardContent>
@@ -338,9 +338,9 @@ export default function NCDetail() {
           </TabsContent>
 
           <TabsContent value="attachments" className="mt-6">
-            <Card>
+            <Card className="glass-card-solid border-0">
               <CardHeader>
-                <CardTitle>Attachments</CardTitle>
+                <CardTitle className="font-display">Attachments</CardTitle>
                 <CardDescription>Evidence and supporting documents</CardDescription>
               </CardHeader>
               <CardContent>
