@@ -319,8 +319,8 @@ export default function NCDetail() {
                   <div className="space-y-4">
                     {activities.map((activity) => (
                       <div key={activity.id} className="flex gap-4 pb-4 border-b last:border-0">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <FileText className="h-4 w-4 text-primary" />
+                        <div className="h-8 w-8 rounded-full bg-foreground/10 flex items-center justify-center flex-shrink-0">
+                          <FileText className="h-4 w-4 text-foreground/70" />
                         </div>
                         <div className="flex-1">
                           <p className="font-medium">{activity.action}</p>

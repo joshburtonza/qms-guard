@@ -96,7 +96,7 @@ export default function FacilitatorEvaluationList() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <GraduationCap className="h-6 w-6 text-primary" />
+              <GraduationCap className="h-6 w-6" />
               Facilitator Evaluations
             </h1>
             <p className="text-muted-foreground">

@@ -218,7 +218,7 @@ function TaskList({ tasks, emptyMessage = "All caught up! No pending actions." }
   if (tasks.length === 0) {
     return (
       <Card className="glass-card-solid border-0 p-12 text-center">
-        <CheckCircle className="h-12 w-12 mx-auto text-accent mb-3" />
+        <CheckCircle className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
         <p className="font-medium">{emptyMessage}</p>
       </Card>
     );

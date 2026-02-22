@@ -123,8 +123,8 @@ export default function Edith() {
         {/* Header */}
         <div className="p-4 border-b space-y-3">
           <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
-              <Sparkles className="h-5 w-5 text-primary-foreground" />
+            <div className="h-10 w-10 rounded-full bg-foreground flex items-center justify-center">
+              <Sparkles className="h-5 w-5 text-background" />
             </div>
             <div>
               <h1 className="font-semibold">{assistantName}</h1>
@@ -232,7 +232,7 @@ export default function Edith() {
               </div>
               <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-primary transition-all"
+                  className="h-full bg-foreground transition-all"
                   style={{ width: `${Math.min((usage.messagesUsed / usage.messagesLimit) * 100, 100)}%` }}
                 />
               </div>
@@ -247,8 +247,8 @@ export default function Edith() {
           <EdithChat />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8">
-            <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-              <Sparkles className="h-10 w-10 text-primary" />
+            <div className="h-20 w-20 rounded-full bg-foreground/10 flex items-center justify-center mb-6">
+              <Sparkles className="h-10 w-10 text-foreground" />
             </div>
             <h2 className="text-2xl font-semibold mb-2">Welcome to {assistantName}</h2>
             <p className="text-muted-foreground text-center max-w-md mb-8">
@@ -292,7 +292,7 @@ function ConversationGroup({
           className={cn(
             "w-full flex items-center gap-2 px-2 py-2 rounded-md text-left text-sm transition-colors group",
             currentId === conv.id
-              ? "bg-primary/10 text-primary"
+              ? "bg-foreground/10 text-foreground"
               : "hover:bg-muted"
           )}
         >

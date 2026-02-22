@@ -102,7 +102,7 @@ export default function AuditList() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <ClipboardCheck className="h-6 w-6 text-primary" />
+              <ClipboardCheck className="h-6 w-6" />
               Internal Audits
             </h1>
             <p className="text-muted-foreground">

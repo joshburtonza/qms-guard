@@ -156,7 +156,7 @@ export default function AuditCreate() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <ClipboardCheck className="h-6 w-6 text-primary" />
+              <ClipboardCheck className="h-6 w-6" />
               Create Internal Audit
             </h1>
             <p className="text-muted-foreground">

@@ -24,9 +24,9 @@ export function NCPrintView({
   return (
     <div className="print-container p-8 max-w-4xl mx-auto bg-white text-foreground">
       {/* Header */}
-      <div className="flex justify-between items-start border-b-2 border-primary pb-4 mb-6">
+      <div className="flex justify-between items-start border-b-2 border-foreground pb-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-primary">{tenantName}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{tenantName}</h1>
           <p className="text-sm text-muted-foreground">Non-Conformance Report</p>
         </div>
         <div className="text-right">
@@ -63,7 +63,7 @@ export function NCPrintView({
       {/* Key Information Grid */}
       <div className="grid grid-cols-2 gap-6 mb-6">
         <div className="space-y-3">
-          <h3 className="font-semibold text-primary border-b pb-1">Identification</h3>
+          <h3 className="font-semibold text-foreground border-b pb-1">Identification</h3>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
               <p className="text-muted-foreground">Department</p>
@@ -89,7 +89,7 @@ export function NCPrintView({
         </div>
 
         <div className="space-y-3">
-          <h3 className="font-semibold text-primary border-b pb-1">Personnel</h3>
+          <h3 className="font-semibold text-foreground border-b pb-1">Personnel</h3>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
               <p className="text-muted-foreground">Reported By</p>
@@ -117,14 +117,14 @@ export function NCPrintView({
 
       {/* Description */}
       <div className="mb-6">
-        <h3 className="font-semibold text-primary border-b pb-1 mb-3">Description</h3>
+        <h3 className="font-semibold text-foreground border-b pb-1 mb-3">Description</h3>
         <p className="text-sm whitespace-pre-wrap">{nc.description}</p>
       </div>
 
       {/* Immediate Action */}
       {nc.immediate_action && (
         <div className="mb-6">
-          <h3 className="font-semibold text-primary border-b pb-1 mb-3">
+          <h3 className="font-semibold text-foreground border-b pb-1 mb-3">
             Immediate Action Taken
           </h3>
           <p className="text-sm whitespace-pre-wrap">{nc.immediate_action}</p>
@@ -134,7 +134,7 @@ export function NCPrintView({
       {/* Corrective Action */}
       {correctiveAction && (
         <div className="mb-6 bg-muted/50 rounded-lg p-4">
-          <h3 className="font-semibold text-primary border-b pb-1 mb-3">
+          <h3 className="font-semibold text-foreground border-b pb-1 mb-3">
             Corrective Action
           </h3>
           <div className="space-y-3 text-sm">
@@ -162,7 +162,7 @@ export function NCPrintView({
 
       {/* Activity History */}
       <div className="mb-6">
-        <h3 className="font-semibold text-primary border-b pb-1 mb-3">
+        <h3 className="font-semibold text-foreground border-b pb-1 mb-3">
           Workflow History
         </h3>
         {activities.length === 0 ? (
@@ -194,7 +194,7 @@ export function NCPrintView({
       {/* Attachments List */}
       {attachments.length > 0 && (
         <div className="mb-6">
-          <h3 className="font-semibold text-primary border-b pb-1 mb-3">
+          <h3 className="font-semibold text-foreground border-b pb-1 mb-3">
             Attachments ({attachments.length})
           </h3>
           <ul className="text-sm space-y-1">

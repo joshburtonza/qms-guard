@@ -113,7 +113,7 @@ export default function ContractorEvaluationList() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <Briefcase className="h-6 w-6 text-primary" />
+              <Briefcase className="h-6 w-6" />
               Contractor Evaluations
             </h1>
             <p className="text-muted-foreground">

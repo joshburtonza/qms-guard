@@ -85,11 +85,11 @@ const ACTION_ICONS: Record<string, React.ReactNode> = {
 
 const ACTION_COLORS: Record<string, string> = {
   'NC Submitted': 'bg-foreground/10 text-foreground',
-  'QA Classification': 'bg-accent/10 text-accent',
+  'QA Classification': 'bg-foreground/8 text-foreground/70',
   'Corrective Action Submitted': 'bg-foreground/8 text-foreground/80',
-  'Manager Approved': 'bg-accent/10 text-accent',
+  'Manager Approved': 'bg-foreground/8 text-foreground/70',
   'Manager Declined': 'bg-destructive/10 text-destructive',
-  'NC Closed': 'bg-accent/10 text-accent',
+  'NC Closed': 'bg-foreground/8 text-foreground/70',
   'NC Rejected': 'bg-destructive/10 text-destructive',
   'Attachment Uploaded': 'bg-foreground/10 text-foreground',
   'Reminder Sent': 'bg-foreground/8 text-foreground/70',
@@ -224,7 +224,7 @@ export default function ActivityLog() {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-display font-bold tracking-tight flex items-center gap-2">
-              <Activity className="h-6 w-6 text-accent" />
+              <Activity className="h-6 w-6" />
               Activity Log
             </h1>
             <p className="text-muted-foreground">

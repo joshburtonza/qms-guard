@@ -239,7 +239,7 @@ export default function DepartmentManagerMapping() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <Users className="h-6 w-6 text-primary" />
+              <Users className="h-6 w-6" />
               Department Manager Mapping
             </h1>
             <p className="text-muted-foreground">

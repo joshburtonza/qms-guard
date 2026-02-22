@@ -58,6 +58,7 @@ import DataCleanup from "./pages/settings/DataCleanup";
 // Automations
 import AutomationsDashboard from "./pages/automations/AutomationsDashboard";
 import Reports from "./pages/Reports";
+import Users from "./pages/Users";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -119,6 +120,8 @@ const App = () => (
                   <Route path="/automations" element={<AutomationsDashboard />} />
                   {/* Reports */}
                   <Route path="/reports" element={<Reports />} />
+                  {/* Users */}
+                  <Route path="/users" element={<Users />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 {/* Edith AI Assistant */}

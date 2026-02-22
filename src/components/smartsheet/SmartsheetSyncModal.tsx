@@ -104,7 +104,7 @@ export function SmartsheetSyncModal({ open, onOpenChange }: SmartsheetSyncModalP
   const getSyncStatusBadge = (status: string) => {
     switch (status) {
       case 'success':
-        return <Badge variant="outline" className="text-primary border-primary"><CheckCircle2 className="h-3 w-3 mr-1" />Success</Badge>;
+        return <Badge variant="outline" className="text-foreground border-foreground"><CheckCircle2 className="h-3 w-3 mr-1" />Success</Badge>;
       case 'failed':
         return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Failed</Badge>;
       case 'pending':

@@ -105,7 +105,7 @@ export default function Auth() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       {/* Decorative bg */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-1/2 -right-1/4 w-[600px] h-[600px] rounded-full bg-accent/5 blur-3xl" />
+        <div className="absolute -top-1/2 -right-1/4 w-[600px] h-[600px] rounded-full bg-foreground/5 blur-3xl" />
         <div className="absolute -bottom-1/4 -left-1/4 w-[500px] h-[500px] rounded-full bg-foreground/3 blur-3xl" />
       </div>
 

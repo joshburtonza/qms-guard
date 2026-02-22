@@ -36,7 +36,7 @@ export function NCListItem({ nc, className }: NCListItemProps) {
           <div className="flex-1 min-w-0 space-y-2">
             {/* Header Row */}
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="font-mono text-sm font-semibold text-primary">
+              <span className="font-mono text-sm font-semibold text-foreground">
                 {nc.nc_number}
               </span>
               <StatusBadge status={nc.status} isOverdue={overdue} isEscalated={isEscalated} />

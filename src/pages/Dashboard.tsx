@@ -477,7 +477,7 @@ export default function Dashboard() {
                   {overdueNCs.map((nc) => (
                     <TableRow key={nc.id} className="border-border/30">
                       <TableCell>
-                        <Link to={`/nc/${nc.id}`} className="font-medium text-foreground hover:text-accent transition-colors">
+                        <Link to={`/nc/${nc.id}`} className="font-medium text-foreground hover:text-foreground/70 transition-colors">
                           {nc.nc_number}
                         </Link>
                       </TableCell>
