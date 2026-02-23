@@ -26,23 +26,37 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const SMARTSHEET_API_KEY = Deno.env.get("SMARTSHEET_API_KEY");
-  if (!SMARTSHEET_API_KEY) {
-    console.error("SMARTSHEET_API_KEY is not configured");
-    return new Response(
-      JSON.stringify({ error: "Smartsheet API key not configured" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    const { action, tenantId, ncId, ncData, sheetId, rowId, webhookPayload } = await req.json();
+    const body = await req.json();
+    const { action, tenantId, ncId, ncData, sheetId, rowId, webhookPayload, apiKey: bodyApiKey } = body;
 
     console.log(`Smartsheet sync action: ${action}`, { tenantId, ncId, sheetId });
+
+    // Resolve API key: request body → config table → env var (fallback)
+    let SMARTSHEET_API_KEY = bodyApiKey || Deno.env.get("SMARTSHEET_API_KEY") || "";
+
+    // For tenant-scoped actions, prefer the stored key from the config table
+    if (tenantId && !bodyApiKey) {
+      const { data: config } = await supabase
+        .from("smartsheet_config")
+        .select("api_key")
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+      if (config?.api_key) {
+        SMARTSHEET_API_KEY = config.api_key;
+      }
+    }
+
+    if (!SMARTSHEET_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: "Smartsheet API key not configured. Please enter your API key in the Smartsheet settings." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     switch (action) {
       case "test_connection":
@@ -219,17 +233,18 @@ async function syncToSmartsheet(
 
   // Build row cells based on column mapping
   const columnMapping = config.column_mapping as Record<string, string>;
-  const cells = Object.entries(columnMapping).map(([ncField, columnId]) => ({
-    columnId: parseInt(columnId),
-    value: getNCFieldValue(ncData, ncField),
-  }));
+  const cells = Object.entries(columnMapping)
+    .filter(([_, columnId]) => columnId && !isNaN(parseInt(columnId)))
+    .map(([ncField, columnId]) => ({
+      columnId: parseInt(columnId),
+      value: getNCFieldValue(ncData, ncField),
+    }));
 
   const existingRowId = ncData.smartsheet_row_id;
   let syncType: "create" | "update" = existingRowId ? "update" : "create";
 
   let response;
   if (existingRowId) {
-    // Update existing row
     response = await fetch(`${SMARTSHEET_API_URL}/sheets/${config.sheet_id}/rows`, {
       method: "PUT",
       headers: {
@@ -239,7 +254,6 @@ async function syncToSmartsheet(
       body: JSON.stringify([{ id: parseInt(existingRowId), cells }]),
     });
   } else {
-    // Create new row
     response = await fetch(`${SMARTSHEET_API_URL}/sheets/${config.sheet_id}/rows`, {
       method: "POST",
       headers: {
@@ -255,7 +269,7 @@ async function syncToSmartsheet(
   try {
     result = JSON.parse(responseText);
   } catch {
-    result = { error: responseText };
+    result = { error: "Invalid response from Smartsheet" };
   }
 
   // Log sync
@@ -266,7 +280,7 @@ async function syncToSmartsheet(
     sync_direction: "to_smartsheet",
     sync_type: syncType,
     sync_status: response.ok ? "success" : "failed",
-    error_message: response.ok ? null : result.message || responseText,
+    error_message: response.ok ? null : result.message || result.error,
     payload: { cells, response: result },
   });
 
@@ -308,7 +322,6 @@ async function syncFromSmartsheet(
   sheetId: string,
   rowId: string
 ): Promise<Response> {
-  // Get the row from Smartsheet
   const response = await fetch(`${SMARTSHEET_API_URL}/sheets/${sheetId}/rows/${rowId}`, {
     headers: { Authorization: `Bearer ${apiKey}` },
   });
@@ -323,7 +336,6 @@ async function syncFromSmartsheet(
 
   const row = await response.json();
 
-  // Get config for column mapping
   const { data: config } = await supabase
     .from("smartsheet_config")
     .select("column_mapping")
@@ -337,13 +349,11 @@ async function syncFromSmartsheet(
     );
   }
 
-  // Reverse mapping: columnId -> ncField
   const reverseMapping: Record<string, string> = {};
   for (const [ncField, columnId] of Object.entries(config.column_mapping as Record<string, string>)) {
     reverseMapping[columnId] = ncField;
   }
 
-  // Build update object from row cells
   const updates: Record<string, any> = {};
   for (const cell of row.cells) {
     const ncField = reverseMapping[cell.columnId.toString()];
@@ -352,7 +362,6 @@ async function syncFromSmartsheet(
     }
   }
 
-  // Find existing NC by smartsheet_row_id
   const { data: existingNC } = await supabase
     .from("non_conformances")
     .select("id")
@@ -361,7 +370,6 @@ async function syncFromSmartsheet(
     .single();
 
   if (existingNC) {
-    // Update existing NC
     await supabase
       .from("non_conformances")
       .update(updates)
@@ -391,21 +399,32 @@ async function handleWebhook(
 ): Promise<Response> {
   console.log("Webhook received:", payload);
 
-  // Smartsheet sends a challenge on webhook creation
+  // Smartsheet webhook verification challenge
   if (payload.challenge) {
     return new Response(
-      JSON.stringify({ smartsheetHookResponse: payload.challenge }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      payload.challenge,
+      { headers: { ...corsHeaders, "Content-Type": "text/plain" } }
     );
   }
 
-  // Process events
   if (payload.events) {
     for (const event of payload.events) {
-      if (event.objectType === "row") {
-        console.log(`Row ${event.eventType}:`, event.rowId);
-        // Queue sync from Smartsheet for changed rows
-        // In production, you'd process these asynchronously
+      if (event.objectType === "row" && event.rowId) {
+        const { data: config } = await supabase
+          .from("smartsheet_config")
+          .select("api_key, sheet_id")
+          .eq("tenant_id", tenantId)
+          .maybeSingle();
+
+        if (config?.api_key && config?.sheet_id) {
+          await syncFromSmartsheet(
+            supabase,
+            config.api_key,
+            tenantId,
+            config.sheet_id,
+            event.rowId.toString()
+          );
+        }
       }
     }
   }
@@ -422,7 +441,6 @@ async function setupWebhook(
   tenantId: string,
   sheetId: string
 ): Promise<Response> {
-  const webhookSecret = crypto.randomUUID();
   const callbackUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/smartsheet-sync`;
 
   const response = await fetch(`${SMARTSHEET_API_URL}/webhooks`, {
@@ -460,13 +478,9 @@ async function setupWebhook(
     body: JSON.stringify({ enabled: true }),
   });
 
-  // Save webhook ID
   await supabase
     .from("smartsheet_config")
-    .update({
-      webhook_id: result.result.id.toString(),
-      webhook_secret: webhookSecret,
-    })
+    .update({ webhook_id: result.result.id.toString() })
     .eq("tenant_id", tenantId);
 
   return new Response(
@@ -480,7 +494,6 @@ async function manualFullSync(
   apiKey: string,
   tenantId: string
 ): Promise<Response> {
-  // Get all NCs for tenant
   const { data: ncs, error } = await supabase
     .from("non_conformances")
     .select(`
@@ -519,37 +532,21 @@ async function manualFullSync(
 
 function getNCFieldValue(nc: any, field: string): any {
   switch (field) {
-    case "nc_number":
-      return nc.nc_number;
-    case "status":
-      return nc.status;
-    case "severity":
-      return nc.severity;
-    case "category":
-      return nc.category === "other" ? nc.category_other : nc.category;
-    case "description":
-      return nc.description;
-    case "reported_by":
-      return nc.reported_by_profile?.full_name || "";
-    case "responsible_person":
-      return nc.responsible_person_profile?.full_name || "";
-    case "department":
-      return nc.department?.name || "";
-    case "due_date":
-      return nc.due_date;
-    case "date_occurred":
-      return nc.date_occurred;
-    case "site_location":
-      return nc.site_location || "";
-    case "immediate_action":
-      return nc.immediate_action || "";
-    case "risk_classification":
-      return nc.risk_classification || "";
-    case "created_at":
-      return nc.created_at;
-    case "updated_at":
-      return nc.updated_at;
-    default:
-      return nc[field] || "";
+    case "nc_number": return nc.nc_number;
+    case "status": return nc.status;
+    case "severity": return nc.severity;
+    case "category": return nc.category === "other" ? nc.category_other : nc.category;
+    case "description": return nc.description;
+    case "reported_by": return nc.reported_by_profile?.full_name || "";
+    case "responsible_person": return nc.responsible_person_profile?.full_name || "";
+    case "department": return nc.department?.name || "";
+    case "due_date": return nc.due_date;
+    case "date_occurred": return nc.date_occurred;
+    case "site_location": return nc.site_location || "";
+    case "immediate_action": return nc.immediate_action || "";
+    case "risk_classification": return nc.risk_classification || "";
+    case "created_at": return nc.created_at;
+    case "updated_at": return nc.updated_at;
+    default: return nc[field] || "";
   }
 }

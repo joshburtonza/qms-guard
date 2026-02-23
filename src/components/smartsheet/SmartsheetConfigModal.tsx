@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Check, AlertCircle, RefreshCw, Link2, Settings2 } from 'lucide-react';
+import { Loader2, Check, AlertCircle, RefreshCw, Link2, Settings2, Eye, EyeOff } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useTenant } from '@/hooks/useTenant';
@@ -63,6 +64,8 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const [apiKey, setApiKey] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
   const [selectedSheet, setSelectedSheet] = useState<string>('');
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [syncEnabled, setSyncEnabled] = useState(true);
@@ -88,11 +91,11 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
 
   // Get available sheets
   const { data: sheetsData, isLoading: isLoadingSheets } = useQuery({
-    queryKey: ['smartsheet-sheets'],
+    queryKey: ['smartsheet-sheets', apiKey],
     queryFn: async () => {
       try {
         const { data, error } = await supabase.functions.invoke('smartsheet-sync', {
-          body: { action: 'get_sheets' },
+          body: { action: 'get_sheets', apiKey },
         });
 
         if (error) {
@@ -104,7 +107,7 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
         return { sheets: [] as Sheet[], error: err?.message || 'Failed to load sheets' };
       }
     },
-    enabled: open,
+    enabled: open && !!apiKey,
   });
 
   // Load columns when sheet is selected
@@ -120,13 +123,14 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
       setSelectedSheet(existingConfig.sheet_id);
       setColumnMapping(existingConfig.column_mapping as Record<string, string> || {});
       setSyncEnabled(existingConfig.sync_enabled);
+      setApiKey((existingConfig as any).api_key || '');
     }
   }, [existingConfig]);
 
   async function loadColumns(sheetId: string) {
     try {
       const { data, error } = await supabase.functions.invoke('smartsheet-sync', {
-        body: { action: 'get_columns', sheetId },
+        body: { action: 'get_columns', sheetId, apiKey },
       });
       if (error) throw error;
       setColumns(data.columns);
@@ -144,7 +148,7 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
     setConnectionStatus('idle');
     try {
       const { data, error } = await supabase.functions.invoke('smartsheet-sync', {
-        body: { action: 'test_connection' },
+        body: { action: 'test_connection', apiKey },
       });
       if (error) throw error;
       if (data.success) {
@@ -183,6 +187,7 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
         sheet_name: sheetsData?.sheets?.find((s: Sheet) => s.id === selectedSheet)?.name,
         column_mapping: columnMapping,
         sync_enabled: syncEnabled,
+        api_key: apiKey || undefined,
       };
 
       if (existingConfig) {
@@ -229,6 +234,32 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* API Key */}
+          <div className="space-y-2">
+            <Label htmlFor="api-key">Smartsheet API Token</Label>
+            <div className="relative">
+              <Input
+                id="api-key"
+                type={showApiKey ? 'text' : 'password'}
+                placeholder="Enter your Smartsheet Personal Access Token"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+              >
+                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Generate a token in Smartsheet: Account → Personal Settings → API Access.
+            </p>
+          </div>
+
           {/* Connection Test */}
           <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
             <div className="flex items-center gap-3">
@@ -246,7 +277,7 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
               variant="outline"
               size="sm"
               onClick={testConnection}
-              disabled={isTestingConnection}
+              disabled={isTestingConnection || !apiKey}
             >
               {isTestingConnection ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -352,7 +383,7 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
           </Button>
           <Button
             onClick={() => saveMutation.mutate()}
-            disabled={!selectedSheet || saveMutation.isPending}
+            disabled={!apiKey || !selectedSheet || saveMutation.isPending}
           >
             {saveMutation.isPending ? (
               <>
