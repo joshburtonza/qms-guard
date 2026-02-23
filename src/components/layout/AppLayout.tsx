@@ -41,7 +41,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <main className="flex-1 overflow-auto">
         {/* Mobile top padding for header */}
         <div className="pt-14 pb-20 md:pt-0 md:pb-0">
-          <div className="container py-6 md:py-8">
+          <div className="px-4 py-4 md:container md:py-8">
             {children}
           </div>
         </div>

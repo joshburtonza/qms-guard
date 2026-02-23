@@ -342,7 +342,7 @@ export default function ReportNC() {
 
   return (
     <AppLayout>
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="max-w-3xl mx-auto space-y-4 md:space-y-6">
         {/* Draft Restore Prompt */}
         {showDraftPrompt && (
           <Alert className="border-border bg-muted/50">
@@ -379,12 +379,12 @@ export default function ReportNC() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-display font-bold tracking-tight flex items-center gap-2">
-              <FileWarning className="h-6 w-6" />
-              Report Non-Conformance
+            <h1 className="text-xl md:text-2xl font-display font-bold tracking-tight flex items-center gap-2">
+              <FileWarning className="h-5 w-5 md:h-6 md:w-6" />
+              Report NC
             </h1>
-            <p className="text-muted-foreground">
-              Document and submit a new non-conformance for review
+            <p className="text-muted-foreground text-sm">
+              Document and submit a new non-conformance
             </p>
           </div>
         </div>
@@ -788,7 +788,7 @@ export default function ReportNC() {
             </Card>
 
             {/* Submit Button */}
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => navigate(-1)}>
                 Cancel
               </Button>

@@ -198,16 +198,18 @@ export default function NCList() {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-display font-bold tracking-tight">Non-Conformances</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl md:text-2xl font-display font-bold tracking-tight">Non-Conformances</h1>
+            <p className="text-muted-foreground text-sm">
               {filteredNCs.length} of {ncs.length} records
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button 
               variant="outline" 
+              size="sm"
+              className="flex-1 sm:flex-none"
               onClick={() => setShowSmartsheetModal(true)}
             >
               <FileSpreadsheet className="mr-2 h-4 w-4" />
@@ -215,6 +217,8 @@ export default function NCList() {
             </Button>
             <Button 
               variant="outline" 
+              size="sm"
+              className="flex-1 sm:flex-none"
               onClick={handleExport}
               disabled={isExporting}
             >
@@ -223,9 +227,9 @@ export default function NCList() {
               ) : (
                 <Download className="mr-2 h-4 w-4" />
               )}
-              Export CSV
+              Export
             </Button>
-            <Button asChild>
+            <Button asChild size="sm" className="flex-1 sm:flex-none">
               <Link to="/report">
                 <Plus className="mr-2 h-4 w-4" />
                 Report NC

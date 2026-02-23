@@ -43,8 +43,8 @@ export function KPICard({
     >
       <div className="flex items-start justify-between">
         <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{title}</p>
-          <p className="text-3xl font-display font-bold tracking-tight">{value}</p>
+          <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wider">{title}</p>
+          <p className="text-2xl md:text-3xl font-display font-bold tracking-tight">{value}</p>
           {description && (
             <p className="text-xs text-muted-foreground">{description}</p>
           )}

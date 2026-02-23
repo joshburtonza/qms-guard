@@ -240,7 +240,7 @@
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow), var(--glass-glow, none), var(--glass-inner-shadow);
-    @apply relative overflow-hidden rounded-2xl p-6 transition-all duration-300;
+    @apply relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-300;
   }
 
   .kpi-card::before {
@@ -283,7 +283,7 @@
 
   /* Form section styling — glass */
   .form-section {
-    @apply space-y-4 rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm p-6;
+    @apply space-y-4 rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm p-4 md:p-6;
   }
 
   .form-section-header {
