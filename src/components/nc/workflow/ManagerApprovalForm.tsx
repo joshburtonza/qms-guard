@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -65,6 +65,20 @@ export function ManagerApprovalForm({
   const { profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
+
+  const signatureContainerRef = useRef<HTMLDivElement>(null);
+  const [canvasWidth, setCanvasWidth] = useState(350);
+
+  useEffect(() => {
+    const update = () => {
+      if (signatureContainerRef.current) {
+        setCanvasWidth(Math.min(350, signatureContainerRef.current.offsetWidth));
+      }
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
 
   const form = useForm<ApprovalFormData>({
     resolver: zodResolver(approvalFormSchema),
@@ -348,11 +362,11 @@ export function ManagerApprovalForm({
             />
 
             {selectedDecision === 'approve' && (
-              <div className="space-y-2" data-form-field>
+              <div className="space-y-2" data-form-field ref={signatureContainerRef}>
                 <SignatureCanvas
                   onSignatureChange={setSignatureData}
                   label="Manager Signature *"
-                  width={350}
+                  width={canvasWidth}
                   height={120}
                 />
                 {signatureMissing && (

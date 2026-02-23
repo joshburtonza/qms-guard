@@ -322,7 +322,8 @@ export function calculateDueDate(severity: NCSeverity): Date {
 }
 
 // Check if NC is overdue
-export function isOverdue(dueDate: string, status: NCStatus): boolean {
+export function isOverdue(dueDate: string | null | undefined, status: NCStatus): boolean {
   if (status === 'closed' || status === 'rejected') return false;
+  if (!dueDate) return false;
   return new Date(dueDate) < new Date();
 }

@@ -34,6 +34,14 @@ const verificationFormSchema = z.object({
   }),
   verification_comments: z.string().min(10, 'Verification comments are required (minimum 10 characters).'),
   effectiveness_rating: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.verification_status === 'verified' && !data.effectiveness_rating) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Effectiveness rating is required when verifying.',
+      path: ['effectiveness_rating'],
+    });
+  }
 });
 
 type VerificationFormData = z.infer<typeof verificationFormSchema>;
