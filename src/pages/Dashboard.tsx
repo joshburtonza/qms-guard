@@ -212,14 +212,14 @@ export default function Dashboard() {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-display font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground text-sm mt-1">
               Welcome back, {profile?.full_name?.split(' ')[0] || 'User'}
             </p>
           </div>
-          <Button asChild className="rounded-xl shadow-sm">
+          <Button asChild className="rounded-xl shadow-sm w-full sm:w-auto">
             <Link to="/report">
               <Plus className="mr-2 h-4 w-4" />
               Report NC
@@ -228,7 +228,7 @@ export default function Dashboard() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
           <KPICard
             title="Open"
             value={stats.open}
@@ -269,14 +269,14 @@ export default function Dashboard() {
         </div>
 
         {/* Stat Cards with Sparklines */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           {/* Total NCs */}
-          <Card className="glass-card border-0 p-6">
+          <Card className="glass-card border-0 p-4 md:p-6">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Total NCs</span>
               <BarChart3 className="h-4 w-4 text-muted-foreground/50" />
             </div>
-            <div className="text-4xl font-display font-bold tracking-tight">{allNCs.length}</div>
+            <div className="text-3xl md:text-4xl font-display font-bold tracking-tight">{allNCs.length}</div>
             <p className="text-xs text-muted-foreground mt-1">All time records</p>
             <div className="h-12 mt-3 -mx-1">
               <ResponsiveContainer width="100%" height="100%">
@@ -298,12 +298,12 @@ export default function Dashboard() {
           </Card>
 
           {/* Closed NCs */}
-          <Card className="glass-card border-0 p-6">
+          <Card className="glass-card border-0 p-4 md:p-6">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Closed</span>
               <CheckCircle className="h-4 w-4 text-muted-foreground/50" />
             </div>
-            <div className="text-4xl font-display font-bold tracking-tight">{stats.closed}</div>
+            <div className="text-3xl md:text-4xl font-display font-bold tracking-tight">{stats.closed}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {closureRate !== null ? `${closureRate}% closure rate` : 'No data yet'}
             </p>
@@ -327,12 +327,12 @@ export default function Dashboard() {
           </Card>
 
           {/* NC Trend */}
-          <Card className="glass-card border-0 p-6">
+          <Card className="glass-card border-0 p-4 md:p-6">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Trend</span>
               <TrendingUp className="h-4 w-4 text-muted-foreground/50" />
             </div>
-            <div className="text-4xl font-display font-bold tracking-tight">
+            <div className="text-3xl md:text-4xl font-display font-bold tracking-tight">
               {trendData.length > 0 ? trendData[trendData.length - 1].created : 0}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Created this month</p>
@@ -351,12 +351,12 @@ export default function Dashboard() {
           </Card>
 
           {/* Categories Breakdown */}
-          <Card className="glass-card border-0 p-6">
+          <Card className="glass-card border-0 p-4 md:p-6">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Categories</span>
               <BarChart3 className="h-4 w-4 text-muted-foreground/50" />
             </div>
-            <div className="text-4xl font-display font-bold tracking-tight">{categoryData.length}</div>
+            <div className="text-3xl md:text-4xl font-display font-bold tracking-tight">{categoryData.length}</div>
             <p className="text-xs text-muted-foreground mt-1">Active categories</p>
             <div className="mt-4 space-y-2">
               {categoryData.slice(0, 4).map((item, index) => (
@@ -373,7 +373,7 @@ export default function Dashboard() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-3">
           {/* My Action Items */}
           <div className="lg:col-span-2">
             <Card className="glass-card-solid border-0">
@@ -462,7 +462,8 @@ export default function Dashboard() {
                 </Link>
               </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="border-border/50">
@@ -495,6 +496,7 @@ export default function Dashboard() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         )}
