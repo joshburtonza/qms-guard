@@ -1,11 +1,17 @@
 import { format } from 'date-fns';
 import {
   NC_CATEGORY_LABELS,
-  NC_SEVERITY_LABELS,
   NC_SOURCE_LABELS,
   NC_STATUS_LABELS,
   SHIFT_LABELS,
 } from '@/types/database';
+
+const RISK_CLASSIFICATION_LABELS: Record<string, string> = {
+  observation: 'Observation',
+  ofi: 'Opportunity for Improvement (OFI)',
+  minor: 'Minor NC',
+  major: 'Major NC',
+};
 
 interface NCPrintViewProps {
   nc: any;
@@ -47,9 +53,11 @@ export function NCPrintView({
           </span>
         </div>
         <div>
-          <span className="text-sm text-muted-foreground">Severity:</span>
+          <span className="text-sm text-muted-foreground">Classification:</span>
           <span className="ml-2 font-semibold">
-            {NC_SEVERITY_LABELS[nc.severity as keyof typeof NC_SEVERITY_LABELS]}
+            {nc.risk_classification
+              ? (RISK_CLASSIFICATION_LABELS[nc.risk_classification] || nc.risk_classification)
+              : 'Pending QA Classification'}
           </span>
         </div>
         <div>

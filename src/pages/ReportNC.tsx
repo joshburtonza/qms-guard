@@ -72,7 +72,6 @@ import {
   SHIFT_LABELS,
   Department,
   Profile,
-  calculateDueDate,
 } from '@/types/database';
 import { cn } from '@/lib/utils';
 import { classifyRisk } from '@/lib/risk_classifier';
@@ -178,7 +177,7 @@ export default function ReportNC() {
       shift: 'general',
       date_occurred: new Date(),
       description: '',
-      
+      due_date: addDays(new Date(), 30),
     },
   });
 
@@ -210,12 +209,6 @@ export default function ReportNC() {
     }
   }, [hasSavedDraft]);
 
-  // Auto-set due date based on severity
-  useEffect(() => {
-    if (selectedSeverity) {
-      form.setValue('due_date', calculateDueDate(selectedSeverity));
-    }
-  }, [selectedSeverity, form]);
 
   // Debounced EDITH clause suggestion — triggers when description reaches 50+ chars
   useEffect(() => {
@@ -989,7 +982,7 @@ export default function ReportNC() {
                         </PopoverContent>
                       </Popover>
                       <FormDescription>
-                        Auto-calculated based on severity. Can be adjusted if needed.
+                        Preliminary estimate. QA will confirm the final due date during risk classification.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
