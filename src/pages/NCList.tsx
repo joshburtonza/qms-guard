@@ -17,7 +17,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
-import { NCStatus, NC_STATUS_LABELS, NC_CATEGORY_LABELS, NCCategory } from '@/types/database';
+import { NCStatus, NC_STATUS_LABELS, NC_CATEGORY_LABELS, NCCategory, SHIFT_LABELS } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 
 export default function NCList() {
@@ -88,6 +88,13 @@ export default function NCList() {
     setFilteredNCs(filtered);
   }
 
+  const RISK_CLASSIFICATION_LABELS: Record<string, string> = {
+    observation: 'Observation',
+    ofi: 'Opportunity for Improvement (OFI)',
+    minor: 'Minor NC',
+    major: 'Major NC',
+  };
+
   // CSV Export function
   async function handleExport() {
     setIsExporting(true);
@@ -98,7 +105,9 @@ export default function NCList() {
           *,
           reported:reported_by(full_name),
           responsible:responsible_person(full_name),
-          department:department_id(name)
+          department:department_id(name),
+          corrective_actions(root_cause, corrective_action, preventive_action, completion_date, submitted_at),
+          workflow_approvals(step, action, comments, approved_at, approver:approved_by(full_name))
         `)
         .order('created_at', { ascending: false });
 
@@ -108,17 +117,29 @@ export default function NCList() {
       const headers = [
         'NC Number',
         'Date Created',
+        'Date Occurred',
         'Department',
         'Site Location',
+        'Shift',
+        'Is After Hours',
         'Category',
+        'Category Detail',
         'Severity',
+        'Risk Classification',
+        'QA Classification Comments',
         'Status',
         'Current Step',
         'Reported By',
         'Responsible Person',
         'Due Date',
+        'Closed At',
         'Description',
         'Immediate Action',
+        'Root Cause',
+        'Corrective Action',
+        'Preventive Action',
+        'CA Target Completion',
+        'Approvals / Signatures',
       ];
 
       // Escape CSV field
@@ -132,21 +153,52 @@ export default function NCList() {
       };
 
       // Map data to CSV rows
-      const rows = (data || []).map((nc: any) => [
-        escapeCSV(nc.nc_number),
-        escapeCSV(nc.created_at ? format(new Date(nc.created_at), 'yyyy-MM-dd') : ''),
-        escapeCSV(nc.department?.name || 'N/A'),
-        escapeCSV(nc.site_location || 'N/A'),
-        escapeCSV(NC_CATEGORY_LABELS[nc.category as NCCategory] || nc.category),
-        escapeCSV(nc.severity),
-        escapeCSV(NC_STATUS_LABELS[nc.status as NCStatus] || nc.status),
-        escapeCSV(String(nc.current_step || 1)),
-        escapeCSV(nc.reported?.full_name || 'Unknown'),
-        escapeCSV(nc.responsible?.full_name || 'Unassigned'),
-        escapeCSV(nc.due_date ? format(new Date(nc.due_date), 'yyyy-MM-dd') : 'Not set'),
-        escapeCSV(nc.description),
-        escapeCSV(nc.immediate_action || ''),
-      ]);
+      const rows = (data || []).map((nc: any) => {
+        // Use most recent corrective action if multiple exist
+        const ca = Array.isArray(nc.corrective_actions) && nc.corrective_actions.length > 0
+          ? nc.corrective_actions.sort((a: any, b: any) =>
+              new Date(b.submitted_at || 0).getTime() - new Date(a.submitted_at || 0).getTime()
+            )[0]
+          : null;
+
+        // Format approvals as a summary string
+        const approvalSummary = Array.isArray(nc.workflow_approvals) && nc.workflow_approvals.length > 0
+          ? nc.workflow_approvals
+              .sort((a: any, b: any) => a.step - b.step)
+              .map((approval: any) =>
+                `Step ${approval.step}: ${approval.action} by ${approval.approver?.full_name || 'Unknown'}${approval.approved_at ? ' on ' + format(new Date(approval.approved_at), 'yyyy-MM-dd') : ''}${approval.comments ? ' (' + approval.comments + ')' : ''}`
+              )
+              .join('; ')
+          : '';
+
+        return [
+          escapeCSV(nc.nc_number),
+          escapeCSV(nc.created_at ? format(new Date(nc.created_at), 'yyyy-MM-dd') : ''),
+          escapeCSV(nc.date_occurred ? format(new Date(nc.date_occurred), 'yyyy-MM-dd') : ''),
+          escapeCSV(nc.department?.name || ''),
+          escapeCSV(nc.site_location || ''),
+          escapeCSV(nc.shift ? (SHIFT_LABELS[nc.shift as keyof typeof SHIFT_LABELS] || nc.shift) : ''),
+          escapeCSV(nc.is_after_hours === true ? 'Yes' : nc.is_after_hours === false ? 'No' : ''),
+          escapeCSV(NC_CATEGORY_LABELS[nc.category as NCCategory] || nc.category),
+          escapeCSV(nc.category === 'other' ? (nc.category_other || '') : ''),
+          escapeCSV(nc.severity),
+          escapeCSV(nc.risk_classification ? (RISK_CLASSIFICATION_LABELS[nc.risk_classification] || nc.risk_classification) : ''),
+          escapeCSV(nc.qa_classification_comments || ''),
+          escapeCSV(NC_STATUS_LABELS[nc.status as NCStatus] || nc.status),
+          escapeCSV(String(nc.current_step || 1)),
+          escapeCSV(nc.reported?.full_name || ''),
+          escapeCSV(nc.responsible?.full_name || ''),
+          escapeCSV(nc.due_date ? format(new Date(nc.due_date), 'yyyy-MM-dd') : ''),
+          escapeCSV(nc.closed_at ? format(new Date(nc.closed_at), 'yyyy-MM-dd') : ''),
+          escapeCSV(nc.description),
+          escapeCSV(nc.immediate_action || ''),
+          escapeCSV(ca?.root_cause || ''),
+          escapeCSV(ca?.corrective_action || ''),
+          escapeCSV(ca?.preventive_action || ''),
+          escapeCSV(ca?.completion_date ? format(new Date(ca.completion_date), 'yyyy-MM-dd') : ''),
+          escapeCSV(approvalSummary),
+        ];
+      });
 
       // Build CSV string
       const csvContent = [
