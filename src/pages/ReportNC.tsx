@@ -71,6 +71,7 @@ import {
   calculateDueDate,
 } from '@/types/database';
 import { cn } from '@/lib/utils';
+import { classifyRisk } from '@/lib/risk_classifier';
 import { useVoiceToText } from '@/hooks/useVoiceToText';
 import { useFormDraft } from '@/hooks/useFormDraft';
 
@@ -312,12 +313,17 @@ export default function ReportNC() {
       await supabase.from('nc_activity_log').insert({
         nc_id: nc.id,
         action: 'NC Submitted',
-        details: { 
+        details: {
           submitted_by: profile.full_name,
           is_after_hours: afterHours,
         },
         performed_by: profile.id,
       });
+
+      // Trigger AI risk classification (fire-and-forget — does not block navigation)
+      classifyRisk(nc.id, data.description, data.category, data.severity).catch(
+        (e) => console.error('[ReportNC] classifyRisk error:', e)
+      );
 
       // Clear draft on successful submission
       clearDraft();
@@ -569,8 +575,9 @@ export default function ReportNC() {
                           className="flex flex-col sm:flex-row gap-4"
                         >
                           {(Object.keys(NC_SEVERITY_LABELS) as NCSeverity[]).map((severity) => (
-                             <div
+                            <label
                               key={severity}
+                              htmlFor={severity}
                               className={cn(
                                 'flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200',
                                 field.value === severity
@@ -581,28 +588,26 @@ export default function ReportNC() {
                                     : 'border-foreground/20 bg-foreground/5'
                                   : 'border-border hover:bg-muted/50'
                               )}
-                              onClick={() => field.onChange(severity)}
                             >
                               <RadioGroupItem value={severity} id={severity} />
                               <div>
-                                <label
-                                  htmlFor={severity}
+                                <span
                                   className={cn(
-                                    'font-medium cursor-pointer',
+                                    'font-medium',
                                     severity === 'critical' && 'text-destructive',
                                     severity === 'major' && 'text-foreground',
                                     severity === 'minor' && 'text-foreground/70'
                                   )}
                                 >
                                   {NC_SEVERITY_LABELS[severity]}
-                                </label>
+                                </span>
                                 <p className="text-xs text-muted-foreground">
                                   {severity === 'critical' && 'Immediate action required'}
                                   {severity === 'major' && 'Action within 7 days'}
                                   {severity === 'minor' && 'Action within 30 days'}
                                 </p>
                               </div>
-                            </div>
+                            </label>
                           ))}
                         </RadioGroup>
                       </FormControl>
