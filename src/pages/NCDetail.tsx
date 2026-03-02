@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/hooks/useTenant';
 import { supabase } from '@/integrations/supabase/client';
 import { NC_CATEGORY_LABELS, SHIFT_LABELS, isOverdue } from '@/types/database';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +43,7 @@ export default function NCDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showPrintView, setShowPrintView] = useState(false);
+  const { tenant } = useTenant();
 
   const fetchNCDetails = useCallback(async () => {
     try {
@@ -162,6 +164,8 @@ export default function NCDetail() {
         activities={activities}
         correctiveAction={correctiveAction}
         workflowApprovals={workflowApprovals}
+        tenantName={tenant?.name || tenant?.platform_name}
+        tenantLogoUrl={tenant?.logo_url}
       />
     );
   }

@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { Shield } from 'lucide-react';
 import {
   NC_CATEGORY_LABELS,
   NC_SOURCE_LABELS,
@@ -13,12 +14,16 @@ const RISK_CLASSIFICATION_LABELS: Record<string, string> = {
   major: 'Major NC',
 };
 
+// Ascend LC brand colour used in the PDF header
+const ASCEND_BRAND_COLOR = '#1B2A4A';
+
 interface NCPrintViewProps {
   nc: any;
   attachments: any[];
   activities: any[];
   correctiveAction?: any;
   tenantName?: string;
+  tenantLogoUrl?: string | null;
   workflowApprovals?: any[];
 }
 
@@ -27,7 +32,8 @@ export function NCPrintView({
   attachments,
   activities,
   correctiveAction,
-  tenantName = 'QMS Guard',
+  tenantName,
+  tenantLogoUrl,
   workflowApprovals = [],
 }: NCPrintViewProps) {
   // Extract signatures from workflow_approvals
@@ -37,20 +43,62 @@ export function NCPrintView({
   const managerApproval = [...workflowApprovals]
     .filter((a) => a.action === 'approved')
     .sort((a, b) => new Date(b.approved_at || 0).getTime() - new Date(a.approved_at || 0).getTime())[0];
+
+  const showClientBranding = tenantLogoUrl || tenantName;
+
   return (
     <div className="print-container p-8 max-w-4xl mx-auto bg-background text-foreground">
       {/* Header */}
-      <div className="flex justify-between items-start border-b-2 border-foreground pb-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{tenantName}</h1>
-          <p className="text-sm text-muted-foreground">Non-Conformance Report</p>
+      <div className="pb-4 mb-6" style={{ borderBottom: `2px solid ${ASCEND_BRAND_COLOR}` }}>
+        <div className="flex justify-between items-start">
+          {/* Ascend LC — QMS owner branding (always present) */}
+          <div className="flex items-center gap-3">
+            <div
+              className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{
+                backgroundColor: ASCEND_BRAND_COLOR,
+                WebkitPrintColorAdjust: 'exact',
+                printColorAdjust: 'exact',
+              } as React.CSSProperties}
+            >
+              <Shield className="h-5 w-5" style={{ color: 'white' }} />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-widest">ASCEND LC</h1>
+              <p className="text-xs" style={{ color: '#666' }}>Quality Management System</p>
+            </div>
+          </div>
+
+          {/* NC identifier */}
+          <div className="text-right">
+            <p className="text-xl font-mono font-bold">{nc.nc_number}</p>
+            <p className="text-sm" style={{ color: '#555' }}>Non-Conformance Report</p>
+            <p className="text-xs" style={{ color: '#888' }}>
+              Generated: {format(new Date(), 'PPp')}
+            </p>
+          </div>
         </div>
-        <div className="text-right">
-          <p className="text-xl font-mono font-bold">{nc.nc_number}</p>
-          <p className="text-sm text-muted-foreground">
-            Generated: {format(new Date(), 'PPp')}
-          </p>
-        </div>
+
+        {/* End-client branding (when tenant logo or name is available) */}
+        {showClientBranding && (
+          <div
+            className="mt-3 pt-3 flex items-center gap-2"
+            style={{ borderTop: '1px solid #e5e7eb' }}
+          >
+            <span className="text-xs" style={{ color: '#888' }}>Client:</span>
+            {tenantLogoUrl && (
+              <img
+                src={tenantLogoUrl}
+                alt={tenantName || 'Client'}
+                className="h-7 object-contain object-left"
+                style={{ maxWidth: '150px' }}
+              />
+            )}
+            {tenantName && (
+              <span className="text-sm font-semibold">{tenantName}</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Status Banner */}
@@ -285,7 +333,8 @@ export function NCPrintView({
 
       {/* Footer */}
       <div className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
-        <p>This is a system-generated report from {tenantName}</p>
+        <p>This is a system-generated report from Ascend LC Quality Management System</p>
+        {tenantName && <p>Prepared for: {tenantName}</p>}
         <p>Document ID: {nc.id}</p>
       </div>
     </div>
