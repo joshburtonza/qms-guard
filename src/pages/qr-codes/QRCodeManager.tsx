@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +15,8 @@ import {
   Edit,
   ToggleLeft,
   ToggleRight,
+  ArrowLeft,
+  X,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -84,6 +87,7 @@ type QRFormData = z.infer<typeof qrFormSchema>;
 export default function QRCodeManager() {
   const { toast } = useToast();
   const { tenant } = useTenant();
+  const navigate = useNavigate();
   const [locations, setLocations] = useState<QRLocation[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -266,14 +270,19 @@ export default function QRCodeManager() {
     <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <QrCode className="h-6 w-6 text-foreground" />
-              QR Code Manager
-            </h1>
-            <p className="text-muted-foreground">
-              Generate QR codes for location-specific NC reporting
-            </p>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                <QrCode className="h-6 w-6 text-foreground" />
+                QR Code Manager
+              </h1>
+              <p className="text-muted-foreground">
+                Generate QR codes for location-specific NC reporting
+              </p>
+            </div>
           </div>
           <Button onClick={openNew}>
             <Plus className="h-4 w-4 mr-2" />
@@ -490,7 +499,7 @@ export default function QRCodeManager() {
                 <p className="text-xs text-muted-foreground break-all max-w-full">
                   {previewQR.qr_code_data}
                 </p>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap justify-center">
                   <Button variant="outline" onClick={() => downloadQR(previewQR)}>
                     <Download className="h-4 w-4 mr-2" />
                     Download
@@ -498,6 +507,10 @@ export default function QRCodeManager() {
                   <Button variant="outline" onClick={() => printQR(previewQR)}>
                     <Printer className="h-4 w-4 mr-2" />
                     Print
+                  </Button>
+                  <Button variant="secondary" onClick={() => setPreviewQR(null)}>
+                    <X className="h-4 w-4 mr-2" />
+                    Close
                   </Button>
                 </div>
               </div>
