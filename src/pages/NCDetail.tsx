@@ -24,12 +24,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { NC_CATEGORY_LABELS, SHIFT_LABELS, isOverdue } from '@/types/database';
 
 export default function NCDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [nc, setNC] = useState<any>(null);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
@@ -94,6 +96,29 @@ export default function NCDetail() {
     setIsRefreshing(true);
     fetchNCDetails();
   };
+
+  async function downloadAttachment(attachment: any) {
+    try {
+      const { data, error } = await supabase.storage
+        .from('nc-attachments')
+        .download(attachment.file_path);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = attachment.file_name;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to download file',
+        variant: 'destructive',
+      });
+    }
+  }
 
   const handlePrint = () => {
     setShowPrintView(true);
@@ -362,7 +387,7 @@ export default function NCDetail() {
                             {(attachment.file_size / 1024).toFixed(0)} KB
                           </p>
                         </div>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => downloadAttachment(attachment)}>
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
