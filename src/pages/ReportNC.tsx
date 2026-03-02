@@ -61,9 +61,11 @@ import { useTenant } from '@/hooks/useTenant';
 import { supabase } from '@/integrations/supabase/client';
 import {
   NCCategory,
+  NCSource,
   NCSeverity,
   Shift,
   NC_CATEGORY_LABELS,
+  NC_SOURCE_LABELS,
   NC_SEVERITY_LABELS,
   SHIFT_LABELS,
   Department,
@@ -80,6 +82,17 @@ const ncFormSchema = z.object({
   site_location: z.string().min(1, 'Please enter a location'),
   shift: z.enum(['day', 'night', 'general'], { required_error: 'Please select a shift' }),
   date_occurred: z.date({ required_error: 'Please select when this occurred' }),
+  source: z.enum([
+    'internal_audit',
+    'external_audit',
+    'customer_complaint',
+    'inspection',
+    'investigation',
+    'evaluation_feedback',
+    'moderation_finding',
+    'other',
+  ], { required_error: 'Please select a source' }),
+  source_other: z.string().optional(),
   category: z.enum([
     'training_documentation',
     'competency_verification',
@@ -92,7 +105,7 @@ const ncFormSchema = z.object({
   category_other: z.string().optional(),
   severity: z.enum(['critical', 'major', 'minor'], { required_error: 'Please select severity' }),
   description: z.string().min(50, 'Description must be at least 50 characters'),
-  
+
   responsible_person: z.string().min(1, 'Please select a responsible person'),
   due_date: z.date({ required_error: 'Please select a due date' }),
 }).refine((data) => {
@@ -103,6 +116,14 @@ const ncFormSchema = z.object({
 }, {
   message: 'Please describe the category',
   path: ['category_other'],
+}).refine((data) => {
+  if (data.source === 'other' && (!data.source_other || data.source_other.length < 3)) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Please describe the source',
+  path: ['source_other'],
 });
 
 type NCFormData = z.infer<typeof ncFormSchema>;
@@ -169,6 +190,7 @@ export default function ReportNC() {
     }, [form]),
   });
 
+  const selectedSource = form.watch('source');
   const selectedCategory = form.watch('category');
   const selectedSeverity = form.watch('severity');
 
@@ -271,6 +293,8 @@ export default function ReportNC() {
         site_location: data.site_location,
         shift: data.shift as 'day' | 'night' | 'general',
         date_occurred: format(data.date_occurred, 'yyyy-MM-dd'),
+        source: data.source,
+        source_other: data.source === 'other' ? data.source_other : null,
         category: data.category,
         category_other: data.category === 'other' ? data.category_other : null,
         severity: data.severity,
@@ -511,6 +535,47 @@ export default function ReportNC() {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="source"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Source *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="w-full sm:w-72">
+                            <SelectValue placeholder="Select source" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {(Object.keys(NC_SOURCE_LABELS) as NCSource[]).map((src) => (
+                            <SelectItem key={src} value={src}>
+                              {NC_SOURCE_LABELS[src]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {selectedSource === 'other' && (
+                  <FormField
+                    control={form.control}
+                    name="source_other"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Describe Source *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Describe the source of this non-conformance" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </CardContent>
             </Card>
 

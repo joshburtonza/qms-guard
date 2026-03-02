@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import {
   NC_CATEGORY_LABELS,
   NC_SEVERITY_LABELS,
+  NC_SOURCE_LABELS,
   NC_STATUS_LABELS,
   SHIFT_LABELS,
 } from '@/types/database';
@@ -83,6 +84,15 @@ export function NCPrintView({
               <p className="text-muted-foreground">Date Occurred</p>
               <p className="font-medium">
                 {nc.date_occurred ? format(new Date(nc.date_occurred), 'PPP') : 'N/A'}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Source</p>
+              <p className="font-medium">
+                {nc.source
+                  ? NC_SOURCE_LABELS[nc.source as keyof typeof NC_SOURCE_LABELS] || nc.source
+                  : 'N/A'}
+                {nc.source === 'other' && nc.source_other ? `: ${nc.source_other}` : ''}
               </p>
             </div>
           </div>

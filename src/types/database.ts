@@ -17,6 +17,16 @@ export type NCCategory =
 
 export type Shift = 'day' | 'night' | 'general';
 
+export type NCSource =
+  | 'internal_audit'
+  | 'external_audit'
+  | 'customer_complaint'
+  | 'inspection'
+  | 'investigation'
+  | 'evaluation_feedback'
+  | 'moderation_finding'
+  | 'other';
+
 export type ServiceType = 'training' | 'consultation' | 'audit' | 'other';
 
 export type RecommendationType = 'yes' | 'no' | 'maybe';
@@ -96,6 +106,8 @@ export interface NonConformance {
   shift: Shift | null;
   category: NCCategory;
   category_other: string | null;
+  source: NCSource | null;
+  source_other: string | null;
   severity: NCSeverity;
   description: string;
   immediate_action: string | null;
@@ -261,6 +273,18 @@ export const NC_CATEGORY_LABELS: Record<NCCategory, string> = {
   equipment_ppe: 'Equipment/PPE',
   process_deviation: 'Process Deviation',
   record_keeping: 'Record Keeping',
+  other: 'Other',
+};
+
+// Source labels for display
+export const NC_SOURCE_LABELS: Record<NCSource, string> = {
+  internal_audit: 'Internal Audit',
+  external_audit: 'External Audit',
+  customer_complaint: 'Customer Complaint',
+  inspection: 'Inspection',
+  investigation: 'Investigation (Internal / External)',
+  evaluation_feedback: 'Evaluation Feedback',
+  moderation_finding: 'Moderation Finding',
   other: 'Other',
 };
 

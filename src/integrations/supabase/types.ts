@@ -1692,6 +1692,8 @@ export type Database = {
           shift: string | null
           site_location: string | null
           smartsheet_row_id: string | null
+          source: string | null
+          source_other: string | null
           status: Database["public"]["Enums"]["nc_status"]
           tenant_id: string | null
           updated_at: string | null
@@ -1720,6 +1722,8 @@ export type Database = {
           shift?: string | null
           site_location?: string | null
           smartsheet_row_id?: string | null
+          source?: string | null
+          source_other?: string | null
           status?: Database["public"]["Enums"]["nc_status"]
           tenant_id?: string | null
           updated_at?: string | null
@@ -1748,6 +1752,8 @@ export type Database = {
           shift?: string | null
           site_location?: string | null
           smartsheet_row_id?: string | null
+          source?: string | null
+          source_other?: string | null
           status?: Database["public"]["Enums"]["nc_status"]
           tenant_id?: string | null
           updated_at?: string | null

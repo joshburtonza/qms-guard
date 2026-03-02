@@ -17,7 +17,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
-import { NCStatus, NC_STATUS_LABELS, NC_CATEGORY_LABELS, NCCategory, SHIFT_LABELS } from '@/types/database';
+import { NCStatus, NC_STATUS_LABELS, NC_CATEGORY_LABELS, NCCategory, NC_SOURCE_LABELS, SHIFT_LABELS } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 
 export default function NCList() {
@@ -122,6 +122,8 @@ export default function NCList() {
         'Site Location',
         'Shift',
         'Is After Hours',
+        'Source',
+        'Source Detail',
         'Category',
         'Category Detail',
         'Severity',
@@ -179,6 +181,8 @@ export default function NCList() {
           escapeCSV(nc.site_location || ''),
           escapeCSV(nc.shift ? (SHIFT_LABELS[nc.shift as keyof typeof SHIFT_LABELS] || nc.shift) : ''),
           escapeCSV(nc.is_after_hours === true ? 'Yes' : nc.is_after_hours === false ? 'No' : ''),
+          escapeCSV(nc.source ? (NC_SOURCE_LABELS[nc.source as keyof typeof NC_SOURCE_LABELS] || nc.source) : ''),
+          escapeCSV(nc.source === 'other' ? (nc.source_other || '') : ''),
           escapeCSV(NC_CATEGORY_LABELS[nc.category as NCCategory] || nc.category),
           escapeCSV(nc.category === 'other' ? (nc.category_other || '') : ''),
           escapeCSV(nc.severity),
