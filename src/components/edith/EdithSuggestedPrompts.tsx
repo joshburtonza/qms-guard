@@ -149,7 +149,7 @@ export function EdithSuggestedPrompts({
   }
 
   return (
-    <div className="flex flex-wrap gap-2 p-3 border-t bg-muted/30">
+    <div className="flex flex-wrap gap-2 px-4 py-3 border-t bg-muted/30">
       <span className="text-xs text-muted-foreground flex items-center mr-1">
         <Sparkles className="h-3 w-3 mr-1" />
         Try:

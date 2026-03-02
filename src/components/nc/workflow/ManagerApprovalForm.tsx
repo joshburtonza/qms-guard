@@ -321,8 +321,8 @@ export function ManagerApprovalForm({
                               Decline
                             </label>
                             <p className="text-xs text-muted-foreground">
-                               Needs more work
-                             </p>
+                              Needs more work
+                            </p>
                           </div>
                         </div>
                       </div>

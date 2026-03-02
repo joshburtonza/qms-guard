@@ -347,7 +347,7 @@ export function ResponsiblePersonForm({
             {/* File Upload */}
             <div className="space-y-2">
               <FormLabel>Evidence / Supporting Documents</FormLabel>
-              <div className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors">
                 <input
                   type="file"
                   multiple
@@ -368,7 +368,7 @@ export function ResponsiblePersonForm({
               </div>
 
               {files.length > 0 && (
-                <div className="space-y-2 mt-3">
+                <div className="space-y-2 mt-4">
                   {files.map((file, index) => (
                     <div key={index} className="flex items-center gap-2 text-sm bg-muted rounded-md p-2">
                       <span className="flex-1 truncate">{file.name}</span>
