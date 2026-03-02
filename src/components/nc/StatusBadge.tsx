@@ -22,10 +22,10 @@ export function StatusBadge({ status, isOverdue, isEscalated, className }: Statu
   return (
     <div className="flex items-center gap-1.5">
       {isOverdue ? (
-        <Badge 
-          variant="outline" 
+        <Badge
+          variant="outline"
           className={cn(
-            'bg-foreground/12 text-foreground border-foreground/25 animate-pulse',
+            'bg-destructive/10 text-destructive border-destructive/30 animate-pulse',
             className
           )}
         >

@@ -17,7 +17,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
-import { NCStatus, NC_STATUS_LABELS, NC_CATEGORY_LABELS, NCCategory, NC_SOURCE_LABELS, SHIFT_LABELS } from '@/types/database';
+import { NCStatus, NC_STATUS_LABELS, NC_CATEGORY_LABELS, NCCategory, NC_SOURCE_LABELS, SHIFT_LABELS, isOverdue } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 
 export default function NCList() {
@@ -76,7 +76,9 @@ export default function NCList() {
     }
 
     // Status filter
-    if (statusFilter !== 'all') {
+    if (statusFilter === 'overdue') {
+      filtered = filtered.filter((nc) => isOverdue(nc.due_date, nc.status));
+    } else if (statusFilter !== 'all') {
       filtered = filtered.filter((nc) => nc.status === statusFilter);
     }
 
@@ -187,7 +189,7 @@ export default function NCList() {
           escapeCSV(nc.severity),
           escapeCSV(nc.risk_classification ? (RISK_CLASSIFICATION_LABELS[nc.risk_classification] || nc.risk_classification) : ''),
           escapeCSV(nc.qa_classification_comments || ''),
-          escapeCSV(NC_STATUS_LABELS[nc.status as NCStatus] || nc.status),
+          escapeCSV(isOverdue(nc.due_date, nc.status as NCStatus) ? `${NC_STATUS_LABELS[nc.status as NCStatus] || nc.status} (Overdue)` : (NC_STATUS_LABELS[nc.status as NCStatus] || nc.status)),
           escapeCSV(String(nc.current_step || 1)),
           escapeCSV(nc.reported?.full_name || ''),
           escapeCSV(nc.responsible?.full_name || ''),
@@ -316,6 +318,7 @@ export default function NCList() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="overdue">Overdue</SelectItem>
                 {(Object.keys(NC_STATUS_LABELS) as NCStatus[]).map((status) => (
                   <SelectItem key={status} value={status}>
                     {NC_STATUS_LABELS[status]}
