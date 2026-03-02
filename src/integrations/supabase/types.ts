@@ -285,7 +285,6 @@ export type Database = {
           corrective_action: string
           id: string
           nc_id: string
-          preventive_action: string | null
           root_cause: string
           submitted_at: string | null
           submitted_by: string | null
@@ -296,7 +295,6 @@ export type Database = {
           corrective_action: string
           id?: string
           nc_id: string
-          preventive_action?: string | null
           root_cause: string
           submitted_at?: string | null
           submitted_by?: string | null
@@ -307,7 +305,6 @@ export type Database = {
           corrective_action?: string
           id?: string
           nc_id?: string
-          preventive_action?: string | null
           root_cause?: string
           submitted_at?: string | null
           submitted_by?: string | null

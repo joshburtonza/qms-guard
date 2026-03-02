@@ -179,12 +179,6 @@ export function NCPrintView({
               <p className="text-muted-foreground font-medium">Corrective Action</p>
               <p className="whitespace-pre-wrap">{correctiveAction.corrective_action}</p>
             </div>
-            {correctiveAction.preventive_action && (
-              <div>
-                <p className="text-muted-foreground font-medium">Preventive Action</p>
-                <p className="whitespace-pre-wrap">{correctiveAction.preventive_action}</p>
-              </div>
-            )}
             <div>
               <p className="text-muted-foreground font-medium">Target Completion</p>
               <p>{correctiveAction.completion_date}</p>

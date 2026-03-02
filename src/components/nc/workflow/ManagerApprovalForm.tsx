@@ -252,12 +252,6 @@ export function ManagerApprovalForm({
               <p className="text-sm text-muted-foreground">Corrective Action:</p>
               <p className="text-sm whitespace-pre-wrap">{correctiveAction.corrective_action}</p>
             </div>
-            {correctiveAction.preventive_action && (
-              <div>
-                <p className="text-sm text-muted-foreground">Preventive Action:</p>
-                <p className="text-sm whitespace-pre-wrap">{correctiveAction.preventive_action}</p>
-              </div>
-            )}
             <div>
               <p className="text-sm text-muted-foreground">Target Completion:</p>
               <p className="text-sm">{correctiveAction.completion_date}</p>

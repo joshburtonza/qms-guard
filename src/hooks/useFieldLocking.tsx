@@ -7,7 +7,7 @@ import { AppRole } from '@/types/database';
  * 
  * Step 1: Initiation - Only reporter can edit
  * Step 2: QA Classification - QA can edit severity, due_date, qa_comment
- * Step 3: Responsible Person Action - RP can edit root_cause, corrective_action, preventive_action
+ * Step 3: Responsible Person Action - RP can edit root_cause, corrective_action
  * Step 4: Manager Approval Round 1 - Manager can add comments
  * Step 5: Responsible Person Rework - RP can edit corrective actions again
  * Step 6: Manager Approval Round 2 - Manager final decision
@@ -28,7 +28,6 @@ export type FieldName =
   // Corrective Action Fields
   | 'root_cause'
   | 'corrective_action'
-  | 'preventive_action'
   | 'completion_date'
   // Workflow Fields
   | 'manager_comment'
@@ -86,7 +85,6 @@ export function useFieldLocking({
       due_date: { editable: false, reason: 'Only QA can modify due date' },
       root_cause: { editable: false, reason: 'Only responsible person can edit during their action step' },
       corrective_action: { editable: false, reason: 'Only responsible person can edit during their action step' },
-      preventive_action: { editable: false, reason: 'Only responsible person can edit during their action step' },
       completion_date: { editable: false, reason: 'Only responsible person can set completion date' },
       manager_comment: { editable: false, reason: 'Only managers can add comments during approval' },
       qa_comment: { editable: false, reason: 'Only QA can add comments during classification' },
@@ -147,7 +145,6 @@ export function useFieldLocking({
             immediate_action: { editable: true },
             root_cause: { editable: true },
             corrective_action: { editable: true },
-            preventive_action: { editable: true },
             completion_date: { editable: true },
           },
           canSubmit,

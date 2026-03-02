@@ -903,7 +903,7 @@ async function executeToolCall(
           responsible:profiles!non_conformances_responsible_person_fkey(id, full_name, phone_number),
           reporter:profiles!non_conformances_reported_by_fkey(id, full_name),
           department:departments(name, site_location),
-          corrective_actions(id, root_cause, corrective_action, preventive_action, submitted_at),
+          corrective_actions(id, root_cause, corrective_action, submitted_at),
           workflow_approvals(step, action, approved_at, comments, approved_by:profiles(full_name))
         `);
 

@@ -129,7 +129,6 @@ export interface CorrectiveAction {
   nc_id: string;
   root_cause: string;
   corrective_action: string;
-  preventive_action: string | null;
   completion_date: string | null;
   submitted_by: string | null;
   submitted_at: string;

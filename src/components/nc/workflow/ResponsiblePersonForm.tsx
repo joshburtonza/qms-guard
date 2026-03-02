@@ -28,7 +28,6 @@ const rpFormSchema = z.object({
   immediate_action: z.string().optional(),
   root_cause: z.string().min(20, 'Root cause analysis is required. Please provide a detailed explanation.'),
   corrective_action: z.string().min(20, 'Corrective actions are required. Please describe the specific actions to address this NC.'),
-  preventive_action: z.string().min(10, 'Preventive action is required to prevent recurrence.'),
   completion_date: z.date({ required_error: 'Expected completion date is required.' }),
 });
 
@@ -58,7 +57,6 @@ export function ResponsiblePersonForm({
       immediate_action: '',
       root_cause: '',
       corrective_action: '',
-      preventive_action: '',
       completion_date: new Date(),
     },
   });
@@ -130,7 +128,6 @@ export function ResponsiblePersonForm({
           nc_id: nc.id,
           root_cause: data.root_cause,
           corrective_action: data.corrective_action,
-          preventive_action: data.preventive_action || null,
           completion_date: format(data.completion_date, 'yyyy-MM-dd'),
           submitted_by: profile.id,
         });
@@ -154,7 +151,6 @@ export function ResponsiblePersonForm({
               immediate_action: data.immediate_action,
               root_cause: data.root_cause,
               corrective_action: data.corrective_action,
-              preventive_action: data.preventive_action,
               completion_date: format(data.completion_date, 'yyyy-MM-dd'),
               evidence_files: uploadedFiles,
               performed_by: profile.id,
@@ -218,7 +214,7 @@ export function ResponsiblePersonForm({
         <CardDescription>
           {isRework 
             ? 'Your previous submission was declined. Please provide revised actions based on the feedback.'
-            : 'Document the root cause analysis and corrective/preventive actions'
+            : 'Document the root cause analysis and corrective actions'
           }
         </CardDescription>
       </CardHeader>
@@ -282,24 +278,6 @@ export function ResponsiblePersonForm({
                     <Textarea
                       placeholder="Describe the specific actions taken or planned to correct this issue..."
                       className="min-h-28"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="preventive_action"
-              render={({ field }) => (
-                <FormItem data-form-field>
-                  <FormLabel><RequiredLabel>Preventive Actions</RequiredLabel></FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Describe any preventive measures to avoid recurrence of this issue..."
-                      className="min-h-20"
                       {...field}
                     />
                   </FormControl>

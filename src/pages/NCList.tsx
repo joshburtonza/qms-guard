@@ -106,7 +106,7 @@ export default function NCList() {
           reported:reported_by(full_name),
           responsible:responsible_person(full_name),
           department:department_id(name),
-          corrective_actions(root_cause, corrective_action, preventive_action, completion_date, submitted_at),
+          corrective_actions(root_cause, corrective_action, completion_date, submitted_at),
           workflow_approvals(step, action, comments, approved_at, approver:approved_by(full_name))
         `)
         .order('created_at', { ascending: false });
@@ -139,7 +139,6 @@ export default function NCList() {
         'Immediate Action',
         'Root Cause',
         'Corrective Action',
-        'Preventive Action',
         'CA Target Completion',
         'Approvals / Signatures',
       ];
@@ -198,7 +197,6 @@ export default function NCList() {
           escapeCSV(nc.immediate_action || ''),
           escapeCSV(ca?.root_cause || ''),
           escapeCSV(ca?.corrective_action || ''),
-          escapeCSV(ca?.preventive_action || ''),
           escapeCSV(ca?.completion_date ? format(new Date(ca.completion_date), 'yyyy-MM-dd') : ''),
           escapeCSV(approvalSummary),
         ];
