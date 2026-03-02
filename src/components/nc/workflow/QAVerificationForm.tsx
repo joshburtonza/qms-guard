@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, CheckCircle, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Loader2, CheckCircle, RotateCcw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,12 +36,21 @@ const verificationFormSchema = z.object({
   }),
   verification_comments: z.string().min(10, 'Verification comments are required (minimum 10 characters).'),
   effectiveness_rating: z.string().optional(),
+  investigation_reviewed: z.boolean().optional(),
 }).superRefine((data, ctx) => {
   if (data.verification_status === 'verified' && !data.effectiveness_rating) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'Effectiveness rating is required when verifying.',
       path: ['effectiveness_rating'],
+    });
+  }
+  // (2) QA must confirm they reviewed the investigation before closing
+  if (data.verification_status === 'verified' && !data.investigation_reviewed) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'You must confirm you have reviewed the root cause analysis and corrective actions.',
+      path: ['investigation_reviewed'],
     });
   }
 });
@@ -64,10 +75,27 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
   const { profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // (1) Fetch evidence count — NC cannot be closed without evidence
+  const [attachmentCount, setAttachmentCount] = useState<number | null>(null);
+  const [isLoadingEvidence, setIsLoadingEvidence] = useState(true);
+
+  useEffect(() => {
+    async function fetchAttachmentCount() {
+      const { count } = await supabase
+        .from('nc_attachments')
+        .select('id', { count: 'exact', head: true })
+        .eq('nc_id', nc.id);
+      setAttachmentCount(count ?? 0);
+      setIsLoadingEvidence(false);
+    }
+    fetchAttachmentCount();
+  }, [nc.id]);
+
   const form = useForm<VerificationFormData>({
     resolver: zodResolver(verificationFormSchema),
     defaultValues: {
       verification_comments: '',
+      investigation_reviewed: false,
     },
   });
 
@@ -86,6 +114,17 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
 
   async function onSubmit(data: VerificationFormData) {
     if (!profile) return;
+
+    // (1) Block closure if no evidence is attached
+    if (data.verification_status === 'verified' && attachmentCount === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Evidence Required',
+        description: 'This NC cannot be closed without evidence of corrective actions. Please send back for rework and request evidence upload.',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -94,6 +133,7 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
         action: data.verification_status,
         comments: data.verification_comments,
         effectiveness_rating: data.effectiveness_rating ? parseInt(data.effectiveness_rating) : null,
+        investigation_reviewed: data.investigation_reviewed ?? false,
         performed_by: profile.id,
         performed_at: new Date().toISOString(),
       };
@@ -118,6 +158,9 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
           details: {
             status: 'verified',
             rating: data.effectiveness_rating ? parseInt(data.effectiveness_rating) : null,
+            investigation_reviewed_confirmed: true,
+            evidence_count: attachmentCount,
+            verified_by: profile.full_name,
           },
         });
 
@@ -208,6 +251,8 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
     <span>{children} <span className="text-destructive">*</span></span>
   );
 
+  const noEvidence = !isLoadingEvidence && attachmentCount === 0;
+
   return (
     <Card>
       <CardHeader>
@@ -220,6 +265,24 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+
+        {/* (1) Evidence warning — block close if no evidence */}
+        {noEvidence && (
+          <Alert className="border-destructive/50 bg-destructive/5">
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+            <AlertDescription className="text-destructive font-medium">
+              No evidence attached to this NC. Closure requires at least one supporting document or photo. Use "Requires Rework" to send back for evidence upload.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {!isLoadingEvidence && attachmentCount !== null && attachmentCount > 0 && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <CheckCircle className="h-4 w-4 text-foreground/60" />
+            {attachmentCount} evidence file{attachmentCount !== 1 ? 's' : ''} attached
+          </div>
+        )}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit, handleInvalidSubmit)} className="space-y-6">
             <FormField
@@ -237,21 +300,23 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
                       <div
                         className={cn(
                           'flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors',
-                          field.value === 'verified'
+                          field.value === 'verified' && !noEvidence
                             ? 'border-foreground/30 bg-foreground/5'
+                            : noEvidence
+                            ? 'border-border opacity-50 cursor-not-allowed'
                             : 'border-border hover:bg-muted/50'
                         )}
-                        onClick={() => field.onChange('verified')}
+                        onClick={() => !noEvidence && field.onChange('verified')}
                       >
-                        <RadioGroupItem value="verified" id="verified" />
+                        <RadioGroupItem value="verified" id="verified" disabled={noEvidence} />
                         <div className="flex items-center gap-2 flex-1">
                           <CheckCircle className="h-5 w-5 text-foreground" />
                           <div>
-                            <label htmlFor="verified" className="font-medium text-foreground cursor-pointer">
+                            <label htmlFor="verified" className={cn('font-medium text-foreground', noEvidence ? 'cursor-not-allowed' : 'cursor-pointer')}>
                               Verified — Actions are effective
                             </label>
                             <p className="text-xs text-muted-foreground">
-                              Close the NC after confirming effectiveness
+                              {noEvidence ? 'Unavailable — no evidence uploaded' : 'Close the NC after confirming effectiveness'}
                             </p>
                           </div>
                         </div>
@@ -310,30 +375,66 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
             />
 
             {selectedStatus === 'verified' && (
-              <FormField
-                control={form.control}
-                name="effectiveness_rating"
-                render={({ field }) => (
-                  <FormItem data-form-field>
-                    <FormLabel><RequiredLabel>Effectiveness Rating</RequiredLabel></FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select effectiveness rating" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {EFFECTIVENESS_RATINGS.map((rating) => (
-                          <SelectItem key={rating.value} value={rating.value}>
-                            {rating.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <>
+                <FormField
+                  control={form.control}
+                  name="effectiveness_rating"
+                  render={({ field }) => (
+                    <FormItem data-form-field>
+                      <FormLabel><RequiredLabel>Effectiveness Rating</RequiredLabel></FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select effectiveness rating" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {EFFECTIVENESS_RATINGS.map((rating) => (
+                            <SelectItem key={rating.value} value={rating.value}>
+                              {rating.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* (2) Mandatory investigation review confirmation */}
+                <FormField
+                  control={form.control}
+                  name="investigation_reviewed"
+                  render={({ field }) => (
+                    <FormItem data-form-field className="rounded-lg border p-4 space-y-0">
+                      <div className="flex items-start gap-3">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            id="investigation_reviewed"
+                            className="mt-0.5"
+                          />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel htmlFor="investigation_reviewed" className="font-medium cursor-pointer leading-snug">
+                            <RequiredLabel>
+                              <span className="flex items-center gap-1.5">
+                                <ShieldCheck className="h-4 w-4 inline" />
+                                I confirm I have reviewed this NC
+                              </span>
+                            </RequiredLabel>
+                          </FormLabel>
+                          <p className="text-xs text-muted-foreground">
+                            I confirm that I have personally reviewed the root cause analysis, corrective actions, supporting evidence, and am satisfied that a genuine investigation was conducted — not a copy-paste submission.
+                          </p>
+                        </div>
+                      </div>
+                      <FormMessage className="pt-2 pl-7" />
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
 
             <FormField
@@ -356,7 +457,7 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
 
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || (selectedStatus === 'verified' && noEvidence)}
               variant={
                 selectedStatus === 'verified'
                   ? 'default'
