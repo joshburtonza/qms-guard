@@ -95,6 +95,21 @@ export function NCPrintView({
                 {nc.source === 'other' && nc.source_other ? `: ${nc.source_other}` : ''}
               </p>
             </div>
+            {nc.applicable_clauses && nc.applicable_clauses.length > 0 && (
+              <div className="col-span-2">
+                <p className="text-muted-foreground">Applicable ISO/QMS Clauses</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {nc.applicable_clauses.map((clause: string, i: number) => (
+                    <span
+                      key={i}
+                      className="text-xs border border-foreground/20 rounded px-2 py-0.5"
+                    >
+                      {clause}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

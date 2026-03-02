@@ -111,6 +111,7 @@ export interface NonConformance {
   severity: NCSeverity;
   description: string;
   immediate_action: string | null;
+  applicable_clauses: string[] | null;
   responsible_person: string;
   due_date: string;
   additional_stakeholders: string[] | null;

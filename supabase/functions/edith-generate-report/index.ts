@@ -80,7 +80,7 @@ serve(async (req) => {
         let query = supabaseUser
           .from("non_conformances")
           .select(`
-            id, nc_number, description, status, severity, category, due_date, created_at, closed_at,
+            id, nc_number, description, status, severity, category, due_date, created_at, closed_at, applicable_clauses,
             responsible:profiles!non_conformances_responsible_person_fkey(full_name),
             department:departments(name)
           `)
@@ -156,7 +156,8 @@ serve(async (req) => {
             dueDate: nc.due_date,
             createdAt: nc.created_at,
             closedAt: nc.closed_at,
-            daysOpen: nc.closed_at 
+            applicableClauses: nc.applicable_clauses ?? [],
+            daysOpen: nc.closed_at
               ? Math.round((new Date(nc.closed_at).getTime() - new Date(nc.created_at).getTime()) / (1000 * 60 * 60 * 24))
               : Math.round((today.getTime() - new Date(nc.created_at).getTime()) / (1000 * 60 * 60 * 24)),
           })),
@@ -513,6 +514,7 @@ function generateHTMLReport(data: any): string {
               <th>Severity</th>
               <th>Status</th>
               <th>Category</th>
+              <th>Applicable Clauses</th>
               <th>Responsible</th>
               <th>Due Date</th>
               <th>Days</th>
@@ -525,6 +527,7 @@ function generateHTMLReport(data: any): string {
                 <td class="severity-${nc.severity}">${nc.severity}</td>
                 <td>${nc.status}</td>
                 <td>${nc.category?.replace(/_/g, ' ')}</td>
+                <td style="font-size:11px;">${(nc.applicableClauses || []).join('; ') || '—'}</td>
                 <td>${nc.responsible || 'Unassigned'}</td>
                 <td>${nc.dueDate}</td>
                 <td>${nc.daysOpen}</td>

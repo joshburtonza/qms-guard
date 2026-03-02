@@ -16,6 +16,8 @@ import {
   MicOff,
   RotateCcw,
   Clock,
+  Sparkles,
+  Plus,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -74,6 +76,7 @@ import {
 } from '@/types/database';
 import { cn } from '@/lib/utils';
 import { classifyRisk } from '@/lib/risk_classifier';
+import { suggestIsoClauses } from '@/lib/clause_suggester';
 import { useVoiceToText } from '@/hooks/useVoiceToText';
 import { useFormDraft } from '@/hooks/useFormDraft';
 
@@ -161,6 +164,12 @@ export default function ReportNC() {
   const [similarNCs, setSimilarNCs] = useState<SimilarNC[]>([]);
   const [pendingSubmitData, setPendingSubmitData] = useState<NCFormData | null>(null);
 
+  // Applicable clauses state
+  const [applicableClauses, setApplicableClauses] = useState<string[]>([]);
+  const [clauseInput, setClauseInput] = useState('');
+  const [clauseSuggestions, setClauseSuggestions] = useState<string[]>([]);
+  const [isSuggestingClauses, setIsSuggestingClauses] = useState(false);
+
   const form = useForm<NCFormData>({
     resolver: zodResolver(ncFormSchema),
     defaultValues: {
@@ -207,6 +216,31 @@ export default function ReportNC() {
       form.setValue('due_date', calculateDueDate(selectedSeverity));
     }
   }, [selectedSeverity, form]);
+
+  // Debounced EDITH clause suggestion — triggers when description reaches 50+ chars
+  useEffect(() => {
+    if (!descriptionValue || descriptionValue.length < 50) return;
+
+    const timer = setTimeout(async () => {
+      const categoryValue = form.getValues('category') || '';
+      const severityValue = form.getValues('severity') || '';
+
+      setIsSuggestingClauses(true);
+      setClauseSuggestions([]);
+      try {
+        const raw = await suggestIsoClauses(descriptionValue, categoryValue, severityValue);
+        // Only surface suggestions not already added
+        setClauseSuggestions(raw.filter((s) => !applicableClauses.includes(s)));
+      } catch {
+        // Fail silently
+      } finally {
+        setIsSuggestingClauses(false);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [descriptionValue, selectedCategory, selectedSeverity]);
 
   // Fetch departments and users
   useEffect(() => {
@@ -299,6 +333,7 @@ export default function ReportNC() {
         category_other: data.category === 'other' ? data.category_other : null,
         severity: data.severity,
         description: data.description,
+        applicable_clauses: applicableClauses,
         responsible_person: data.responsible_person,
         due_date: format(data.due_date, 'yyyy-MM-dd'),
         status: 'open' as const,
@@ -734,6 +769,112 @@ export default function ReportNC() {
                   )}
                 />
 
+
+                {/* Applicable ISO/QMS Clauses */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <FormLabel className="mb-0">Applicable ISO/QMS Clauses</FormLabel>
+                    {isSuggestingClauses && (
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        EDITH is analysing...
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Selected clause tags */}
+                  {applicableClauses.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {applicableClauses.map((clause, index) => (
+                        <Badge key={index} variant="secondary" className="gap-1 pr-1">
+                          {clause}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setApplicableClauses((prev) => prev.filter((_, i) => i !== index))
+                            }
+                            className="ml-1 rounded-full hover:opacity-70 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Manual entry */}
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder='Type a clause and press Enter (e.g. ISO 9001:2015 Clause 8.7)'
+                      value={clauseInput}
+                      onChange={(e) => setClauseInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const trimmed = clauseInput.trim();
+                          if (trimmed && !applicableClauses.includes(trimmed)) {
+                            setApplicableClauses((prev) => [...prev, trimmed]);
+                          }
+                          setClauseInput('');
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const trimmed = clauseInput.trim();
+                        if (trimmed && !applicableClauses.includes(trimmed)) {
+                          setApplicableClauses((prev) => [...prev, trimmed]);
+                        }
+                        setClauseInput('');
+                      }}
+                      disabled={!clauseInput.trim()}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* EDITH suggestions */}
+                  {clauseSuggestions.length > 0 && (
+                    <div className="space-y-2 p-3 rounded-lg bg-muted/40 border border-dashed border-muted-foreground/30">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        EDITH suggests — click to add:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {clauseSuggestions.map((suggestion, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => {
+                              if (!applicableClauses.includes(suggestion)) {
+                                setApplicableClauses((prev) => [...prev, suggestion]);
+                              }
+                              setClauseSuggestions((prev) => prev.filter((_, i) => i !== index));
+                            }}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full border border-dashed border-muted-foreground/40 hover:border-foreground hover:bg-background transition-colors"
+                          >
+                            <Plus className="h-3 w-3" />
+                            {suggestion}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setClauseSuggestions([])}
+                          className="text-xs text-muted-foreground hover:text-foreground underline self-center"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-muted-foreground">
+                    EDITH auto-suggests applicable clauses once a description is entered. Accept suggestions or add your own.
+                  </p>
+                </div>
 
                 {/* File Upload */}
                 <div className="space-y-2">

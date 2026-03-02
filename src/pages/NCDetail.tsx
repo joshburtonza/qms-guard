@@ -12,6 +12,7 @@ import {
   MapPin,
   RefreshCw,
   Printer,
+  BookOpen,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StatusBadge } from '@/components/nc/StatusBadge';
@@ -27,6 +28,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { NC_CATEGORY_LABELS, SHIFT_LABELS, isOverdue } from '@/types/database';
+import { Badge } from '@/components/ui/badge';
 
 export default function NCDetail() {
   const { id } = useParams<{ id: string }>();
@@ -246,6 +248,22 @@ export default function NCDetail() {
                       <p className="text-foreground whitespace-pre-wrap">
                         {nc.immediate_action}
                       </p>
+                    </div>
+                  )}
+
+                  {nc.applicable_clauses && nc.applicable_clauses.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                        <BookOpen className="h-3.5 w-3.5" />
+                        Applicable ISO/QMS Clauses
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {nc.applicable_clauses.map((clause: string, i: number) => (
+                          <Badge key={i} variant="outline" className="text-xs font-normal">
+                            {clause}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </CardContent>
