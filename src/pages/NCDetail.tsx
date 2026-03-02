@@ -38,13 +38,14 @@ export default function NCDetail() {
   const [attachments, setAttachments] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
   const [correctiveAction, setCorrectiveAction] = useState<any>(null);
+  const [workflowApprovals, setWorkflowApprovals] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showPrintView, setShowPrintView] = useState(false);
 
   const fetchNCDetails = useCallback(async () => {
     try {
-      const [ncResult, attachResult, activityResult, caResult] = await Promise.all([
+      const [ncResult, attachResult, activityResult, caResult, approvalsResult] = await Promise.all([
         supabase
           .from('non_conformances')
           .select(`
@@ -74,6 +75,11 @@ export default function NCDetail() {
           .order('submitted_at', { ascending: false })
           .limit(1)
           .maybeSingle(),
+        supabase
+          .from('workflow_approvals')
+          .select('*')
+          .eq('nc_id', id)
+          .order('approved_at', { ascending: false }),
       ]);
 
       if (ncResult.error) throw ncResult.error;
@@ -81,6 +87,7 @@ export default function NCDetail() {
       setAttachments(attachResult.data || []);
       setActivities(activityResult.data || []);
       setCorrectiveAction(caResult.data || null);
+      setWorkflowApprovals(approvalsResult.data || []);
     } catch (error) {
       console.error('Error fetching NC details:', error);
       navigate('/nc');
@@ -154,6 +161,7 @@ export default function NCDetail() {
         attachments={attachments}
         activities={activities}
         correctiveAction={correctiveAction}
+        workflowApprovals={workflowApprovals}
       />
     );
   }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,6 +18,7 @@ import {
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { SignatureCanvas } from '@/components/ui/signature-canvas';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,6 +51,20 @@ export function ResponsiblePersonForm({
   const { profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  const [signatureData, setSignatureData] = useState<string | null>(null);
+  const signatureContainerRef = useRef<HTMLDivElement>(null);
+  const [canvasWidth, setCanvasWidth] = useState(350);
+
+  useEffect(() => {
+    const update = () => {
+      if (signatureContainerRef.current) {
+        setCanvasWidth(Math.min(350, signatureContainerRef.current.offsetWidth));
+      }
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
 
   const form = useForm<RPFormData>({
     resolver: zodResolver(rpFormSchema),
@@ -97,6 +112,16 @@ export function ResponsiblePersonForm({
 
   async function onSubmit(data: RPFormData) {
     if (!profile) return;
+
+    if (!signatureData) {
+      toast({
+        variant: 'destructive',
+        title: 'Signature required',
+        description: 'Please sign before submitting your response.',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -133,6 +158,15 @@ export function ResponsiblePersonForm({
         });
 
       if (caError) throw caError;
+
+      // Store responsible person signature
+      await supabase.from('workflow_approvals').insert({
+        nc_id: nc.id,
+        step: 3,
+        action: 'rp_submitted',
+        approved_by: profile.id,
+        signature_data: signatureData,
+      } as any);
 
       const nextStep = isRework ? 5 : 3;
       const nextStatus = 'pending_review';
@@ -368,8 +402,23 @@ export function ResponsiblePersonForm({
               )}
             </div>
 
+            {/* Responsible Person Signature */}
+            <div className="space-y-2" data-form-field ref={signatureContainerRef}>
+              <SignatureCanvas
+                onSignatureChange={setSignatureData}
+                label="Your Signature *"
+                width={canvasWidth}
+                height={120}
+              />
+              {!signatureData && (
+                <p className="text-sm text-muted-foreground">
+                  Sign above to confirm your corrective action submission.
+                </p>
+              )}
+            </div>
+
             <div className="flex gap-3">
-              <Button type="submit" disabled={isSubmitting} className="flex-1">
+              <Button type="submit" disabled={isSubmitting || !signatureData} className="flex-1">
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Submit {isRework ? 'Revised ' : ''}Response
               </Button>

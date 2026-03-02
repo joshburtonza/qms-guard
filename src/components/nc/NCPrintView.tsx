@@ -19,6 +19,7 @@ interface NCPrintViewProps {
   activities: any[];
   correctiveAction?: any;
   tenantName?: string;
+  workflowApprovals?: any[];
 }
 
 export function NCPrintView({
@@ -27,7 +28,15 @@ export function NCPrintView({
   activities,
   correctiveAction,
   tenantName = 'QMS Guard',
+  workflowApprovals = [],
 }: NCPrintViewProps) {
+  // Extract signatures from workflow_approvals
+  const rpApproval = [...workflowApprovals]
+    .filter((a) => a.step === 3 && a.action === 'rp_submitted')
+    .sort((a, b) => new Date(b.approved_at || 0).getTime() - new Date(a.approved_at || 0).getTime())[0];
+  const managerApproval = [...workflowApprovals]
+    .filter((a) => a.action === 'approved')
+    .sort((a, b) => new Date(b.approved_at || 0).getTime() - new Date(a.approved_at || 0).getTime())[0];
   return (
     <div className="print-container p-8 max-w-4xl mx-auto bg-background text-foreground">
       {/* Header */}
@@ -237,12 +246,40 @@ export function NCPrintView({
       {/* Signature Block */}
       <div className="grid grid-cols-2 gap-8 mt-10 pt-6 border-t">
         <div>
-          <div className="border-b border-foreground h-12 mb-2" />
+          {rpApproval?.signature_data ? (
+            <img
+              src={rpApproval.signature_data}
+              alt="Responsible Person Signature"
+              className="h-12 object-contain object-left mb-2"
+              style={{ maxWidth: '100%' }}
+            />
+          ) : (
+            <div className="border-b border-foreground h-12 mb-2" />
+          )}
           <p className="text-sm text-muted-foreground">Responsible Person Signature</p>
+          {rpApproval?.approved_at && (
+            <p className="text-xs text-muted-foreground">
+              {format(new Date(rpApproval.approved_at), 'PPp')}
+            </p>
+          )}
         </div>
         <div>
-          <div className="border-b border-foreground h-12 mb-2" />
+          {managerApproval?.signature_data ? (
+            <img
+              src={managerApproval.signature_data}
+              alt="Manager Approval Signature"
+              className="h-12 object-contain object-left mb-2"
+              style={{ maxWidth: '100%' }}
+            />
+          ) : (
+            <div className="border-b border-foreground h-12 mb-2" />
+          )}
           <p className="text-sm text-muted-foreground">Manager Approval Signature</p>
+          {managerApproval?.approved_at && (
+            <p className="text-xs text-muted-foreground">
+              {format(new Date(managerApproval.approved_at), 'PPp')}
+            </p>
+          )}
         </div>
       </div>
 
