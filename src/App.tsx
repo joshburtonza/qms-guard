@@ -9,6 +9,7 @@ import { TenantProvider } from "@/hooks/useTenant";
 import { EdithProvider } from "@/hooks/useEdith";
 import { EdithFloatingButton, EdithPanel } from "@/components/edith";
 import { LockoutGuard } from "@/components/LockoutGuard";
+import BillingGate from './components/BillingGate';
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import ReportNC from "./pages/ReportNC";
@@ -62,6 +63,7 @@ import Users from "./pages/Users";
 const queryClient = new QueryClient();
 
 const App = () => (
+  <BillingGate slug={import.meta.env.VITE_CLIENT_SLUG}>
   <ThemeProvider>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -135,6 +137,7 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
   </ThemeProvider>
+  </BillingGate>
 );
 
 export default App;
