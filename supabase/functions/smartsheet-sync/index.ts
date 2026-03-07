@@ -545,6 +545,10 @@ function getNCFieldValue(nc: any, field: string): any {
     case "site_location": return nc.site_location || "";
     case "immediate_action": return nc.immediate_action || "";
     case "risk_classification": return nc.risk_classification || "";
+    case "ai_risk_level": return nc.ai_risk_assessment?.risk_level || "";
+    case "ai_category": return nc.ai_risk_assessment?.category || "";
+    case "ai_suggested_owner": return nc.ai_risk_assessment?.suggested_owner || "";
+    case "ai_rationale": return nc.ai_risk_assessment?.rationale || "";
     case "created_at": return nc.created_at;
     case "updated_at": return nc.updated_at;
     default: return nc[field] || "";

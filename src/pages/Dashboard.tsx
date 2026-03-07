@@ -12,6 +12,11 @@ import {
   ListTodo,
   BarChart3,
   Timer,
+  Star,
+  ClipboardCheck,
+  GraduationCap,
+  MessageSquareHeart,
+  Briefcase,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
@@ -62,9 +67,20 @@ export default function Dashboard() {
   const [myTasks, setMyTasks] = useState<any[]>([]);
   const [categoryData, setCategoryData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [phase2Stats, setPhase2Stats] = useState({
+    surveysThisMonth: 0,
+    avgRating: 0,
+    auditsInProgress: 0,
+    auditsCompletedThisMonth: 0,
+    facilitatorEvalsPending: 0,
+    contractorEvalsPending: 0,
+    moderationPending: 0,
+    courseEvalsThisMonth: 0,
+  });
 
   useEffect(() => {
     fetchDashboardData();
+    fetchPhase2Stats();
   }, [profile]);
 
   async function fetchDashboardData() {
@@ -131,6 +147,68 @@ export default function Dashboard() {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function fetchPhase2Stats() {
+    const now = new Date();
+    const monthStart = startOfMonth(now).toISOString();
+    const monthEnd = endOfMonth(now).toISOString();
+
+    try {
+      const [surveys, auditsInProgress, auditsDone, facilitatorPending, contractorPending, moderationPending, courseEvals] = await Promise.all([
+        supabase
+          .from('customer_satisfaction_surveys')
+          .select('rating_overall')
+          .gte('created_at', monthStart)
+          .lte('created_at', monthEnd),
+        supabase
+          .from('audit_checklists')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'in_progress'),
+        supabase
+          .from('audit_checklists')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'completed')
+          .gte('updated_at', monthStart)
+          .lte('updated_at', monthEnd),
+        supabase
+          .from('facilitator_annual_evaluations')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'submitted'),
+        supabase
+          .from('contractor_evaluations')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'submitted'),
+        supabase
+          .from('moderation_requests')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'pending'),
+        supabase
+          .from('course_facilitator_evaluations')
+          .select('id', { count: 'exact', head: true })
+          .gte('created_at', monthStart)
+          .lte('created_at', monthEnd),
+      ]);
+
+      const surveyData = surveys.data || [];
+      const ratingsWithValues = surveyData.filter(s => s.rating_overall != null);
+      const avgRating = ratingsWithValues.length > 0
+        ? ratingsWithValues.reduce((sum, s) => sum + (s.rating_overall || 0), 0) / ratingsWithValues.length
+        : 0;
+
+      setPhase2Stats({
+        surveysThisMonth: surveyData.length,
+        avgRating: Math.round(avgRating * 10) / 10,
+        auditsInProgress: auditsInProgress.count || 0,
+        auditsCompletedThisMonth: auditsDone.count || 0,
+        facilitatorEvalsPending: facilitatorPending.count || 0,
+        contractorEvalsPending: contractorPending.count || 0,
+        moderationPending: moderationPending.count || 0,
+        courseEvalsThisMonth: courseEvals.count || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching Phase 2 stats:', error);
     }
   }
 
@@ -439,6 +517,72 @@ export default function Dashboard() {
             </Card>
 
             <SmartsheetWidget />
+          </div>
+        </div>
+
+        {/* Phase 2 Platform Overview */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Platform Overview</h2>
+          </div>
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+            {/* Surveys */}
+            <Link to="/surveys" className="group">
+              <Card className="glass-card border-0 p-4 transition-all duration-200 group-hover:shadow-md">
+                <div className="flex items-center justify-between mb-2">
+                  <MessageSquareHeart className="h-5 w-5 text-muted-foreground/60" />
+                  {phase2Stats.avgRating > 0 && (
+                    <div className="flex items-center gap-0.5">
+                      <Star className="h-3 w-3 fill-foreground text-foreground" />
+                      <span className="text-xs font-semibold">{phase2Stats.avgRating}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="text-2xl font-display font-bold">{phase2Stats.surveysThisMonth}</div>
+                <p className="text-xs text-muted-foreground mt-0.5">Surveys this month</p>
+              </Card>
+            </Link>
+
+            {/* Audits */}
+            <Link to="/audits" className="group">
+              <Card className="glass-card border-0 p-4 transition-all duration-200 group-hover:shadow-md">
+                <div className="flex items-center justify-between mb-2">
+                  <ClipboardCheck className="h-5 w-5 text-muted-foreground/60" />
+                  {phase2Stats.auditsInProgress > 0 && (
+                    <Badge variant="secondary" className="rounded-full text-[10px] px-1.5 py-0">{phase2Stats.auditsInProgress} active</Badge>
+                  )}
+                </div>
+                <div className="text-2xl font-display font-bold">{phase2Stats.auditsCompletedThisMonth}</div>
+                <p className="text-xs text-muted-foreground mt-0.5">Audits completed</p>
+              </Card>
+            </Link>
+
+            {/* Evaluations */}
+            <Link to="/facilitator-evaluations" className="group">
+              <Card className="glass-card border-0 p-4 transition-all duration-200 group-hover:shadow-md">
+                <div className="flex items-center justify-between mb-2">
+                  <GraduationCap className="h-5 w-5 text-muted-foreground/60" />
+                  {(phase2Stats.facilitatorEvalsPending + phase2Stats.contractorEvalsPending) > 0 && (
+                    <Badge variant="outline" className="rounded-full text-[10px] px-1.5 py-0 border-amber-500/50 text-amber-600">
+                      {phase2Stats.facilitatorEvalsPending + phase2Stats.contractorEvalsPending} pending
+                    </Badge>
+                  )}
+                </div>
+                <div className="text-2xl font-display font-bold">{phase2Stats.courseEvalsThisMonth}</div>
+                <p className="text-xs text-muted-foreground mt-0.5">Course evals this month</p>
+              </Card>
+            </Link>
+
+            {/* Moderation */}
+            <Link to="/moderation" className="group">
+              <Card className={`glass-card border-0 p-4 transition-all duration-200 group-hover:shadow-md ${phase2Stats.moderationPending > 0 ? 'ring-1 ring-amber-500/30' : ''}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <Briefcase className="h-5 w-5 text-muted-foreground/60" />
+                </div>
+                <div className="text-2xl font-display font-bold">{phase2Stats.moderationPending}</div>
+                <p className="text-xs text-muted-foreground mt-0.5">Moderation pending</p>
+              </Card>
+            </Link>
           </div>
         </div>
 
