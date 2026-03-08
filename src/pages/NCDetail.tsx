@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Printer,
   BookOpen,
+  Wand2,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StatusBadge } from '@/components/nc/StatusBadge';
@@ -27,6 +28,7 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useTenant } from '@/hooks/useTenant';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { NC_CATEGORY_LABELS, SHIFT_LABELS, isOverdue } from '@/types/database';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +37,7 @@ export default function NCDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { roles } = useAuth();
   const [nc, setNC] = useState<any>(null);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
@@ -42,6 +45,7 @@ export default function NCDetail() {
   const [workflowApprovals, setWorkflowApprovals] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isReclassifying, setIsReclassifying] = useState(false);
   const [showPrintView, setShowPrintView] = useState(false);
   const { tenant } = useTenant();
 
@@ -130,6 +134,30 @@ export default function NCDetail() {
       });
     }
   }
+
+  const handleReclassify = async () => {
+    if (!nc) return;
+    setIsReclassifying(true);
+    try {
+      const { error } = await supabase.functions.invoke('classify-risk', {
+        body: { ncId: nc.id, tenantId: nc.tenant_id },
+      });
+      if (error) throw error;
+      await fetchNCDetails();
+      toast({
+        title: 'Risk reclassified successfully',
+        description: 'AI risk assessment has been updated.',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Reclassification failed',
+        description: err?.message || 'An unexpected error occurred',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsReclassifying(false);
+    }
+  };
 
   const handlePrint = () => {
     setShowPrintView(true);
@@ -278,6 +306,67 @@ export default function NCDetail() {
                       </div>
                     </div>
                   )}
+
+                  {/* AI Risk Assessment */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                        <Wand2 className="h-3.5 w-3.5" />
+                        AI Risk Assessment
+                      </h4>
+                      {(roles.includes('site_admin') || roles.includes('super_admin')) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs rounded-lg no-print"
+                          onClick={handleReclassify}
+                          disabled={isReclassifying}
+                        >
+                          {isReclassifying ? (
+                            <>
+                              <RefreshCw className="h-3 w-3 mr-1.5 animate-spin" />
+                              Reclassifying...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="h-3 w-3 mr-1.5" />
+                              Reclassify
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                    {nc.ai_risk_assessment ? (
+                      <div className="rounded-lg border border-border/50 bg-muted/30 p-3 space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">Risk Level:</span>
+                          <Badge variant="outline" className="rounded-full text-xs capitalize">
+                            {nc.ai_risk_assessment.risk_level || 'N/A'}
+                          </Badge>
+                        </div>
+                        {nc.ai_risk_assessment.category && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Category:</span>
+                            <span className="font-medium">{nc.ai_risk_assessment.category}</span>
+                          </div>
+                        )}
+                        {nc.ai_risk_assessment.suggested_owner && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Suggested Owner:</span>
+                            <span className="font-medium">{nc.ai_risk_assessment.suggested_owner}</span>
+                          </div>
+                        )}
+                        {nc.ai_risk_assessment.rationale && (
+                          <div>
+                            <span className="text-muted-foreground">Rationale:</span>
+                            <p className="mt-1 text-foreground/80">{nc.ai_risk_assessment.rationale}</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">No AI assessment yet</p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 

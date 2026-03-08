@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
+import { EscalationPanel } from '@/components/dashboard/EscalationPanel';
 import { NCListItem } from '@/components/nc/NCListItem';
 import { SmartsheetWidget } from '@/components/smartsheet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -449,6 +450,9 @@ export default function Dashboard() {
             </div>
           </Card>
         </div>
+
+        {/* Escalation Monitor */}
+        <EscalationPanel ncs={allNCs} />
 
         {/* Main Content Grid */}
         <div className="grid gap-4 lg:grid-cols-3">

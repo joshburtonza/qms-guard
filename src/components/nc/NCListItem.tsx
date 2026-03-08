@@ -1,11 +1,17 @@
 import { Link } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
-import { ChevronRight, Clock, User } from 'lucide-react';
+import { ChevronRight, Clock, User, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { NonConformance, NC_CATEGORY_LABELS, isOverdue } from '@/types/database';
 import { StatusBadge } from './StatusBadge';
 import { SeverityIndicator } from './SeverityIndicator';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface NCListItemProps {
   nc: NonConformance & {
@@ -81,7 +87,45 @@ export function NCListItem({ nc, className }: NCListItemProps) {
             </div>
           </div>
 
-          <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {(nc as any).smartsheet_sync_status === 'synced' && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Synced to Smartsheet</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            {(nc as any).smartsheet_sync_status === 'failed' && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <AlertCircle className="h-3 w-3 text-red-500" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Sync failed</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            {(nc as any).smartsheet_sync_status === 'pending' && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <Loader2 className="h-3 w-3 text-muted-foreground animate-spin" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Sync pending</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </div>
         </div>
       </Card>
     </Link>

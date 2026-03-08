@@ -285,6 +285,12 @@ async function syncToSmartsheet(
   });
 
   if (!response.ok) {
+    // Mark NC as failed
+    await supabase
+      .from("non_conformances")
+      .update({ smartsheet_sync_status: "failed" })
+      .eq("id", ncId);
+
     return new Response(
       JSON.stringify({ error: result.message || "Failed to sync" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -298,6 +304,15 @@ async function syncToSmartsheet(
       .update({ smartsheet_row_id: result.result[0].id.toString() })
       .eq("id", ncId);
   }
+
+  // Mark NC as synced
+  await supabase
+    .from("non_conformances")
+    .update({
+      smartsheet_sync_status: "synced",
+      smartsheet_synced_at: new Date().toISOString(),
+    })
+    .eq("id", ncId);
 
   // Update last sync time
   await supabase
