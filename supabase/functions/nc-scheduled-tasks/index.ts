@@ -14,7 +14,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<boo
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_API_KEY}` },
-    body: JSON.stringify({ from: 'QMS Guard <noreply@qms-guard.lovable.app>', to: [to], subject, html }),
+    body: JSON.stringify({ from: 'QMS Guard <noreply@qms-guard.vercel.app>', to: [to], subject, html }),
   });
   return res.ok;
 }
@@ -109,7 +109,7 @@ function buildReminderEmail(nc: any, name: string, daysOverdue: number, tier: st
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.lovable.app'}/nc/${nc.id}" 
+            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.vercel.app'}/nc/${nc.id}"
                style="background: ${color}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Take Action Now
             </a>

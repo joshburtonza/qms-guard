@@ -30,7 +30,7 @@ const emailTemplates = {
           <p style="background: white; padding: 10px; border-radius: 4px;">${nc.description}</p>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.lovable.app'}/nc/${nc.id}" 
+            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.vercel.app'}/nc/${nc.id}" 
                style="background: #1E40AF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View & Respond to NC
             </a>
@@ -92,7 +92,7 @@ const emailTemplates = {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.lovable.app'}/nc/${nc.id}" 
+            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.vercel.app'}/nc/${nc.id}" 
                style="background: #1E40AF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Review & Approve/Decline
             </a>
@@ -141,7 +141,7 @@ const emailTemplates = {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.lovable.app'}/nc/${nc.id}" 
+            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.vercel.app'}/nc/${nc.id}" 
                style="background: #DC2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Submit Revised Response
             </a>
@@ -191,7 +191,7 @@ const emailTemplates = {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.lovable.app'}/nc/${nc.id}" 
+            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.vercel.app'}/nc/${nc.id}" 
                style="background: #7C3AED; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Review Escalated NC
             </a>
@@ -224,7 +224,7 @@ const emailTemplates = {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.lovable.app'}/nc/${nc.id}" 
+            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.vercel.app'}/nc/${nc.id}" 
                style="background: ${daysOverdue > 0 ? '#DC2626' : '#D97706'}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               Take Action Now
             </a>
