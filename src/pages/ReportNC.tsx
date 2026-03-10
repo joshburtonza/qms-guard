@@ -664,7 +664,7 @@ export default function ReportNC() {
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
-                          value={field.value}
+                          value={field.value ?? ''}
                           className="flex flex-col sm:flex-row gap-4"
                         >
                           {(Object.keys(NC_SEVERITY_LABELS) as NCSeverity[]).map((severity) => (
