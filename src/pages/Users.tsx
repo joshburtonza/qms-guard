@@ -50,7 +50,7 @@ interface UserWithRoles {
 }
 
 export default function Users() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isLoading: authLoading } = useAuth();
   const [users, setUsers] = useState<UserWithRoles[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -58,8 +58,8 @@ export default function Users() {
   const [roleFilter, setRoleFilter] = useState<string>('all');
 
   useEffect(() => {
-    if (isAdmin()) fetchUsers();
-  }, []);
+    if (!authLoading && isAdmin()) fetchUsers();
+  }, [authLoading]);
 
   async function fetchUsers() {
     try {

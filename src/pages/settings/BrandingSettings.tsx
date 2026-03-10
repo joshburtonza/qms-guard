@@ -13,7 +13,7 @@ import { Loader2, Palette, Image, Type, Save } from 'lucide-react';
 
 export default function BrandingSettings() {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isLoading: authLoading } = useAuth();
   const { tenant, refreshTenant } = useTenant();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
@@ -44,12 +44,12 @@ export default function BrandingSettings() {
     }
   }, [tenant]);
 
-  // Redirect if not admin
+  // Redirect if not admin (wait for auth to load first)
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!authLoading && !isAdmin()) {
       navigate('/settings');
     }
-  }, [isAdmin, navigate]);
+  }, [authLoading, isAdmin, navigate]);
 
   async function handleSave() {
     if (!tenant) return;
