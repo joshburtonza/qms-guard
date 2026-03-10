@@ -127,7 +127,7 @@ export default function QRCodeManager() {
     const baseUrl = window.location.origin;
     const params = new URLSearchParams({
       location: data.site_location,
-      ...(data.department_id && { dept: data.department_id }),
+      ...(data.department_id && data.department_id !== 'none' && { dept: data.department_id }),
     });
     return `${baseUrl}/report?${params.toString()}`;
   }
@@ -143,7 +143,7 @@ export default function QRCodeManager() {
           .update({
             name: data.name,
             site_location: data.site_location,
-            department_id: data.department_id || null,
+            department_id: data.department_id && data.department_id !== 'none' ? data.department_id : null,
             qr_code_data: qrData,
           })
           .eq('id', selectedQR.id);
@@ -155,7 +155,7 @@ export default function QRCodeManager() {
         const { error } = await supabase.from('qr_locations').insert({
           name: data.name,
           site_location: data.site_location,
-          department_id: data.department_id || null,
+          department_id: data.department_id && data.department_id !== 'none' ? data.department_id : null,
           qr_code_data: qrData,
           tenant_id: tenant?.id,
         });
@@ -460,7 +460,7 @@ export default function QRCodeManager() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           {departments.map((dept) => (
                             <SelectItem key={dept.id} value={dept.id}>
                               {dept.name}
