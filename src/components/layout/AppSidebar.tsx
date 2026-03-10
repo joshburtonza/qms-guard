@@ -90,6 +90,11 @@ const contractorEvalNavItems: NavItem[] = [
   { title: 'New Evaluation', href: '/contractor-evaluations/create', icon: ClipboardCheck },
 ];
 
+const learnerNavItems: NavItem[] = [
+  { title: 'All Learners', href: '/learners', icon: GraduationCap },
+  { title: 'Add Learner', href: '/learners/new', icon: ClipboardCheck },
+];
+
 const adminNavItems: NavItem[] = [
   { title: 'Automations', href: '/automations', icon: Zap, roles: ['super_admin', 'site_admin'] },
   { title: 'Activity Log', href: '/activity', icon: Activity, roles: ['super_admin', 'site_admin', 'manager'] },
@@ -110,6 +115,7 @@ export function AppSidebar() {
   const [auditOpen, setAuditOpen] = useState(false);
   const [facilitatorEvalOpen, setFacilitatorEvalOpen] = useState(false);
   const [contractorEvalOpen, setContractorEvalOpen] = useState(false);
+  const [learnerOpen, setLearnerOpen] = useState(false);
   const location = useLocation();
   const { profile, roles, signOut } = useAuth();
   const { tenant } = useTenant();
@@ -293,6 +299,15 @@ export function AppSidebar() {
         )}
         {renderCollapsibleGroup('Facilitators', GraduationCap, facilitatorEvalNavItems, facilitatorEvalOpen, setFacilitatorEvalOpen)}
         {renderCollapsibleGroup('Contractors', Briefcase, contractorEvalNavItems, contractorEvalOpen, setContractorEvalOpen)}
+
+        <Separator className="my-3 bg-border/50" />
+
+        {!collapsed && (
+          <p className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-2">
+            Learner Tracking
+          </p>
+        )}
+        {renderCollapsibleGroup('Learners', GraduationCap, learnerNavItems, learnerOpen, setLearnerOpen)}
 
         {filteredAdminItems.length > 0 && (
           <>

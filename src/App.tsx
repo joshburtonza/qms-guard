@@ -60,6 +60,10 @@ import DataCleanup from "./pages/settings/DataCleanup";
 import AutomationsDashboard from "./pages/automations/AutomationsDashboard";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
+// Learners
+import LearnerList from "./pages/learners/LearnerList";
+import LearnerDetail from "./pages/learners/LearnerDetail";
+import LearnerNew from "./pages/learners/LearnerNew";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -124,6 +128,10 @@ const App = () => (
                   <Route path="/reports" element={<Reports />} />
                   {/* Users */}
                   <Route path="/users" element={<Users />} />
+                  {/* Learners */}
+                  <Route path="/learners" element={<LearnerList />} />
+                  <Route path="/learners/new" element={<LearnerNew />} />
+                  <Route path="/learners/:id" element={<LearnerDetail />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 {/* Edith AI Assistant */}
