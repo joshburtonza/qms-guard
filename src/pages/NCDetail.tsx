@@ -7,6 +7,7 @@ import {
   Clock,
   Download,
   FileText,
+  Image,
   User,
   Building,
   MapPin,
@@ -14,6 +15,8 @@ import {
   Printer,
   BookOpen,
   Wand2,
+  X,
+  ZoomIn,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StatusBadge } from '@/components/nc/StatusBadge';
@@ -26,6 +29,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useTenant } from '@/hooks/useTenant';
 import { useAuth } from '@/hooks/useAuth';
@@ -47,6 +51,8 @@ export default function NCDetail() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isReclassifying, setIsReclassifying] = useState(false);
   const [showPrintView, setShowPrintView] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [lightboxName, setLightboxName] = useState<string>('');
   const { tenant } = useTenant();
 
   const fetchNCDetails = useCallback(async () => {
@@ -112,6 +118,10 @@ export default function NCDetail() {
     fetchNCDetails();
   };
 
+  function isImageFile(fileName: string): boolean {
+    return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(fileName);
+  }
+
   async function downloadAttachment(attachment: any) {
     try {
       const { data, error } = await supabase.storage
@@ -130,6 +140,26 @@ export default function NCDetail() {
       toast({
         title: 'Error',
         description: 'Failed to download file',
+        variant: 'destructive',
+      });
+    }
+  }
+
+  async function openImageLightbox(attachment: any) {
+    try {
+      const { data, error } = await supabase.storage
+        .from('nc-attachments')
+        .download(attachment.file_path);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      setLightboxUrl(url);
+      setLightboxName(attachment.file_name);
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to load image',
         variant: 'destructive',
       });
     }
@@ -161,12 +191,12 @@ export default function NCDetail() {
 
   const handlePrint = () => {
     setShowPrintView(true);
-    // Wait for state update, then print
-    setTimeout(() => {
-      window.print();
-      // Hide print view after printing
-      setTimeout(() => setShowPrintView(false), 500);
-    }, 100);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.print();
+        setShowPrintView(false);
+      });
+    });
   };
 
   if (isLoading) {
@@ -494,23 +524,45 @@ export default function NCDetail() {
                   </p>
                 ) : (
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {attachments.map((attachment) => (
-                      <div
-                        key={attachment.id}
-                        className="flex items-center gap-3 p-3 rounded-lg border"
-                      >
-                        <FileText className="h-8 w-8 text-muted-foreground" />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{attachment.file_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {(attachment.file_size / 1024).toFixed(0)} KB
-                          </p>
+                    {attachments.map((attachment) => {
+                      const isImage = isImageFile(attachment.file_name);
+                      return (
+                        <div
+                          key={attachment.id}
+                          className="flex items-center gap-3 p-3 rounded-lg border"
+                        >
+                          {isImage ? (
+                            <Image className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+                          ) : (
+                            <FileText className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{attachment.file_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(attachment.file_size / 1024).toFixed(0)} KB
+                            </p>
+                          </div>
+                          {isImage && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openImageLightbox(attachment)}
+                              title="View image"
+                            >
+                              <ZoomIn className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => downloadAttachment(attachment)}
+                            title="Download"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => downloadAttachment(attachment)}>
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
@@ -518,6 +570,42 @@ export default function NCDetail() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Image Lightbox */}
+      <Dialog open={!!lightboxUrl} onOpenChange={(open) => {
+        if (!open) {
+          if (lightboxUrl) URL.revokeObjectURL(lightboxUrl);
+          setLightboxUrl(null);
+          setLightboxName('');
+        }
+      }}>
+        <DialogContent className="max-w-4xl p-2">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between px-2 pt-1">
+              <p className="text-sm font-medium truncate">{lightboxName}</p>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => {
+                  if (lightboxUrl) URL.revokeObjectURL(lightboxUrl);
+                  setLightboxUrl(null);
+                  setLightboxName('');
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            {lightboxUrl && (
+              <img
+                src={lightboxUrl}
+                alt={lightboxName}
+                className="w-full h-auto max-h-[75vh] object-contain rounded-lg"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
