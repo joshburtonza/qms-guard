@@ -285,6 +285,7 @@ export type Database = {
           corrective_action: string
           id: string
           nc_id: string
+          preventive_action: string | null
           root_cause: string
           submitted_at: string | null
           submitted_by: string | null
@@ -295,6 +296,7 @@ export type Database = {
           corrective_action: string
           id?: string
           nc_id: string
+          preventive_action?: string | null
           root_cause: string
           submitted_at?: string | null
           submitted_by?: string | null
@@ -305,6 +307,7 @@ export type Database = {
           corrective_action?: string
           id?: string
           nc_id?: string
+          preventive_action?: string | null
           root_cause?: string
           submitted_at?: string | null
           submitted_by?: string | null
@@ -1374,6 +1377,159 @@ export type Database = {
         }
         Relationships: []
       }
+      learner_document_types: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_required: boolean | null
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_required?: boolean | null
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_required?: boolean | null
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learner_document_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learner_documents: {
+        Row: {
+          document_name: string
+          document_type_id: string
+          file_url: string | null
+          id: string
+          learner_id: string
+          notes: string | null
+          status: string
+          tenant_id: string
+          uploaded_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          document_name: string
+          document_type_id: string
+          file_url?: string | null
+          id?: string
+          learner_id: string
+          notes?: string | null
+          status?: string
+          tenant_id: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          document_name?: string
+          document_type_id?: string
+          file_url?: string | null
+          id?: string
+          learner_id?: string
+          notes?: string | null
+          status?: string
+          tenant_id?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learner_documents_document_type_id_fkey"
+            columns: ["document_type_id"]
+            isOneToOne: false
+            referencedRelation: "learner_document_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learner_documents_learner_id_fkey"
+            columns: ["learner_id"]
+            isOneToOne: false
+            referencedRelation: "learners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learner_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learner_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learners: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          id_number: string | null
+          learner_number: string
+          notes: string | null
+          phone: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          id_number?: string | null
+          learner_number: string
+          notes?: string | null
+          phone?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          id_number?: string | null
+          learner_number?: string
+          notes?: string | null
+          phone?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learners_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       moderation_attachments: {
         Row: {
           attachment_type: string
@@ -1689,8 +1845,8 @@ export type Database = {
           shift: string | null
           site_location: string | null
           smartsheet_row_id: string | null
-          source: string | null
-          source_other: string | null
+          smartsheet_sync_status: string | null
+          smartsheet_synced_at: string | null
           status: Database["public"]["Enums"]["nc_status"]
           tenant_id: string | null
           updated_at: string | null
@@ -1719,8 +1875,8 @@ export type Database = {
           shift?: string | null
           site_location?: string | null
           smartsheet_row_id?: string | null
-          source?: string | null
-          source_other?: string | null
+          smartsheet_sync_status?: string | null
+          smartsheet_synced_at?: string | null
           status?: Database["public"]["Enums"]["nc_status"]
           tenant_id?: string | null
           updated_at?: string | null
@@ -1749,8 +1905,8 @@ export type Database = {
           shift?: string | null
           site_location?: string | null
           smartsheet_row_id?: string | null
-          source?: string | null
-          source_other?: string | null
+          smartsheet_sync_status?: string | null
+          smartsheet_synced_at?: string | null
           status?: Database["public"]["Enums"]["nc_status"]
           tenant_id?: string | null
           updated_at?: string | null
