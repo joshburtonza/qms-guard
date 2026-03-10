@@ -309,7 +309,7 @@ export function ResponsiblePersonForm({
       for (const [fieldName, entry] of Object.entries(aiDrafts)) {
         const finalText = data[fieldName as keyof RPFormData] as string;
         const wasModified = finalText !== entry.originalText;
-        await supabase.from('nc_ai_draft_log').insert({
+        await (supabase as any).from('nc_ai_draft_log').insert({
           nc_id: nc.id,
           field_name: fieldName,
           ai_original_text: entry.originalText,
@@ -317,7 +317,7 @@ export function ResponsiblePersonForm({
           was_modified: wasModified,
           justification: wasModified ? null : (aiJustification.trim() || null),
           submitted_by: profile.id,
-        } as any);
+        });
       }
 
       // Activity log entry — includes AI draft summary if applicable
