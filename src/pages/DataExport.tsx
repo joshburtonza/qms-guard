@@ -85,7 +85,7 @@ async function fetchAllRows(tableName: string): Promise<any[]> {
 
   while (hasMore) {
     const { data, error } = await supabase
-      .from(tableName)
+      .from(tableName as any)
       .select('*')
       .range(offset, offset + PAGE_SIZE - 1);
 
