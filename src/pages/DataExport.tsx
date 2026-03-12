@@ -177,7 +177,7 @@ export default function DataExport() {
   const statusIcon = (status: TableStatus) => {
     switch (status) {
       case 'loading': return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
-      case 'done': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'done': return <CheckCircle className="h-4 w-4 text-primary" />;
       case 'error': return <AlertCircle className="h-4 w-4 text-destructive" />;
       case 'empty': return <Badge variant="outline" className="text-xs">Empty</Badge>;
       default: return null;
