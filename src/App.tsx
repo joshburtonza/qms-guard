@@ -133,6 +133,8 @@ const App = () => (
                   <Route path="/learners" element={<LearnerList />} />
                   <Route path="/learners/new" element={<LearnerNew />} />
                   <Route path="/learners/:id" element={<LearnerDetail />} />
+                  {/* Data Export */}
+                  <Route path="/data-export" element={<DataExport />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 {/* Edith AI Assistant */}
