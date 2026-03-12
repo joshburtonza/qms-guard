@@ -64,6 +64,7 @@ import Users from "./pages/Users";
 import LearnerList from "./pages/learners/LearnerList";
 import LearnerDetail from "./pages/learners/LearnerDetail";
 import LearnerNew from "./pages/learners/LearnerNew";
+import DataExport from "./pages/DataExport";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -132,6 +133,8 @@ const App = () => (
                   <Route path="/learners" element={<LearnerList />} />
                   <Route path="/learners/new" element={<LearnerNew />} />
                   <Route path="/learners/:id" element={<LearnerDetail />} />
+                  {/* Data Export */}
+                  <Route path="/data-export" element={<DataExport />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 {/* Edith AI Assistant */}
