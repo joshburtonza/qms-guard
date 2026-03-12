@@ -64,6 +64,7 @@ import Users from "./pages/Users";
 import LearnerList from "./pages/learners/LearnerList";
 import LearnerDetail from "./pages/learners/LearnerDetail";
 import LearnerNew from "./pages/learners/LearnerNew";
+import DataExport from "./pages/DataExport";
 const queryClient = new QueryClient();
 
 const App = () => (
