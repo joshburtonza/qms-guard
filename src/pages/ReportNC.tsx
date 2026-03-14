@@ -18,6 +18,7 @@ import {
   Clock,
   Sparkles,
   Plus,
+  ChevronDown,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -57,6 +58,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useTenant } from '@/hooks/useTenant';
@@ -138,6 +140,47 @@ interface SimilarNC {
   similarity_score: number;
 }
 
+const ALL_ISO_CLAUSES = [
+  "ISO 9001:2015 Clause 4.1 — Understanding the Organization and Its Context",
+  "ISO 9001:2015 Clause 4.2 — Understanding the Needs and Expectations of Interested Parties",
+  "ISO 9001:2015 Clause 4.4 — Quality Management System and Its Processes",
+  "ISO 9001:2015 Clause 5.1 — Leadership and Commitment",
+  "ISO 9001:2015 Clause 5.2 — Policy",
+  "ISO 9001:2015 Clause 5.3 — Organizational Roles, Responsibilities and Authorities",
+  "ISO 9001:2015 Clause 6.1 — Actions to Address Risks and Opportunities",
+  "ISO 9001:2015 Clause 6.2 — Quality Objectives and Planning",
+  "ISO 9001:2015 Clause 7.1 — Resources",
+  "ISO 9001:2015 Clause 7.2 — Competence",
+  "ISO 9001:2015 Clause 7.3 — Awareness",
+  "ISO 9001:2015 Clause 7.4 — Communication",
+  "ISO 9001:2015 Clause 7.5 — Documented Information",
+  "ISO 9001:2015 Clause 8.1 — Operational Planning and Control",
+  "ISO 9001:2015 Clause 8.2 — Requirements for Products and Services",
+  "ISO 9001:2015 Clause 8.4 — Control of Externally Provided Processes, Products and Services",
+  "ISO 9001:2015 Clause 8.5 — Production and Service Provision",
+  "ISO 9001:2015 Clause 8.6 — Release of Products and Services",
+  "ISO 9001:2015 Clause 8.7 — Control of Nonconforming Outputs",
+  "ISO 9001:2015 Clause 9.1 — Monitoring, Measurement, Analysis and Evaluation",
+  "ISO 9001:2015 Clause 9.2 — Internal Audit",
+  "ISO 9001:2015 Clause 10.2 — Nonconformity and Corrective Action",
+];
+
+function inferClausesFromDescription(description: string, category: string): string[] {
+  const text = (description + ' ' + category).toLowerCase();
+  const matches: string[] = [];
+  if (text.match(/competen|skill|qualif|training|certif/)) matches.push("ISO 9001:2015 Clause 7.2 — Competence");
+  if (text.match(/document|record|procedure|form|report/)) matches.push("ISO 9001:2015 Clause 7.5 — Documented Information");
+  if (text.match(/nonconform|nc|defect|fail|incorrect|error/)) matches.push("ISO 9001:2015 Clause 10.2 — Nonconformity and Corrective Action");
+  if (text.match(/audit|review|inspection/)) matches.push("ISO 9001:2015 Clause 9.2 — Internal Audit");
+  if (text.match(/supplier|external|outsource|contractor/)) matches.push("ISO 9001:2015 Clause 8.4 — Control of Externally Provided Processes, Products and Services");
+  if (text.match(/process|procedure|operation|control/)) matches.push("ISO 9001:2015 Clause 8.1 — Operational Planning and Control");
+  if (text.match(/measur|monitor|analys|evaluat/)) matches.push("ISO 9001:2015 Clause 9.1 — Monitoring, Measurement, Analysis and Evaluation");
+  if (text.match(/resource|equipment|infrastructure|ppe|safety/)) matches.push("ISO 9001:2015 Clause 7.1 — Resources");
+  if (text.match(/communicat|notify|inform|report/)) matches.push("ISO 9001:2015 Clause 7.4 — Communication");
+  if (text.match(/objective|target|plan|goal/)) matches.push("ISO 9001:2015 Clause 6.2 — Quality Objectives and Planning");
+  return [...new Set(matches)].slice(0, 4);
+}
+
 function isAfterHours(): boolean {
   // Check if current time is outside business hours (07:00-17:00 SAST, Mon-Fri)
   const now = new Date();
@@ -168,6 +211,7 @@ export default function ReportNC() {
   const [clauseInput, setClauseInput] = useState('');
   const [clauseSuggestions, setClauseSuggestions] = useState<string[]>([]);
   const [isSuggestingClauses, setIsSuggestingClauses] = useState(false);
+  const [browseClausesOpen, setBrowseClausesOpen] = useState(false);
 
   const form = useForm<NCFormData>({
     resolver: zodResolver(ncFormSchema),
@@ -220,14 +264,25 @@ export default function ReportNC() {
 
       setIsSuggestingClauses(true);
       setClauseSuggestions([]);
+      let raw: string[] = [];
       try {
-        const raw = await suggestIsoClauses(descriptionValue, categoryValue, severityValue);
+        raw = await suggestIsoClauses(descriptionValue, categoryValue, severityValue);
         // Only surface suggestions not already added
-        setClauseSuggestions(raw.filter((s) => !applicableClauses.includes(s)));
+        const filtered = raw.filter((s) => !applicableClauses.includes(s));
+        setClauseSuggestions(filtered);
       } catch {
-        // Fail silently
+        // Fail silently — fallback below handles it
       } finally {
         setIsSuggestingClauses(false);
+        // If EDITH returned nothing, fall back to client-side keyword matching
+        if (!raw || raw.length === 0) {
+          const categoryValue2 = form.getValues('category') || '';
+          const fallback = inferClausesFromDescription(descriptionValue, categoryValue2)
+            .filter((s) => !applicableClauses.includes(s));
+          if (fallback.length > 0) {
+            setClauseSuggestions(fallback);
+          }
+        }
       }
     }, 1500);
 
@@ -505,7 +560,7 @@ export default function ReportNC() {
                       <FormLabel>Shift *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="w-full sm:w-48">
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select shift" />
                           </SelectTrigger>
                         </FormControl>
@@ -534,7 +589,7 @@ export default function ReportNC() {
                             <Button
                               variant="outline"
                               className={cn(
-                                'w-full sm:w-56 pl-3 text-left font-normal',
+                                'w-full pl-3 text-left font-normal',
                                 !field.value && 'text-muted-foreground'
                               )}
                             >
@@ -547,7 +602,7 @@ export default function ReportNC() {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0 max-w-[95vw]" align="start">
                           <CalendarComponent
                             mode="single"
                             selected={field.value}
@@ -572,7 +627,7 @@ export default function ReportNC() {
                       <FormLabel>Source *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="w-full sm:w-72">
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select source" />
                           </SelectTrigger>
                         </FormControl>
@@ -766,7 +821,7 @@ export default function ReportNC() {
                 {/* Applicable ISO/QMS Clauses */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <FormLabel className="mb-0">Applicable ISO/QMS Clauses</FormLabel>
+                    <FormLabel className="mb-0">Applicable ISO/QMS Clauses <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
                     {isSuggestingClauses && (
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Loader2 className="h-3 w-3 animate-spin" />
@@ -864,29 +919,75 @@ export default function ReportNC() {
                     </div>
                   )}
 
+                  {/* Browse all 22 clauses */}
+                  <Collapsible open={browseClausesOpen} onOpenChange={setBrowseClausesOpen}>
+                    <CollapsibleTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <ChevronDown className={cn('h-3 w-3 transition-transform', browseClausesOpen && 'rotate-180')} />
+                        Browse all clauses
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      <div className="flex flex-wrap gap-2 p-3 rounded-lg bg-muted/30 border border-muted-foreground/20">
+                        {ALL_ISO_CLAUSES.map((clause) => {
+                          const alreadyAdded = applicableClauses.includes(clause);
+                          return (
+                            <button
+                              key={clause}
+                              type="button"
+                              disabled={alreadyAdded}
+                              onClick={() => {
+                                if (!alreadyAdded) {
+                                  setApplicableClauses((prev) => [...prev, clause]);
+                                  setClauseSuggestions((prev) => prev.filter((s) => s !== clause));
+                                }
+                              }}
+                              className={cn(
+                                'inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full border transition-colors',
+                                alreadyAdded
+                                  ? 'border-muted-foreground/20 text-muted-foreground/40 cursor-default'
+                                  : 'border-muted-foreground/40 hover:border-foreground hover:bg-background cursor-pointer'
+                              )}
+                            >
+                              {!alreadyAdded && <Plus className="h-3 w-3" />}
+                              {clause}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
                   <p className="text-xs text-muted-foreground">
-                    EDITH auto-suggests applicable clauses once a description is entered. Accept suggestions or add your own.
+                    EDITH auto-suggests applicable clauses once a description is entered. Clauses are optional — you can submit without them.
                   </p>
                 </div>
 
                 {/* File Upload */}
                 <div className="space-y-2">
                   <FormLabel>Evidence Attachments</FormLabel>
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                  <div className="border-2 border-dashed rounded-lg p-4 text-center">
                     <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Drag and drop files or click to browse
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Tap to browse or drag and drop files
                     </p>
-                    <p className="text-xs text-muted-foreground mb-4">
+                    <p className="text-xs text-muted-foreground mb-3">
                       Max 5 files, 10MB each. Accepted: JPG, PNG, PDF, DOC, DOCX
                     </p>
-                    <Input
-                      type="file"
-                      multiple
-                      accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
-                      onChange={handleFileChange}
-                      className="max-w-xs mx-auto"
-                    />
+                    <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-background hover:bg-muted cursor-pointer text-sm font-medium">
+                      <Upload className="h-4 w-4" />
+                      Choose Files
+                      <input
+                        type="file"
+                        multiple
+                        accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                        onChange={handleFileChange}
+                        className="sr-only"
+                      />
+                    </label>
                   </div>
 
                   {files.length > 0 && (
@@ -962,7 +1063,7 @@ export default function ReportNC() {
                             <Button
                               variant="outline"
                               className={cn(
-                                'w-full sm:w-64 justify-start text-left font-normal',
+                                'w-full justify-start text-left font-normal',
                                 !field.value && 'text-muted-foreground'
                               )}
                             >
@@ -971,7 +1072,7 @@ export default function ReportNC() {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="w-auto p-0 max-w-[95vw]" align="start">
                           <CalendarComponent
                             mode="single"
                             selected={field.value}
@@ -991,12 +1092,12 @@ export default function ReportNC() {
               </CardContent>
             </Card>
 
-            {/* Submit Button */}
-            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+            {/* Submit Button — sticky on mobile */}
+            <div className="sticky bottom-20 md:bottom-0 md:relative z-10 bg-background/95 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none rounded-xl md:rounded-none p-3 md:p-0 -mx-4 md:mx-0 shadow-lg md:shadow-none border-t border-border/50 md:border-0 flex flex-col-reverse sm:flex-row justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => navigate(-1)} className="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button type="submit" variant="outline" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1015,7 +1116,7 @@ export default function ReportNC() {
 
         {/* Duplicate NC Detection Modal */}
         <Dialog open={showDuplicateModal} onOpenChange={setShowDuplicateModal}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-[95vw] sm:max-w-lg">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-foreground">
                 <AlertTriangle className="h-5 w-5" />

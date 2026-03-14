@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -191,6 +191,12 @@ export default function Auth() {
                       </>
                     )}
                   </Button>
+
+                  <div className="text-center">
+                    <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-foreground">
+                      Forgot password?
+                    </Link>
+                  </div>
                 </form>
               </Form>
             </TabsContent>

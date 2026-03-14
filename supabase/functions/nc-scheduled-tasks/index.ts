@@ -129,11 +129,11 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  // Authenticate: only allow calls with the service role key
+  // Authenticate: require cron secret header
   const authHeader = req.headers.get('Authorization');
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const cronSecret = Deno.env.get('NC_CRON_SECRET');
 
-  if (!authHeader || authHeader !== `Bearer ${serviceRoleKey}`) {
+  if (!cronSecret || !authHeader || authHeader !== `Bearer ${cronSecret}`) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

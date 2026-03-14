@@ -13,8 +13,8 @@ export function LockoutGuard({ children }: LockoutGuardProps) {
   const { user, isAdmin } = useAuth();
   const { isLocked, overdueCount, isLoading } = useLockoutCheck();
 
-  // Don't block auth page or if still loading
-  if (location.pathname === '/auth' || isLoading || !user) {
+  const publicPaths = ['/auth', '/forgot-password', '/reset-password'];
+  if (publicPaths.includes(location.pathname) || isLoading || !user) {
     return <>{children}</>;
   }
 

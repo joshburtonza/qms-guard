@@ -64,6 +64,8 @@ import Users from "./pages/Users";
 import LearnerList from "./pages/learners/LearnerList";
 import LearnerDetail from "./pages/learners/LearnerDetail";
 import LearnerNew from "./pages/learners/LearnerNew";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -80,6 +82,8 @@ const App = () => (
               <LockoutGuard>
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/report" element={<ReportNC />} />
                   <Route path="/nc" element={<NCList />} />

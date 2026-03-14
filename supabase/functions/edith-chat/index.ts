@@ -565,11 +565,17 @@ function getProvider(providerName: string, fallbackName?: string): AIProvider {
     if (fallback) return fallback;
   }
 
-  // Default to Lovable
+  // Default cascade: OpenAI → Anthropic → Lovable
+  const openai = providers.openai();
+  if (openai) return openai;
+
+  const anthropic = providers.anthropic();
+  if (anthropic) return anthropic;
+
   const lovable = providers.lovable();
   if (lovable) return lovable;
 
-  throw new Error("No AI provider configured. Please add LOVABLE_API_KEY or other provider keys.");
+  throw new Error("No AI provider configured. Please add OPENAI_API_KEY, ANTHROPIC_API_KEY, or LOVABLE_API_KEY.");
 }
 
 // ==================== TOOL DEFINITIONS ====================
@@ -650,12 +656,97 @@ const EDITH_TOOLS: Tool[] = [
     type: "function",
     function: {
       name: "get_user_tasks",
-      description: "Get NCs assigned to current user or search tasks by user name",
+      description: "Get all tasks for the current user or a named user. Returns NCs where they are responsible, NCs they reported, and role-specific queue items (QA classifications pending, manager approvals pending, verifications pending).",
       parameters: {
         type: "object",
         properties: {
           user_name: { type: "string", description: "Name of user to search tasks for. If not provided, returns current user's tasks" },
           include_closed: { type: "boolean", description: "Whether to include closed NCs (default false)" }
+        },
+        required: []
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "classify_nc",
+      description: "QA step: Classify a newly submitted NC — set risk level, due date, and classification comments. Moves the NC from Step 1 (open, awaiting QA) to Step 2 (in_progress). Only users with QA/verifier/admin role can do this.",
+      parameters: {
+        type: "object",
+        properties: {
+          nc_number: { type: "string", description: "NC number like NC-2026-02-00001" },
+          nc_id: { type: "string", description: "UUID of the NC (alternative to nc_number)" },
+          risk_classification: { type: "string", enum: ["observation", "ofi", "minor", "major"], description: "Risk level: observation=30 days, ofi=14 days, minor=7 days, major=3 days" },
+          classification_comments: { type: "string", description: "QA classification comments explaining the risk decision (minimum 10 characters)" },
+          due_date_override: { type: "string", description: "Optional custom due date YYYY-MM-DD (overrides auto-calculated from risk_classification)" }
+        },
+        required: ["risk_classification", "classification_comments"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "submit_corrective_action",
+      description: "Responsible person step: Submit root cause analysis and corrective action for an NC in Step 2 (in_progress). Moves NC to Step 3 (pending_review).",
+      parameters: {
+        type: "object",
+        properties: {
+          nc_number: { type: "string", description: "NC number" },
+          nc_id: { type: "string", description: "UUID of the NC" },
+          root_cause: { type: "string", description: "Detailed root cause analysis" },
+          corrective_action: { type: "string", description: "Corrective action taken or planned" },
+          preventive_action: { type: "string", description: "Preventive action to stop recurrence" }
+        },
+        required: ["root_cause", "corrective_action"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "approve_nc",
+      description: "Manager/admin step: Review and approve or reject a corrective action for an NC in Step 3 (pending_review). Approve moves to Step 4 (pending_verification). Reject sends back to Step 2.",
+      parameters: {
+        type: "object",
+        properties: {
+          nc_number: { type: "string", description: "NC number" },
+          nc_id: { type: "string", description: "UUID of the NC" },
+          decision: { type: "string", enum: ["approve", "reject"], description: "approve = accept corrective action, reject = send back for rework" },
+          comments: { type: "string", description: "Comments explaining the decision" }
+        },
+        required: ["decision", "comments"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "verify_nc",
+      description: "QA/verifier step: Verify effectiveness of corrective action for an NC in Step 4 (pending_verification). Approve closes the NC. Reject sends back to Step 2 for rework.",
+      parameters: {
+        type: "object",
+        properties: {
+          nc_number: { type: "string", description: "NC number" },
+          nc_id: { type: "string", description: "UUID of the NC" },
+          decision: { type: "string", enum: ["approve", "reject"], description: "approve = effective, close NC. reject = not effective, send back" },
+          effectiveness_notes: { type: "string", description: "Notes on the effectiveness verification" }
+        },
+        required: ["decision", "effectiveness_notes"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_workflow_guidance",
+      description: "Get detailed guidance on what needs to happen for a specific NC — who needs to act, what step it's on, what buttons/actions are available based on the viewer's role.",
+      parameters: {
+        type: "object",
+        properties: {
+          nc_number: { type: "string", description: "NC number" },
+          nc_id: { type: "string", description: "UUID of the NC" }
         },
         required: []
       }
@@ -816,18 +907,27 @@ RESPONSE GUIDELINES:
 - For destructive operations, confirm with user first
 - Be concise but thorough
 
-NC WORKFLOW CONTEXT (implements ISO 9001:2015 Clause 10.2):
-1. Open → Initial report (10.2a: React to nonconformity)
-2. In Progress → Root cause analysis + corrective action (10.2b: Evaluate need for action)
-3. Pending Review → Manager approval (10.2c: Implement action)
-4. Pending Verification → Effectiveness check (10.2d: Review effectiveness)
-5. Closed → Verified and completed
-6. Rejected → Returned for rework
+NC WORKFLOW (ISO 9001:2015 Clause 10.2) — 5 steps, each requires a specific role:
+- Step 1 (Open, current_step=1): NC submitted. QA/verifier must CLASSIFY it (risk level + due date). Reporters are BLOCKED here — they cannot advance until QA acts. Use classify_nc tool.
+- Step 2 (In Progress, current_step=2): QA classified. Responsible person must submit root cause + corrective action. Use submit_corrective_action tool.
+- Step 3 (Pending Review, current_step=3): Corrective action submitted. Manager/admin must approve or reject. Use approve_nc tool.
+- Step 4 (Pending Verification, current_step=4): Manager approved. QA/verifier checks effectiveness. Use verify_nc tool to close or send back.
+- Step 5 (Closed): Complete.
+
+ROLE DEFINITIONS:
+- super_admin / site_admin: All capabilities including classify, approve, verify
+- verifier (QA role): Can classify (Step 1→2) and verify (Step 4→closed)
+- manager: Can approve corrective actions (Step 3→4 or back to Step 2)
+- employee: Can report NCs and submit corrective actions for NCs they're responsible for
+
+WHEN USER IS BLOCKED: Always diagnose why. The most common block is Step 1 — the REPORTER cannot advance their own NC. They must wait for someone with verifier/admin role to classify it. Tell them this clearly and offer to notify the relevant QA person.
 
 SEVERITY GUIDELINES (per Clause 6.1 - Risk-based thinking):
 - Critical: Safety risk, legal compliance issue, immediate action needed (48h)
 - Major: Regulatory non-compliance, certification at risk (7 days)
 - Minor: Process deviation, documentation issue (14 days)
+- OFI (Opportunity for Improvement): 14 days
+- Observation: 30 days
 
 Always be helpful and guide users through the QMS processes efficiently with ISO compliance in mind.`;
 
@@ -987,47 +1087,313 @@ async function executeToolCall(
 
     case "get_user_tasks": {
       let targetUserId = userId;
-      
+      let targetName = profile?.full_name || "You";
+
       if (args.user_name) {
         const { data: users } = await supabase
           .from("profiles")
           .select("id, full_name")
           .ilike("full_name", `%${args.user_name}%`)
           .limit(1);
-        
         if (users && users.length > 0) {
           targetUserId = users[0].id;
+          targetName = users[0].full_name;
         }
       }
 
-      let query = supabase
-        .from("non_conformances")
-        .select(`
-          nc_number, description, status, severity, due_date,
-          department:departments(name)
-        `)
-        .eq("responsible_person", targetUserId)
-        .order("due_date", { ascending: true });
+      const baseSelect = `
+        id, nc_number, description, status, severity, due_date, current_step,
+        department:departments(name),
+        responsible:profiles!non_conformances_responsible_person_fkey(full_name),
+        reporter:profiles!non_conformances_reported_by_fkey(full_name)
+      `;
+      const closedFilter = !args.include_closed;
 
-      if (!args.include_closed) {
-        query = query.not("status", "eq", "closed");
+      // 1. NCs where user is responsible
+      let q1 = supabase.from("non_conformances").select(baseSelect)
+        .eq("responsible_person", targetUserId).order("due_date", { ascending: true });
+      if (closedFilter) q1 = q1.not("status", "eq", "closed");
+
+      // 2. NCs reported by user (so they can track progress)
+      let q2 = supabase.from("non_conformances").select(baseSelect)
+        .eq("reported_by", targetUserId).not("responsible_person", "eq", targetUserId)
+        .order("created_at", { ascending: false }).limit(10);
+      if (closedFilter) q2 = q2.not("status", "eq", "closed");
+
+      // 3. Role-based queue: QA classifications needed (step 1, open)
+      const { data: targetRoles } = await supabaseAdmin
+        .from("user_roles").select("role").eq("user_id", targetUserId);
+      const roles = (targetRoles || []).map((r: any) => r.role);
+      const isQA = roles.some((r: string) => ["super_admin","site_admin","verifier"].includes(r));
+      const isManager = roles.some((r: string) => ["super_admin","site_admin","manager"].includes(r));
+
+      const [res1, res2] = await Promise.all([q1, q2]);
+      const responsible = (res1.data || []);
+      const reported = (res2.data || []);
+
+      const qaQueue: any[] = [];
+      const managerQueue: any[] = [];
+
+      if (isQA) {
+        const { data: qaPending } = await supabase.from("non_conformances").select(baseSelect)
+          .eq("status", "open").eq("current_step", 1).order("created_at", { ascending: true });
+        qaQueue.push(...(qaPending || []).filter((nc: any) => nc.responsible?.full_name));
+      }
+      if (isQA) {
+        const { data: verifyPending } = await supabase.from("non_conformances").select(baseSelect)
+          .eq("status", "pending_verification").order("due_date", { ascending: true });
+        qaQueue.push(...(verifyPending || []));
+      }
+      if (isManager) {
+        const { data: reviewPending } = await supabase.from("non_conformances").select(baseSelect)
+          .eq("status", "pending_review").order("due_date", { ascending: true });
+        managerQueue.push(...(reviewPending || []));
       }
 
-      const { data, error } = await query;
-      if (error) throw new Error(error.message);
-      
+      const format = (nc: any, taskType: string) => ({
+        nc_number: nc.nc_number,
+        description: nc.description?.substring(0, 80) + (nc.description?.length > 80 ? "..." : ""),
+        status: nc.status,
+        current_step: nc.current_step,
+        severity: nc.severity,
+        due_date: nc.due_date,
+        overdue: nc.due_date && new Date(nc.due_date) < new Date() && nc.status !== "closed",
+        department: nc.department?.name,
+        task_type: taskType,
+        responsible: nc.responsible?.full_name,
+        reporter: nc.reporter?.full_name,
+      });
+
       return {
-        user: args.user_name || profile?.full_name || "You",
-        task_count: data.length,
-        tasks: data.map((nc: any) => ({
-          nc_number: nc.nc_number,
-          description: nc.description?.substring(0, 80) + "...",
-          status: nc.status,
-          severity: nc.severity,
-          due_date: nc.due_date,
-          overdue: new Date(nc.due_date) < new Date() && nc.status !== "closed",
-          department: nc.department?.name,
-        })),
+        user: targetName,
+        roles,
+        summary: {
+          responsible_count: responsible.length,
+          reported_count: reported.length,
+          qa_queue_count: qaQueue.length,
+          manager_queue_count: managerQueue.length,
+        },
+        responsible_tasks: responsible.map((nc: any) => format(nc, "responsible")),
+        reported_ncs: reported.map((nc: any) => format(nc, "reporter")),
+        qa_queue: qaQueue.map((nc: any) => format(nc, nc.current_step === 1 ? "awaiting_qa_classification" : "awaiting_verification")),
+        manager_queue: managerQueue.map((nc: any) => format(nc, "awaiting_manager_approval")),
+      };
+    }
+
+    case "classify_nc": {
+      const { data: cRoles } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId);
+      const cRoleList = (cRoles || []).map((r: any) => r.role);
+      if (!cRoleList.some((r: string) => ["super_admin","site_admin","verifier"].includes(r))) {
+        return { error: "Permission denied. Classifying NCs requires QA, verifier, or admin role." };
+      }
+      let nc: any;
+      if (args.nc_number) {
+        const { data, error } = await supabase.from("non_conformances")
+          .select("id, nc_number, status, current_step, tenant_id")
+          .eq("nc_number", args.nc_number).single();
+        if (error) throw new Error(error.message);
+        nc = data;
+      } else if (args.nc_id) {
+        const { data, error } = await supabase.from("non_conformances")
+          .select("id, nc_number, status, current_step, tenant_id")
+          .eq("id", args.nc_id).single();
+        if (error) throw new Error(error.message);
+        nc = data;
+      } else {
+        return { error: "Either nc_number or nc_id is required" };
+      }
+
+      if (nc.current_step !== 1 || nc.status !== "open") {
+        return { error: `Cannot classify: NC is at step ${nc.current_step} with status ${nc.status}. Classification only applies to step 1 (open) NCs.` };
+      }
+
+      const riskDays: Record<string, number> = { major: 3, minor: 7, ofi: 14, observation: 30 };
+      const dueDays = riskDays[args.risk_classification] || 14;
+      const dueDate = args.due_date_override || (() => {
+        const d = new Date(); d.setDate(d.getDate() + dueDays); return d.toISOString().split("T")[0];
+      })();
+
+      const { error: updateError } = await supabase.from("non_conformances")
+        .update({
+          current_step: 2,
+          status: "in_progress",
+          risk_classification: args.risk_classification,
+          due_date: dueDate,
+          qa_classification_comments: args.classification_comments,
+          qa_classified_by: userId,
+          qa_classified_at: new Date().toISOString(),
+        })
+        .eq("id", nc.id);
+      if (updateError) throw new Error(updateError.message);
+
+      await supabase.from("workflow_approvals").insert({
+        nc_id: nc.id, step: 1, action: "classified",
+        approved_by: userId,
+        comments: `Risk: ${args.risk_classification}. ${args.classification_comments}`,
+        approved_at: new Date().toISOString(),
+      }).then(() => {}).catch(() => {});
+
+      return { success: true, nc_number: nc.nc_number, message: `NC ${nc.nc_number} classified as ${args.risk_classification}. Due date: ${dueDate}. Now in Step 2 — waiting for responsible person to submit corrective action.` };
+    }
+
+    case "submit_corrective_action": {
+      if (!args.nc_number && !args.nc_id) return { error: "Either nc_number or nc_id is required." };
+      let nc: any;
+      const ncQuery = args.nc_number
+        ? supabase.from("non_conformances").select("id, nc_number, status, current_step, responsible_person").eq("nc_number", args.nc_number).single()
+        : supabase.from("non_conformances").select("id, nc_number, status, current_step, responsible_person").eq("id", args.nc_id).single();
+      const { data: ncData, error: ncErr } = await ncQuery;
+      if (ncErr) throw new Error(ncErr.message);
+      nc = ncData;
+
+      if (nc.current_step !== 2 || nc.status !== "in_progress") {
+        return { error: `Cannot submit corrective action: NC is at step ${nc.current_step} (${nc.status}). Must be step 2 (in_progress).` };
+      }
+
+      const { error: caErr } = await supabase.from("corrective_actions").upsert({
+        nc_id: nc.id,
+        root_cause: args.root_cause,
+        corrective_action: args.corrective_action,
+        preventive_action: args.preventive_action || null,
+        submitted_by: userId,
+        submitted_at: new Date().toISOString(),
+      }, { onConflict: "nc_id" });
+      if (caErr) throw new Error(caErr.message);
+
+      const { error: updateErr } = await supabase.from("non_conformances")
+        .update({ current_step: 3, status: "pending_review" }).eq("id", nc.id);
+      if (updateErr) throw new Error(updateErr.message);
+
+      return { success: true, nc_number: nc.nc_number, message: `Corrective action submitted for ${nc.nc_number}. NC moved to Step 3 — awaiting manager review.` };
+    }
+
+    case "approve_nc": {
+      if (!args.nc_number && !args.nc_id) return { error: "Either nc_number or nc_id is required." };
+      const { data: aRoles } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId);
+      const aRoleList = (aRoles || []).map((r: any) => r.role);
+      if (!aRoleList.some((r: string) => ["super_admin","site_admin","manager"].includes(r))) {
+        return { error: "Permission denied. Approving corrective actions requires manager or admin role." };
+      }
+      let nc: any;
+      const ncQ = args.nc_number
+        ? supabase.from("non_conformances").select("id, nc_number, status, current_step").eq("nc_number", args.nc_number).single()
+        : supabase.from("non_conformances").select("id, nc_number, status, current_step").eq("id", args.nc_id).single();
+      const { data: ncD, error: ncE } = await ncQ;
+      if (ncE) throw new Error(ncE.message);
+      nc = ncD;
+
+      if (nc.current_step !== 3 || nc.status !== "pending_review") {
+        return { error: `Cannot approve: NC is at step ${nc.current_step} (${nc.status}). Must be step 3 (pending_review).` };
+      }
+
+      const approved = args.decision === "approve";
+      const { error: approveErr } = await supabase.from("non_conformances").update({
+        current_step: approved ? 4 : 2,
+        status: approved ? "pending_verification" : "in_progress",
+        manager_review_comments: args.comments,
+        manager_reviewed_by: userId,
+        manager_reviewed_at: new Date().toISOString(),
+      }).eq("id", nc.id);
+      if (approveErr) throw new Error(approveErr.message);
+
+      await supabase.from("workflow_approvals").insert({
+        nc_id: nc.id, step: 3,
+        action: approved ? "approved" : "rejected",
+        approved_by: userId, comments: args.comments,
+        approved_at: new Date().toISOString(),
+      }).then(() => {}).catch(() => {});
+
+      return { success: true, nc_number: nc.nc_number, message: approved
+        ? `NC ${nc.nc_number} approved. Moved to Step 4 — awaiting QA verification.`
+        : `NC ${nc.nc_number} rejected. Sent back to Step 2 — responsible person must revise corrective action.` };
+    }
+
+    case "verify_nc": {
+      if (!args.nc_number && !args.nc_id) return { error: "Either nc_number or nc_id is required." };
+      const { data: vRoles } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId);
+      const vRoleList = (vRoles || []).map((r: any) => r.role);
+      if (!vRoleList.some((r: string) => ["super_admin","site_admin","verifier"].includes(r))) {
+        return { error: "Permission denied. Verifying NCs requires QA, verifier, or admin role." };
+      }
+      let nc: any;
+      const vQ = args.nc_number
+        ? supabase.from("non_conformances").select("id, nc_number, status, current_step").eq("nc_number", args.nc_number).single()
+        : supabase.from("non_conformances").select("id, nc_number, status, current_step").eq("id", args.nc_id).single();
+      const { data: vD, error: vE } = await vQ;
+      if (vE) throw new Error(vE.message);
+      nc = vD;
+
+      if (nc.current_step !== 4 || nc.status !== "pending_verification") {
+        return { error: `Cannot verify: NC is at step ${nc.current_step} (${nc.status}). Must be step 4 (pending_verification).` };
+      }
+
+      const verified = args.decision === "approve";
+      const now = new Date().toISOString();
+      const { error: verifyErr } = await supabase.from("non_conformances").update({
+        current_step: verified ? 5 : 2,
+        status: verified ? "closed" : "in_progress",
+        closed_at: verified ? now : null,
+        verification_notes: args.effectiveness_notes,
+        verified_by: userId,
+        verified_at: now,
+      }).eq("id", nc.id);
+      if (verifyErr) throw new Error(verifyErr.message);
+
+      await supabase.from("workflow_approvals").insert({
+        nc_id: nc.id, step: 4,
+        action: verified ? "verified_closed" : "rejected",
+        approved_by: userId, comments: args.effectiveness_notes,
+        approved_at: now,
+      }).then(() => {}).catch(() => {});
+
+      return { success: true, nc_number: nc.nc_number, message: verified
+        ? `NC ${nc.nc_number} verified effective and CLOSED. Well done!`
+        : `NC ${nc.nc_number} verification failed — corrective action not effective. Sent back to Step 2 for rework.` };
+    }
+
+    case "get_workflow_guidance": {
+      let nc: any;
+      if (!args.nc_number && !args.nc_id) {
+        // Return overview of all blocked NCs
+        const { data: blocked } = await supabase.from("non_conformances")
+          .select("nc_number, status, current_step, responsible:profiles!non_conformances_responsible_person_fkey(full_name)")
+          .not("status", "in", "(closed,rejected)").order("created_at", { ascending: false }).limit(20);
+        return { blocked_ncs: (blocked || []).map((nc: any) => ({
+          nc_number: nc.nc_number, status: nc.status, current_step: nc.current_step,
+          responsible: nc.responsible?.full_name,
+          next_action: nc.current_step === 1 ? "QA must classify" : nc.current_step === 2 ? "Responsible person must submit corrective action" : nc.current_step === 3 ? "Manager must review" : "QA must verify",
+        })) };
+      }
+
+      const gQ = args.nc_number
+        ? supabase.from("non_conformances").select(`*, responsible:profiles!non_conformances_responsible_person_fkey(full_name, id), reporter:profiles!non_conformances_reported_by_fkey(full_name), department:departments(name), corrective_actions(*)`).eq("nc_number", args.nc_number).single()
+        : supabase.from("non_conformances").select(`*, responsible:profiles!non_conformances_responsible_person_fkey(full_name, id), reporter:profiles!non_conformances_reported_by_fkey(full_name), department:departments(name), corrective_actions(*)`).eq("id", args.nc_id).single();
+      const { data: gD, error: gE } = await gQ;
+      if (gE) return { error: gE.message };
+      nc = gD;
+
+      const stepLabels: Record<number, string> = { 1: "QA Classification", 2: "Corrective Action", 3: "Manager Review", 4: "QA Verification", 5: "Closed" };
+      const nextActions: Record<number, string> = {
+        1: "A QA/verifier must classify this NC (set risk level + due date) using classify_nc",
+        2: `${nc.responsible?.full_name || "The responsible person"} must submit root cause + corrective action using submit_corrective_action`,
+        3: "A manager/admin must review and approve the corrective action using approve_nc",
+        4: "A QA/verifier must verify the corrective action was effective using verify_nc",
+        5: "NC is closed — no further action needed",
+      };
+
+      return {
+        nc_number: nc.nc_number, status: nc.status, current_step: nc.current_step,
+        step_label: stepLabels[nc.current_step] || "Unknown",
+        next_action: nextActions[nc.current_step] || "Unknown",
+        reporter: nc.reporter?.full_name,
+        responsible: nc.responsible?.full_name,
+        due_date: nc.due_date,
+        overdue: nc.due_date && new Date(nc.due_date) < new Date() && nc.status !== "closed",
+        has_corrective_action: (nc.corrective_actions || []).length > 0,
+        corrective_action_summary: nc.corrective_actions?.[0] ? {
+          root_cause: nc.corrective_actions[0].root_cause?.substring(0, 100),
+          corrective_action: nc.corrective_actions[0].corrective_action?.substring(0, 100),
+        } : null,
       };
     }
 
@@ -1298,14 +1664,21 @@ serve(async (req) => {
 
     const { messages, conversationId, stream, pageContext } = await req.json();
 
+    // Get user roles
+    const { data: userRolesData } = await supabaseAdmin
+      .from("user_roles").select("role").eq("user_id", user.id);
+    const userRoles = (userRolesData || []).map((r: any) => r.role);
+    const isQA = userRoles.some((r: string) => ["super_admin","site_admin","verifier"].includes(r));
+    const isManager = userRoles.some((r: string) => ["super_admin","site_admin","manager"].includes(r));
+
     // Get AI provider based on tenant config
-    const providerName = tenantConfig?.ai_provider || 'lovable';
+    const providerName = tenantConfig?.ai_provider || 'openai';
     const fallbackProvider = tenantConfig?.fallback_provider;
     const provider = getProvider(providerName, fallbackProvider);
-    const model = tenantConfig?.ai_model || 'google/gemini-3-flash-preview';
+    const model = tenantConfig?.ai_model || 'gpt-4o';
 
-    // Build context for AI
-    const userContext = profile ? `\nCURRENT USER CONTEXT:\n- Name: ${profile.full_name}\n- User ID: ${user.id}\n- Tenant: ${profile.tenants?.name || 'Unknown'} (ID: ${profile.tenant_id})\n${pageContext ? `- Current Page: ${pageContext.currentPage}` : ''}\n${pageContext?.ncData ? `- Viewing NC: ${pageContext.ncData.ncNumber} (${pageContext.ncData.status})` : ''}\n` : "";
+    // Build context for AI — include roles so EDITH gives role-appropriate guidance
+    const userContext = profile ? `\nCURRENT USER CONTEXT:\n- Name: ${profile.full_name}\n- User ID: ${user.id}\n- Tenant: ${profile.tenants?.name || 'Unknown'} (ID: ${profile.tenant_id})\n- Roles: ${userRoles.length > 0 ? userRoles.join(", ") : "employee (no special roles)"}\n- Can classify NCs (QA): ${isQA}\n- Can approve corrective actions (Manager): ${isManager}\n${pageContext ? `- Current Page: ${pageContext.currentPage}` : ''}\n${pageContext?.ncData ? `- Viewing NC: ${pageContext.ncData.ncNumber} (Step ${pageContext.ncData.currentStep}, ${pageContext.ncData.status})` : ''}\n` : "";
 
     const systemPrompt = EDITH_SYSTEM_PROMPT + userContext + (tenantConfig?.personality_prompt || '');
 

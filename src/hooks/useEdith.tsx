@@ -301,34 +301,53 @@ export function EdithProvider({ children }: { children: ReactNode }) {
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
         let fullContent = '';
-        
+
         if (reader) {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
-            
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if (data === '[DONE]') continue;
-                
-                try {
-                  const parsed = JSON.parse(data);
-                  if (parsed.content) {
-                    fullContent += parsed.content;
-                    setState(prev => ({ ...prev, streamingContent: fullContent }));
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              const chunk = decoder.decode(value, { stream: true });
+              const lines = chunk.split('\n');
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6);
+                  if (data === '[DONE]') continue;
+
+                  try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.error) {
+                      throw new Error(parsed.error);
+                    }
+                    if (parsed.content) {
+                      fullContent += parsed.content;
+                      setState(prev => ({ ...prev, streamingContent: fullContent }));
+                    }
+                  } catch (parseErr) {
+                    if (parseErr instanceof SyntaxError) continue; // partial chunk, ignore
+                    throw parseErr;
                   }
-                } catch {
-                  // Ignore parse errors for partial chunks
                 }
               }
             }
+          } finally {
+            reader.cancel().catch(() => {});
           }
         }
-        
+
+        // Empty response — stream completed but server sent nothing
+        if (!fullContent) {
+          setState(prev => ({ ...prev, isStreaming: false, streamingContent: '' }));
+          toast({
+            title: 'Edith Error',
+            description: 'No response received. Please try again.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
         // Finalize streaming message
         const assistantMessage: EdithMessage = {
           id: crypto.randomUUID(),
@@ -390,7 +409,7 @@ export function EdithProvider({ children }: { children: ReactNode }) {
 
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
-        // User cancelled
+        setState(prev => ({ ...prev, isStreaming: false, streamingContent: '' }));
         return;
       }
       
@@ -401,6 +420,7 @@ export function EdithProvider({ children }: { children: ReactNode }) {
         ...prev,
         isLoading: false,
         isStreaming: false,
+        streamingContent: '',
         error: errorMessage,
       }));
 

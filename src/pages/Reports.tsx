@@ -17,7 +17,11 @@ import {
   GraduationCap,
   Briefcase,
   MessageSquareHeart,
+  Download,
+  Loader2,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -97,6 +101,7 @@ function RatingBar({ value, max = 5 }: { value: number; max?: number }) {
 
 export default function Reports() {
   const { profile } = useAuth();
+  const { toast } = useToast();
 
   // NC data
   const [allNCs, setAllNCs] = useState<any[]>([]);
@@ -110,6 +115,7 @@ export default function Reports() {
   const [courseEvals, setCourseEvals] = useState<any[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isExportingNC, setIsExportingNC] = useState(false);
 
   useEffect(() => {
     if (profile) fetchAllData();
@@ -154,6 +160,54 @@ export default function Reports() {
       console.error('Error fetching report data:', error);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleExportNCCSV() {
+    if (allNCs.length === 0) {
+      toast({ title: 'No data', description: 'No NCs to export.' });
+      return;
+    }
+    setIsExportingNC(true);
+    try {
+      const headers = [
+        'NC Number', 'Date Created', 'Department', 'Category', 'Severity', 'Status',
+        'Reported By', 'Responsible Person', 'Due Date', 'Description',
+      ];
+      const escapeCSV = (v: string | null | undefined) => {
+        if (v == null) return '';
+        const s = String(v);
+        return s.includes(',') || s.includes('"') || s.includes('\n')
+          ? `"${s.replace(/"/g, '""')}"`
+          : s;
+      };
+      const rows = allNCs.map((nc: any) => [
+        escapeCSV(nc.nc_number),
+        escapeCSV(nc.created_at ? format(new Date(nc.created_at), 'yyyy-MM-dd') : ''),
+        escapeCSV(nc.department?.name || ''),
+        escapeCSV(NC_CATEGORY_LABELS[nc.category as keyof typeof NC_CATEGORY_LABELS] || nc.category),
+        escapeCSV(NC_SEVERITY_LABELS[nc.severity as keyof typeof NC_SEVERITY_LABELS] || nc.severity),
+        escapeCSV(NC_STATUS_LABELS[nc.status as keyof typeof NC_STATUS_LABELS] || nc.status),
+        escapeCSV(nc.reporter?.full_name || ''),
+        escapeCSV(nc.responsible?.full_name || ''),
+        escapeCSV(nc.due_date ? format(new Date(nc.due_date), 'yyyy-MM-dd') : ''),
+        escapeCSV(nc.description),
+      ]);
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `NC-Report-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast({ title: 'Export Complete', description: `Downloaded ${allNCs.length} NC records.` });
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Export Failed', description: error.message || 'Failed to export.' });
+    } finally {
+      setIsExportingNC(false);
     }
   }
 
@@ -322,30 +376,49 @@ export default function Reports() {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">Reports</h1>
-          <p className="text-muted-foreground mt-1">Analytics across all platform modules</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight">Reports</h1>
+            <p className="text-muted-foreground mt-1 text-sm">Analytics across all platform modules</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportNCCSV}
+            disabled={isExportingNC || allNCs.length === 0}
+            className="w-full sm:w-auto"
+          >
+            {isExportingNC ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            Export NC CSV
+          </Button>
         </div>
 
         <Tabs defaultValue="nc">
-          <TabsList className="rounded-xl">
-            <TabsTrigger value="nc" className="rounded-lg gap-2">
-              <FileWarning className="h-4 w-4" />
-              Non-Conformances
-            </TabsTrigger>
-            <TabsTrigger value="surveys" className="rounded-lg gap-2">
-              <MessageSquareHeart className="h-4 w-4" />
-              Surveys
-            </TabsTrigger>
-            <TabsTrigger value="audits" className="rounded-lg gap-2">
-              <ClipboardCheck className="h-4 w-4" />
-              Audits
-            </TabsTrigger>
-            <TabsTrigger value="evaluations" className="rounded-lg gap-2">
-              <GraduationCap className="h-4 w-4" />
-              Evaluations
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList className="rounded-xl min-w-max">
+              <TabsTrigger value="nc" className="rounded-lg gap-1.5 text-xs sm:text-sm">
+                <FileWarning className="h-4 w-4" />
+                <span className="hidden xs:inline">Non-Conformances</span>
+                <span className="xs:hidden">NCs</span>
+              </TabsTrigger>
+              <TabsTrigger value="surveys" className="rounded-lg gap-1.5 text-xs sm:text-sm">
+                <MessageSquareHeart className="h-4 w-4" />
+                Surveys
+              </TabsTrigger>
+              <TabsTrigger value="audits" className="rounded-lg gap-1.5 text-xs sm:text-sm">
+                <ClipboardCheck className="h-4 w-4" />
+                Audits
+              </TabsTrigger>
+              <TabsTrigger value="evaluations" className="rounded-lg gap-1.5 text-xs sm:text-sm">
+                <GraduationCap className="h-4 w-4" />
+                Evals
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* ── NC Tab ───────────────────────────────────────────────────── */}
           <TabsContent value="nc" className="space-y-6 mt-6">
@@ -508,6 +581,7 @@ export default function Reports() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -532,6 +606,7 @@ export default function Reports() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -598,6 +673,7 @@ export default function Reports() {
                 {surveys.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">No surveys submitted yet</p>
                 ) : (
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -635,6 +711,7 @@ export default function Reports() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -705,6 +782,7 @@ export default function Reports() {
                 {audits.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">No audits created yet</p>
                 ) : (
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -737,6 +815,7 @@ export default function Reports() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -767,6 +846,7 @@ export default function Reports() {
                   {facilitatorEvals.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-8">No evaluations yet</p>
                   ) : (
+                    <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -789,6 +869,7 @@ export default function Reports() {
                         ))}
                       </TableBody>
                     </Table>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -808,6 +889,7 @@ export default function Reports() {
                   {contractorEvals.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-8">No evaluations yet</p>
                   ) : (
+                    <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -830,6 +912,7 @@ export default function Reports() {
                         ))}
                       </TableBody>
                     </Table>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -847,6 +930,7 @@ export default function Reports() {
                 {courseEvals.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">No course evaluations yet</p>
                 ) : (
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -865,6 +949,7 @@ export default function Reports() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>

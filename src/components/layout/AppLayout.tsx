@@ -38,10 +38,10 @@ export function AppLayout({ children }: AppLayoutProps) {
       <MobileNav />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto min-w-0">
         {/* Mobile top padding for header */}
-        <div className="pt-14 pb-20 md:pt-0 md:pb-0">
-          <div className="px-6 py-6 md:px-8 md:py-8 w-full max-w-7xl">
+        <div className="pt-14 pb-24 md:pt-0 md:pb-0">
+          <div className="px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 w-full max-w-7xl mx-auto">
             {children}
           </div>
         </div>

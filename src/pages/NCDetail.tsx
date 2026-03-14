@@ -234,23 +234,31 @@ export default function NCDetail() {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-start gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <div className="flex items-start gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="flex-shrink-0 mt-0.5">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-display font-bold tracking-tight font-mono">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-display font-bold tracking-tight font-mono">
                 {nc.nc_number}
               </h1>
-              <StatusBadge status={nc.status} isOverdue={overdue} isEscalated={((nc as any).workflow_history || []).filter((h: any) => h.action === 'manager_declined').length >= 3} />
-              <SeverityIndicator severity={nc.severity} />
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <div className="flex items-center gap-2 flex-wrap">
+                <StatusBadge status={nc.status} isOverdue={overdue} isEscalated={((nc as any).workflow_history || []).filter((h: any) => h.action === 'manager_declined').length >= 3} />
+                <SeverityIndicator severity={nc.severity} />
+              </div>
+            </div>
+            <p className="text-muted-foreground mt-1 text-sm">
+              {NC_CATEGORY_LABELS[nc.category as keyof typeof NC_CATEGORY_LABELS]}
+              {nc.category === 'other' && nc.category_other && `: ${nc.category_other}`}
+            </p>
+            <div className="flex items-center gap-2 mt-2 no-print">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="no-print"
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               </Button>
@@ -258,16 +266,12 @@ export default function NCDetail() {
                 variant="outline"
                 size="sm"
                 onClick={handlePrint}
-                className="no-print"
+                className="h-8"
               >
-                <Printer className="h-4 w-4 mr-2" />
+                <Printer className="h-4 w-4 mr-1.5" />
                 Export PDF
               </Button>
             </div>
-            <p className="text-muted-foreground mt-1">
-              {NC_CATEGORY_LABELS[nc.category as keyof typeof NC_CATEGORY_LABELS]}
-              {nc.category === 'other' && nc.category_other && `: ${nc.category_other}`}
-            </p>
           </div>
         </div>
 
@@ -280,21 +284,23 @@ export default function NCDetail() {
 
         {/* Main Content */}
         <Tabs defaultValue="actions">
-          <TabsList>
-            <TabsTrigger value="actions">Actions</TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-            <TabsTrigger value="attachments">
-              Attachments ({attachments.length})
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList className="min-w-max">
+              <TabsTrigger value="actions">Actions</TabsTrigger>
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+              <TabsTrigger value="attachments">
+                Attachments ({attachments.length})
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="actions" className="mt-6">
             <NCActionPanel nc={nc} onUpdate={handleRefresh} />
           </TabsContent>
 
           <TabsContent value="details" className="mt-6">
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
               {/* Main Details */}
               <Card className="glass-card-solid border-0 lg:col-span-2">
                 <CardHeader>
@@ -579,7 +585,7 @@ export default function NCDetail() {
           setLightboxName('');
         }
       }}>
-        <DialogContent className="max-w-4xl p-2">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl p-2">
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between px-2 pt-1">
               <p className="text-sm font-medium truncate">{lightboxName}</p>

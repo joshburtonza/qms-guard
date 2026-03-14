@@ -99,6 +99,13 @@ export default function NCList() {
 
   // CSV Export function
   async function handleExport() {
+    if (ncs.length === 0) {
+      toast({
+        title: 'No data to export',
+        description: 'There are no non-conformances to export.',
+      });
+      return;
+    }
     setIsExporting(true);
     try {
       const { data, error } = await supabase
@@ -215,13 +222,16 @@ export default function NCList() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `nc-export-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+      link.setAttribute('download', `nc-export-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
+      const count = (data || []).length;
       toast({
         title: 'Export Complete',
-        description: 'NC data exported successfully.',
+        description: `Downloaded ${count} NC record${count !== 1 ? 's' : ''} successfully.`,
       });
     } catch (error: any) {
       console.error('Export error:', error);
