@@ -133,7 +133,7 @@ export function EdithContextBar() {
 
   return (
     <div className="px-4 py-2 bg-muted/50 border-b">
-      <div className="flex items-center gap-1 text-[10px] text-muted-foreground flex-wrap">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap">
         <span className="font-medium">Edith sees:</span>
         
         {/* NC Context (when on NC detail page) */}

@@ -1,8 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
+const allowedOrigin = Deno.env.get("ALLOWED_ORIGIN") || "*";
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
@@ -33,6 +35,30 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const { action, tenantId, ncId, ncData, sheetId, rowId, webhookPayload, apiKey: bodyApiKey } = body;
+
+    const validActions = ["test_connection", "get_sheets", "get_columns", "sync_to_smartsheet", "sync_from_smartsheet", "webhook_callback", "setup_webhook", "manual_sync"];
+    if (!action || !validActions.includes(action)) {
+      return new Response(
+        JSON.stringify({ error: `Invalid action. Must be one of: ${validActions.join(", ")}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate required parameters per action
+    const actionsNeedingTenant = ["sync_to_smartsheet", "sync_from_smartsheet", "webhook_callback", "setup_webhook", "manual_sync"];
+    if (actionsNeedingTenant.includes(action) && !tenantId) {
+      return new Response(
+        JSON.stringify({ error: "tenantId is required for this action" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "get_columns" && !sheetId) {
+      return new Response(
+        JSON.stringify({ error: "sheetId is required for get_columns" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     console.log(`Smartsheet sync action: ${action}`, { tenantId, ncId, sheetId });
 
@@ -291,6 +317,16 @@ async function syncToSmartsheet(
       .update({ smartsheet_sync_status: "failed" })
       .eq("id", ncId);
 
+    // Update config with error status
+    await supabase
+      .from("smartsheet_config")
+      .update({
+        last_sync_at: new Date().toISOString(),
+        last_sync_status: "failed",
+        last_sync_error: result.message || "Failed to sync row to Smartsheet",
+      })
+      .eq("tenant_id", tenantId);
+
     return new Response(
       JSON.stringify({ error: result.message || "Failed to sync" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -385,7 +421,7 @@ async function syncFromSmartsheet(
     .single();
 
   if (existingNC) {
-    await supabase
+    const { error: updateError } = await supabase
       .from("non_conformances")
       .update(updates)
       .eq("id", existingNC.id);
@@ -396,9 +432,18 @@ async function syncFromSmartsheet(
       smartsheet_row_id: rowId,
       sync_direction: "from_smartsheet",
       sync_type: "update",
-      sync_status: "success",
+      sync_status: updateError ? "failed" : "success",
+      error_message: updateError?.message || null,
       payload: updates,
     });
+
+    if (updateError) {
+      console.error("Failed to update NC from Smartsheet:", updateError);
+      return new Response(
+        JSON.stringify({ error: updateError.message }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
   }
 
   return new Response(
@@ -412,7 +457,7 @@ async function handleWebhook(
   payload: any,
   tenantId: string
 ): Promise<Response> {
-  console.log("Webhook received:", payload);
+  console.log("Webhook received for tenant:", tenantId);
 
   // Smartsheet webhook verification challenge
   if (payload.challenge) {
@@ -420,6 +465,25 @@ async function handleWebhook(
       payload.challenge,
       { headers: { ...corsHeaders, "Content-Type": "text/plain" } }
     );
+  }
+
+  // Validate webhook secret if configured
+  if (tenantId) {
+    const { data: webhookConfig } = await supabase
+      .from("smartsheet_config")
+      .select("webhook_secret")
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+
+    if (webhookConfig?.webhook_secret && payload.webhookSecret) {
+      if (payload.webhookSecret !== webhookConfig.webhook_secret) {
+        console.error("Webhook secret mismatch for tenant:", tenantId);
+        return new Response(
+          JSON.stringify({ error: "Unauthorized webhook" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
   }
 
   if (payload.events) {

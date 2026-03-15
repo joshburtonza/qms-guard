@@ -151,7 +151,7 @@ export function EdithInput({
   return (
     <div
       className={cn(
-        "border-t p-4 transition-colors",
+        "border-t px-4 py-3 transition-colors",
         isDragging && "bg-foreground/5 border-foreground/30"
       )}
       onDragOver={handleDragOver}
@@ -265,9 +265,10 @@ export function EdithInput({
         )}
       </div>
 
-      <p className="text-xs text-muted-foreground mt-2 text-center">
-        <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">Enter</kbd> to send,{' '}
-        <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">Shift+Enter</kbd> for new line
+      <p className="text-[10px] text-muted-foreground/60 mt-1.5 text-center">
+        <kbd className="px-1 py-px bg-muted rounded text-[10px]">Enter</kbd> send
+        <span className="mx-1.5">·</span>
+        <kbd className="px-1 py-px bg-muted rounded text-[10px]">Shift+Enter</kbd> new line
       </p>
     </div>
   );

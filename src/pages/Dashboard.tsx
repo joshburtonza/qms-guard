@@ -54,6 +54,16 @@ import {
   Tooltip,
 } from 'recharts';
 
+const tooltipStyle = {
+  borderRadius: '14px',
+  border: '1px solid hsl(var(--border))',
+  background: 'hsl(var(--popover))',
+  boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
+  fontSize: '12px',
+  padding: '10px 14px',
+  color: 'hsl(var(--popover-foreground))',
+};
+
 export default function Dashboard() {
   const { profile, roles } = useAuth();
   const [allNCs, setAllNCs] = useState<any[]>([]);
@@ -131,7 +141,7 @@ export default function Dashboard() {
 
       setCategoryData(
         Object.entries(categoryCount).map(([name, value]) => ({
-          name: name.length > 15 ? name.slice(0, 15) + '...' : name,
+          name: name.length > 20 ? name.slice(0, 20) + '...' : name,
           value,
         }))
       );
@@ -368,7 +378,7 @@ export default function Dashboard() {
                   </defs>
                   <Area type="monotone" dataKey="created" stroke="hsl(var(--chart-1))" strokeWidth={2} fill="url(#gradCreated)" dot={false} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '14px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--popover))', boxShadow: '0 12px 40px rgba(0,0,0,0.12)', fontSize: '12px', padding: '10px 14px', color: 'hsl(var(--popover-foreground))' }}
+                    contentStyle={tooltipStyle}
                     labelStyle={{ display: 'none' }}
                   />
                 </AreaChart>
@@ -397,7 +407,7 @@ export default function Dashboard() {
                   </defs>
                   <Area type="monotone" dataKey="closed" stroke="hsl(var(--chart-3))" strokeWidth={2} fill="url(#gradClosed)" dot={false} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '14px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--popover))', boxShadow: '0 12px 40px rgba(0,0,0,0.12)', fontSize: '12px', padding: '10px 14px', color: 'hsl(var(--popover-foreground))' }}
+                    contentStyle={tooltipStyle}
                     labelStyle={{ display: 'none' }}
                   />
                 </AreaChart>
@@ -421,7 +431,7 @@ export default function Dashboard() {
                   <Line type="monotone" dataKey="created" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ r: 3, fill: 'hsl(var(--chart-1))', strokeWidth: 2, stroke: 'hsl(var(--card))' }} />
                   <Line type="monotone" dataKey="closed" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={{ r: 3, fill: 'hsl(var(--chart-3))', strokeWidth: 2, stroke: 'hsl(var(--card))' }} />
                   <Tooltip
-                    contentStyle={{ borderRadius: '14px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--popover))', boxShadow: '0 12px 40px rgba(0,0,0,0.12)', fontSize: '12px', padding: '10px 14px', color: 'hsl(var(--popover-foreground))' }}
+                    contentStyle={tooltipStyle}
                     labelStyle={{ display: 'none' }}
                   />
                 </LineChart>

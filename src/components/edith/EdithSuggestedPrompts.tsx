@@ -149,9 +149,9 @@ export function EdithSuggestedPrompts({
   }
 
   return (
-    <div className="flex flex-wrap gap-2 px-4 py-3 border-t bg-muted/30">
-      <span className="text-xs text-muted-foreground flex items-center mr-1">
-        <Sparkles className="h-3 w-3 mr-1" />
+    <div className="flex flex-wrap items-center gap-1.5 px-4 py-2.5 border-t bg-muted/20">
+      <span className="text-[10px] text-muted-foreground/60 flex items-center mr-0.5">
+        <Sparkles className="h-2.5 w-2.5 mr-1" />
         Try:
       </span>
       {suggestions.slice(0, 3).map((prompt, index) => (

@@ -91,7 +91,7 @@ export function ResponsiblePersonForm({
   useEffect(() => {
     const update = () => {
       if (signatureContainerRef.current) {
-        setCanvasWidth(Math.min(350, signatureContainerRef.current.offsetWidth));
+        setCanvasWidth(Math.min(500, signatureContainerRef.current.offsetWidth - 32));
       }
     };
     update();
@@ -236,13 +236,17 @@ export function ResponsiblePersonForm({
     try {
       // Upload evidence files first
       const uploadedFiles: string[] = [];
+      const failedUploads: string[] = [];
       for (const file of files) {
         const filePath = `${nc.id}/${Date.now()}-${file.name}`;
         const { error: uploadError } = await supabase.storage
           .from('nc-attachments')
           .upload(filePath, file);
 
-        if (!uploadError) {
+        if (uploadError) {
+          console.error(`Failed to upload ${file.name}:`, uploadError);
+          failedUploads.push(file.name);
+        } else {
           await supabase.from('nc_attachments').insert({
             nc_id: nc.id,
             file_name: file.name,
@@ -253,6 +257,14 @@ export function ResponsiblePersonForm({
           });
           uploadedFiles.push(filePath);
         }
+      }
+
+      if (failedUploads.length > 0) {
+        toast({
+          variant: 'destructive',
+          title: 'Some files failed to upload',
+          description: `Failed: ${failedUploads.join(', ')}. The submission will continue with ${uploadedFiles.length} successfully uploaded file(s).`,
+        });
       }
 
       // Create corrective action record

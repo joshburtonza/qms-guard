@@ -119,7 +119,7 @@ export default function Edith() {
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <div className="w-72 border-r flex flex-col bg-muted/30">
+      <div className="hidden md:flex w-72 border-r flex-col bg-muted/30">
         {/* Header */}
         <div className="p-4 border-b space-y-3">
           <div className="flex items-center gap-2">

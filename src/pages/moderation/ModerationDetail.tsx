@@ -89,6 +89,7 @@ export default function ModerationDetail() {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   
   // Review form state
   const [decision, setDecision] = useState<string>('');
@@ -207,10 +208,18 @@ export default function ModerationDetail() {
   }
 
   async function submitReview() {
-    if (!moderation || !decision || !feedback) {
+    if (!moderation || !decision) {
       toast({
-        title: 'Missing Information',
-        description: 'Please provide a decision and feedback.',
+        title: 'Decision Required',
+        description: 'Please select a moderation decision before submitting.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (!feedback.trim()) {
+      toast({
+        title: 'Feedback Required',
+        description: 'Please provide feedback to the assessor before submitting your review.',
         variant: 'destructive',
       });
       return;
@@ -268,6 +277,38 @@ export default function ModerationDetail() {
         ? prev.filter((c) => c !== concernId)
         : [...prev, concernId]
     );
+  }
+
+  async function saveDraft() {
+    if (!moderation) return;
+
+    setIsSavingDraft(true);
+    try {
+      const { error } = await supabase
+        .from('moderation_requests')
+        .update({
+          moderation_decision: decision || null,
+          moderation_feedback: feedback || null,
+          areas_of_concern: concerns.length > 0 ? concerns : null,
+          recommendations: recommendations || null,
+        })
+        .eq('id', moderation.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Draft Saved',
+        description: 'Your review progress has been saved.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to save draft',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingDraft(false);
+    }
   }
 
   if (isLoading) {
@@ -634,10 +675,11 @@ export default function ModerationDetail() {
 
                   {/* Submit */}
                   <div className="flex justify-end gap-4">
-                    <Button variant="outline" onClick={() => navigate('/moderation')}>
+                    <Button variant="outline" onClick={saveDraft} disabled={isSavingDraft}>
+                      {isSavingDraft && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Save Draft
                     </Button>
-                    <Button onClick={submitReview} disabled={isSubmitting}>
+                    <Button onClick={submitReview} disabled={isSubmitting || !decision || !feedback.trim()}>
                       {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Submit Review
                     </Button>

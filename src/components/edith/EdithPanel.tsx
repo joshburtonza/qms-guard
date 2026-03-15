@@ -23,21 +23,21 @@ export function EdithPanel() {
       <DialogContent
         hideCloseButton
         overlayClassName="backdrop-blur-sm bg-black/50"
-        className="w-screen h-screen max-w-none max-h-none rounded-none p-0 flex flex-col gap-0 border-0 sm:w-[90vw] sm:h-[85vh] sm:max-w-[700px] sm:max-h-[85vh] sm:rounded-xl sm:border"
+        className="w-screen h-screen max-w-none max-h-none rounded-none p-0 flex flex-col gap-0 border-0 sm:w-[90vw] sm:h-[85vh] sm:max-w-[720px] sm:max-h-[85vh] sm:rounded-2xl sm:border"
       >
         {/* Header */}
-        <div className="border-b p-4 shrink-0">
+        <div className="border-b px-4 py-3 shrink-0">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-foreground flex items-center justify-center">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-foreground flex items-center justify-center">
                 <Sparkles className="h-4 w-4 text-background" />
               </div>
               <div>
-                <DialogTitle className="text-left text-base">Edith</DialogTitle>
+                <DialogTitle className="text-left text-base leading-tight">Edith</DialogTitle>
                 <p className="text-xs text-muted-foreground">QMS AI Assistant</p>
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <Button
                 variant="ghost"
                 size="icon"
@@ -76,7 +76,7 @@ export function EdithPanel() {
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-between px-4 py-2 h-auto border-b rounded-none text-xs text-muted-foreground"
+              className="w-full justify-between px-4 py-1.5 h-auto border-b rounded-none text-xs text-muted-foreground hover:bg-muted/50"
             >
               <span className="flex items-center gap-2">
                 <History className="h-3 w-3" />
@@ -103,8 +103,8 @@ export function EdithPanel() {
 
         {/* Footer */}
         {currentConversation && (
-          <div className="border-t px-4 py-2 bg-muted/30">
-            <p className="text-xs text-muted-foreground text-center">
+          <div className="border-t px-4 py-1.5 bg-muted/20">
+            <p className="text-[10px] text-muted-foreground/50 text-center font-mono">
               {currentConversation.conversationNumber}
             </p>
           </div>

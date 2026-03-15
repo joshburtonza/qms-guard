@@ -14,7 +14,7 @@ export function EdithToolbar() {
   const { sendMessage, isLoading } = useEdith();
 
   return (
-    <div className="flex flex-wrap gap-2 px-4 py-2 border-b bg-muted/30">
+    <div className="flex flex-wrap gap-1.5 px-4 py-2.5 border-b bg-muted/20">
       {QUICK_ACTIONS.map((action) => {
         const Icon = iconMap[action.icon as keyof typeof iconMap];
         return (
@@ -22,7 +22,7 @@ export function EdithToolbar() {
             key={action.id}
             variant="outline"
             size="sm"
-            className="h-7 text-xs"
+            className="h-7 text-xs rounded-full px-3"
             disabled={isLoading}
             onClick={() => sendMessage(action.message)}
           >

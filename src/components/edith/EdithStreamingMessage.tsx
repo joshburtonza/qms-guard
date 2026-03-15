@@ -49,7 +49,7 @@ export function EdithStreamingMessage({
   };
 
   return (
-    <div className="bg-muted rounded-lg px-4 py-2 max-w-[85%]">
+    <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-2.5 max-w-[85%]">
       {/* Tool execution status */}
       {toolStatus && toolStatus.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-2">

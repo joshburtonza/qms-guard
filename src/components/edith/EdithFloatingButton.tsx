@@ -22,7 +22,7 @@ export function EdithFloatingButton() {
         size="icon"
         aria-label="Open Edith AI Assistant"
       >
-        <Sparkles className="h-6 w-6 text-primary-foreground" />
+        <Sparkles className="h-6 w-6 text-background" />
       </Button>
 
       {/* Notification Badge */}

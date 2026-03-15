@@ -240,11 +240,13 @@ export default function Reports() {
     const avgOverall = withRating.length > 0
       ? withRating.reduce((sum, s) => sum + s.rating_overall, 0) / withRating.length
       : 0;
-    const avgFacilitator = surveys.filter(s => s.rating_facilitator != null).length > 0
-      ? surveys.filter(s => s.rating_facilitator != null).reduce((sum, s) => sum + s.rating_facilitator, 0) / surveys.filter(s => s.rating_facilitator != null).length
+    const withFacilitator = surveys.filter(s => s.rating_facilitator != null);
+    const avgFacilitator = withFacilitator.length > 0
+      ? withFacilitator.reduce((sum, s) => sum + s.rating_facilitator, 0) / withFacilitator.length
       : 0;
-    const avgMaterial = surveys.filter(s => s.rating_material != null).length > 0
-      ? surveys.filter(s => s.rating_material != null).reduce((sum, s) => sum + s.rating_material, 0) / surveys.filter(s => s.rating_material != null).length
+    const withMaterial = surveys.filter(s => s.rating_material != null);
+    const avgMaterial = withMaterial.length > 0
+      ? withMaterial.reduce((sum, s) => sum + s.rating_material, 0) / withMaterial.length
       : 0;
     const byServiceType: Record<string, { count: number; total: number }> = {};
     surveys.forEach(s => {
@@ -266,8 +268,9 @@ export default function Reports() {
         const d = new Date(s.created_at);
         return d >= monthStart && d <= monthEnd;
       });
-      const avgRating = monthSurveys.filter(s => s.rating_overall).length > 0
-        ? monthSurveys.filter(s => s.rating_overall).reduce((sum, s) => sum + s.rating_overall, 0) / monthSurveys.filter(s => s.rating_overall).length
+      const withRatings = monthSurveys.filter(s => s.rating_overall);
+      const avgRating = withRatings.length > 0
+        ? withRatings.reduce((sum, s) => sum + s.rating_overall, 0) / withRatings.length
         : 0;
       months.push({ month: format(monthDate, 'MMM'), count: monthSurveys.length, avgRating: Math.round(avgRating * 10) / 10 });
     }
@@ -598,6 +601,7 @@ export default function Reports() {
                 {surveys.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">No surveys submitted yet</p>
                 ) : (
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -635,6 +639,7 @@ export default function Reports() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -705,6 +710,7 @@ export default function Reports() {
                 {audits.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">No audits created yet</p>
                 ) : (
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -737,6 +743,7 @@ export default function Reports() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>

@@ -72,7 +72,7 @@ export function ManagerApprovalForm({
   useEffect(() => {
     const update = () => {
       if (signatureContainerRef.current) {
-        setCanvasWidth(Math.min(350, signatureContainerRef.current.offsetWidth));
+        setCanvasWidth(Math.min(500, signatureContainerRef.current.offsetWidth - 32));
       }
     };
     update();
@@ -241,22 +241,30 @@ export function ManagerApprovalForm({
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Corrective Action Summary */}
-        {correctiveAction && (
+        {correctiveAction ? (
           <div className="bg-muted/50 rounded-lg p-4 space-y-4">
             <h4 className="font-medium">Submitted Corrective Action</h4>
             <div>
               <p className="text-sm text-muted-foreground">Root Cause:</p>
-              <p className="text-sm whitespace-pre-wrap">{correctiveAction.root_cause}</p>
+              <p className="text-sm whitespace-pre-wrap">{correctiveAction.root_cause || '—'}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Corrective Action:</p>
-              <p className="text-sm whitespace-pre-wrap">{correctiveAction.corrective_action}</p>
+              <p className="text-sm whitespace-pre-wrap">{correctiveAction.corrective_action || '—'}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Target Completion:</p>
-              <p className="text-sm">{correctiveAction.completion_date}</p>
+              <p className="text-sm">{correctiveAction.completion_date || '—'}</p>
             </div>
           </div>
+        ) : (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>No Corrective Action Found</AlertTitle>
+            <AlertDescription>
+              No corrective action has been submitted for this NC yet.
+            </AlertDescription>
+          </Alert>
         )}
 
         <Separator />
