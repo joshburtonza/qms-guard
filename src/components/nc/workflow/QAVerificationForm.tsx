@@ -167,7 +167,7 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
         await supabase.functions.invoke('nc-workflow-notification', {
           body: {
             nc_id: nc.id,
-            notification_type: 'nc_closed',
+            type: 'nc_closed',
             recipient_id: nc.reported_by,
           },
         });
@@ -198,7 +198,7 @@ export function QAVerificationForm({ nc, onSuccess }: QAVerificationFormProps) {
         await supabase.functions.invoke('nc-workflow-notification', {
           body: {
             nc_id: nc.id,
-            notification_type: 'rework_submitted',
+            type: 'rework_submitted',
             recipient_id: nc.responsible_person,
           },
         });

@@ -114,42 +114,80 @@ All edge function deploys require Josh to do them in the Supabase dashboard.
 
 ---
 
-### Phase 2 Scope
+### Email Notification Fix (2026-03-20)
 
-Based on platform overview and client brief. Phase 2 should address:
+**Client report:** "We still don't get email notifications only on the system." — Riaan
 
-**1. Surveys module**
-- Create/distribute surveys (likely post-training or post-audit)
-- Response collection + reporting
-- Link survey responses to NC records or audit events
-- Likely needs: `surveys`, `survey_questions`, `survey_responses` tables
-- Edge function: AI summarisation of survey results (Edith integration)
+**Root causes found & fixed in code:**
+1. **Invalid "from" addresses** — `nc-workflow-notification` used `noreply@qms-guard.com` (unverified domain) and `nc-scheduled-tasks` used `noreply@qms-guard.vercel.app` (vercel.app cannot be verified in Resend). Both changed to `noreply@resend.dev` (Resend test domain — works immediately).
+2. **Missing `nc_submitted` handler** — `ReportNC.tsx` sent `type: 'nc_submitted'` but the edge function had no case for it. Added template + handler.
+3. **Missing `nc_closed` handler** — `QAVerificationForm.tsx` sent `nc_closed` but no handler existed. Added template + handler.
+4. **Wrong field name** — `QAVerificationForm.tsx` sent `notification_type` instead of `type`. Fixed in component + added backwards compat in edge function.
 
-**2. Moderation workflows**
-- NC moderation step: QA/manager reviews submitted NCs before they enter the main workflow
-- Moderation finding as a source type is already in the enum (`moderation_finding`)
-- Needs: workflow step for moderation, role-based visibility, moderation outcome tracking
-
-**3. Course evaluations**
-- Training/course event records
-- Evaluation forms per course (pre/post assessment)
-- Link to `departments`, `profiles`, competency tracking
-- Maps to ISO 9001:2015 Clause 7.2 (Competence) and Clause 7.3 (Awareness)
-- Likely needs: `courses`, `course_evaluations`, `evaluation_responses` tables
-
-**4. Full audit module**
-- Audit planning: schedule, scope, auditor assignment
-- Audit checklists (clause-by-clause)
-- Finding recording (links to NC creation flow)
-- Audit report generation (Edith + `edith-generate-report` edge function)
-- Maps directly to Clause 9.2 (Internal Audit)
-- This is the largest Phase 2 item and has the most upstream work
+**Josh action required (Supabase dashboard):**
+1. **Deploy these 3 edge functions** (critical — emails won't send until deployed):
+   - `nc-workflow-notification` — handles all workflow step notifications
+   - `edith-send-email` — handles manual admin emails
+   - `nc-scheduled-tasks` — handles scheduled overdue reminders
+2. **Verify `RESEND_API_KEY` is set** in the edge function secrets
+3. **Verify `SUPABASE_SERVICE_ROLE_KEY` is set** in the edge function secrets
+4. **Future: verify a custom domain in Resend** (e.g., `qms-guard.com` or `ascendlc.co.za`) — the `noreply@resend.dev` test domain works but has lower deliverability and shows "via resend.dev" in recipients' inboxes
 
 ---
 
-### Phase 2 Pre-Work (things to resolve before building)
+### Phase 2 Status (updated 2026-03-21)
 
-1. **Edge functions:** Josh should confirm which are live in the Supabase dashboard. Several may already be deployed — we just can't verify via CLI. Before building Phase 2 features that depend on them, confirm status.
-2. **Riaan's niggles list:** Face-to-face session pending (as of Feb 2026). Any Phase 2 prioritisation should wait for or incorporate that list.
-3. **Role definitions for Phase 2:** Surveys and course evals likely need new roles or role permissions. Check current `profiles.role` enum before designing.
-4. **`suggest-iso-clauses` deploy:** Should be done early in Phase 2 — the AI-assisted clause tagging will be more important as audit records multiply.
+**All Phase 2 UI pages are built and deployed.** Database tables were migrated earlier. Summary:
+
+**1. Surveys module** — BUILT
+- Pages: `SurveyList.tsx`, `SurveySubmit.tsx`, `SurveyReports.tsx`
+- DB: `customer_satisfaction_surveys` table
+- Nav: Feedback & Surveys section in sidebar
+
+**2. Moderation workflows** — BUILT
+- Pages: `ModerationList.tsx`, `ModerationQueue.tsx`, `ModerationSubmit.tsx`, `ModerationDetail.tsx`
+- DB: `moderation_requests`, `moderation_attachments`, `unit_standards`
+- Nav: Quality Assurance section in sidebar
+
+**3. Course evaluations** — BUILT
+- Pages: `CourseEvaluationList.tsx`, `CourseEvaluationSubmit.tsx`, `CourseEvaluationReports.tsx`
+- DB: `courses`, `course_facilitator_evaluations`
+- Nav: Feedback & Surveys section in sidebar
+
+**4. Full audit module** — BUILT
+- Pages: `AuditList.tsx`, `AuditCreate.tsx`, `AuditDetail.tsx`
+- DB: `audit_checklists`, `audit_checklist_items`
+- Nav: Quality Assurance section in sidebar
+
+**5. Learner Tracking** — BUILT
+- Pages: `LearnerList.tsx`, `LearnerNew.tsx`, `LearnerDetail.tsx`, `LearnerAuditReport.tsx`
+- DB: `learners`, `learner_documents`, `learner_document_types`
+- Nav: Learner Tracking section in sidebar
+
+**6. Evaluations** — BUILT
+- Facilitator: `FacilitatorEvaluationList.tsx`, `FacilitatorEvaluationCreate.tsx`, `FacilitatorEvaluationDetail.tsx`
+- Contractor: `ContractorEvaluationList.tsx`, `ContractorEvaluationCreate.tsx`, `ContractorEvaluationDetail.tsx`
+- DB: `facilitator_annual_evaluations`, `contractor_evaluations`
+
+**Phase 1 bug fixes (2026-03-21):**
+- Severity selection bug fixed — `htmlFor` missing on radio labels caused Minor to block Critical/Major selection. Deployed.
+
+---
+
+### Edge Function Status (verified 2026-03-21)
+
+All 9 edge functions are **deployed and ACTIVE** on Supabase project `yjvnmablxeknprqplale`:
+- `edith-chat` v6, `classify-risk` v4, `edith-generate-report` v4, `edith-process-file` v4
+- `edith-send-email` v4, `nc-scheduled-tasks` v6, `nc-workflow-notification` v4
+- `smartsheet-sync` v4 — fully operational with DB trigger + 30-min retry cron
+- `suggest-iso-clauses` v4 — active (client-side regex fallback can be removed)
+
+**Note:** Email notification code was fixed on 2026-03-20 (4 root causes patched in local code). The deployed edge functions (`nc-workflow-notification` v4, `edith-send-email` v4) are from 2026-03-12 — the fixed versions need redeploying via dashboard to take effect.
+
+### Remaining Items
+
+1. **Redeploy email edge functions** with the Mar 20 fixes (nc-workflow-notification, edith-send-email, nc-scheduled-tasks)
+2. **Verify Resend secrets** — confirm `RESEND_API_KEY` is set in edge function secrets
+3. **Riaan's niggles list** — face-to-face session pending
+4. **Smartsheet** — fully built and deployed. Riaan needs to enter his API key in Settings to activate sync.
+5. **Test credentials** — `joshuaburton096@gmail.com` / `Safmarine123!` returns "Invalid login credentials". May need password reset.

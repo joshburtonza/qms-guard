@@ -100,6 +100,7 @@ const adminNavItems: NavItem[] = [
   { title: 'Activity Log', href: '/activity', icon: Activity, roles: ['super_admin', 'site_admin', 'manager'] },
   { title: 'Reports', href: '/reports', icon: BarChart3, roles: ['super_admin', 'site_admin', 'manager'] },
   { title: 'Users', href: '/users', icon: Users, roles: ['super_admin', 'site_admin'] },
+  { title: 'Courses', href: '/settings/courses', icon: GraduationCap, roles: ['super_admin', 'site_admin'] },
   { title: 'Dept. Managers', href: '/settings/department-mapping', icon: Users, roles: ['super_admin', 'site_admin'] },
   { title: 'Branding', href: '/settings/branding', icon: Settings, roles: ['super_admin', 'site_admin'] },
   { title: 'QR Codes', href: '/qr-codes', icon: QrCode, roles: ['super_admin', 'site_admin', 'manager'] },
@@ -335,7 +336,7 @@ export function AppSidebar() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{profile.full_name}</p>
                 <p className="text-[11px] text-muted-foreground truncate">
-                  {profile.employee_id || 'No ID'}
+                  {profile.employee_id || (roles[0] ? roles[0].replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Staff')}
                 </p>
               </div>
             )}

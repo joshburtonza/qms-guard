@@ -55,6 +55,7 @@ import DepartmentManagerMapping from "./pages/settings/DepartmentManagerMapping"
 import Edith from "./pages/Edith";
 import EdithSettings from "./pages/settings/EdithSettings";
 import ClauseManagement from "./pages/settings/ClauseManagement";
+import CourseManagement from "./pages/settings/CourseManagement";
 import DataCleanup from "./pages/settings/DataCleanup";
 // Automations
 import AutomationsDashboard from "./pages/automations/AutomationsDashboard";
@@ -64,6 +65,7 @@ import Users from "./pages/Users";
 import LearnerList from "./pages/learners/LearnerList";
 import LearnerDetail from "./pages/learners/LearnerDetail";
 import LearnerNew from "./pages/learners/LearnerNew";
+import LearnerAuditReport from "./pages/learners/LearnerAuditReport";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 const queryClient = new QueryClient();
@@ -125,6 +127,7 @@ const App = () => (
                   <Route path="/edith" element={<Edith />} />
                   <Route path="/settings/edith" element={<EdithSettings />} />
                   <Route path="/settings/clauses" element={<ClauseManagement />} />
+                  <Route path="/settings/courses" element={<CourseManagement />} />
                   <Route path="/settings/data-cleanup" element={<DataCleanup />} />
                   {/* Automations */}
                   <Route path="/automations" element={<AutomationsDashboard />} />
@@ -135,6 +138,7 @@ const App = () => (
                   {/* Learners */}
                   <Route path="/learners" element={<LearnerList />} />
                   <Route path="/learners/new" element={<LearnerNew />} />
+                  <Route path="/learners/audit" element={<LearnerAuditReport />} />
                   <Route path="/learners/:id" element={<LearnerDetail />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

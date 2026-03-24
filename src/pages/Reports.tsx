@@ -19,6 +19,8 @@ import {
   MessageSquareHeart,
   Download,
   Loader2,
+  Users,
+  FileCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -113,9 +115,14 @@ export default function Reports() {
   const [facilitatorEvals, setFacilitatorEvals] = useState<any[]>([]);
   const [contractorEvals, setContractorEvals] = useState<any[]>([]);
   const [courseEvals, setCourseEvals] = useState<any[]>([]);
+  // Moderation + Learner data
+  const [moderations, setModerations] = useState<any[]>([]);
+  const [learners, setLearners] = useState<any[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isExportingNC, setIsExportingNC] = useState(false);
+  const [isExportingSurvey, setIsExportingSurvey] = useState(false);
+  const [isExportingAudit, setIsExportingAudit] = useState(false);
 
   useEffect(() => {
     if (profile) fetchAllData();
@@ -123,7 +130,7 @@ export default function Reports() {
 
   async function fetchAllData() {
     try {
-      const [ncsRes, surveysRes, auditsRes, facEvalsRes, conEvalsRes, courseEvalsRes] = await Promise.all([
+      const [ncsRes, surveysRes, auditsRes, facEvalsRes, conEvalsRes, courseEvalsRes, moderationsRes, learnersRes] = await Promise.all([
         supabase
           .from('non_conformances')
           .select('*, reporter:reported_by(full_name), responsible:responsible_person(full_name), department:department_id(name)')
@@ -148,6 +155,14 @@ export default function Reports() {
           .from('course_facilitator_evaluations')
           .select('*, course:course_id(code, title), facilitator:facilitator_id(full_name)')
           .order('created_at', { ascending: false }),
+        supabase
+          .from('moderation_requests')
+          .select('*, course:courses(code, title), submitter:profiles!moderation_requests_submitted_by_fkey(full_name), moderator:profiles!moderation_requests_moderator_id_fkey(full_name)')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('learners')
+          .select('*, learner_documents(status, document_type:learner_document_types(name))')
+          .order('learner_number', { ascending: true }),
       ]);
 
       setAllNCs(ncsRes.data || []);
@@ -156,6 +171,8 @@ export default function Reports() {
       setFacilitatorEvals(facEvalsRes.data || []);
       setContractorEvals(conEvalsRes.data || []);
       setCourseEvals(courseEvalsRes.data || []);
+      setModerations(moderationsRes.data || []);
+      setLearners(learnersRes.data || []);
     } catch (error) {
       console.error('Error fetching report data:', error);
     } finally {
@@ -209,6 +226,55 @@ export default function Reports() {
     } finally {
       setIsExportingNC(false);
     }
+  }
+
+  async function handleExportSurveyCSV() {
+    if (surveys.length === 0) { toast({ title: 'No data', description: 'No surveys to export.' }); return; }
+    setIsExportingSurvey(true);
+    try {
+      const headers = ['Survey ID', 'Respondent', 'Service Type', 'Course', 'Facilitator', 'Rating Overall', 'Rating Facilitator', 'Rating Material', 'Date'];
+      const escapeCSV = (v: string | null | undefined) => { if (v == null) return ''; const s = String(v); return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s; };
+      const rows = surveys.map((s: any) => [
+        escapeCSV(s.survey_id), escapeCSV(s.respondent_name),
+        escapeCSV(SERVICE_TYPE_LABELS[s.service_type as ServiceType] || s.service_type),
+        escapeCSV((s.course as any)?.title || ''), escapeCSV((s.facilitator as any)?.full_name || ''),
+        s.rating_overall ?? '', s.rating_facilitator ?? '', s.rating_material ?? '',
+        escapeCSV(s.created_at ? format(new Date(s.created_at), 'yyyy-MM-dd') : ''),
+      ]);
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Survey-Report-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+      document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+      toast({ title: 'Export Complete', description: `Downloaded ${surveys.length} survey records.` });
+    } catch (error: any) { toast({ variant: 'destructive', title: 'Export Failed', description: error.message || 'Failed to export.' }); }
+    finally { setIsExportingSurvey(false); }
+  }
+
+  async function handleExportAuditCSV() {
+    if (audits.length === 0) { toast({ title: 'No data', description: 'No audits to export.' }); return; }
+    setIsExportingAudit(true);
+    try {
+      const headers = ['Checklist No.', 'Title', 'Department', 'Auditor', 'Date', 'Status', 'Result'];
+      const escapeCSV = (v: string | null | undefined) => { if (v == null) return ''; const s = String(v); return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s; };
+      const rows = audits.map((a: any) => [
+        escapeCSV(a.checklist_number), escapeCSV(a.title),
+        escapeCSV(a.department?.name || ''), escapeCSV(a.auditor?.full_name || ''),
+        escapeCSV(a.audit_date ? format(new Date(a.audit_date), 'yyyy-MM-dd') : ''),
+        escapeCSV(a.status), escapeCSV(a.overall_result || ''),
+      ]);
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Audit-Report-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+      document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+      toast({ title: 'Export Complete', description: `Downloaded ${audits.length} audit records.` });
+    } catch (error: any) { toast({ variant: 'destructive', title: 'Export Failed', description: error.message || 'Failed to export.' }); }
+    finally { setIsExportingAudit(false); }
   }
 
   // ─── NC metrics ──────────────────────────────────────────────────────────
@@ -355,6 +421,48 @@ export default function Reports() {
     return { facPending, facApproved, conPending, conApproved, courseTotal };
   }, [facilitatorEvals, contractorEvals, courseEvals]);
 
+  // ─── Moderation metrics ─────────────────────────────────────────────────
+  const moderationStats = useMemo(() => {
+    const pending = moderations.filter(m => m.status === 'pending').length;
+    const inReview = moderations.filter(m => m.status === 'in_review').length;
+    const approved = moderations.filter(m => m.status === 'approved').length;
+    const rejected = moderations.filter(m => m.status === 'rejected').length;
+    const byType: Record<string, number> = {};
+    moderations.forEach(m => {
+      const t = m.assessment_type || 'unknown';
+      byType[t] = (byType[t] || 0) + 1;
+    });
+    const byResult: Record<string, number> = {};
+    moderations.forEach(m => {
+      const r = m.assessment_result || 'unknown';
+      byResult[r] = (byResult[r] || 0) + 1;
+    });
+    return { total: moderations.length, pending, inReview, approved, rejected, byType, byResult };
+  }, [moderations]);
+
+  // ─── Learner metrics ────────────────────────────────────────────────────
+  const learnerStats = useMemo(() => {
+    const total = learners.length;
+    let compliant = 0;
+    let totalDocs = 0;
+    let presentDocs = 0;
+    let missingDocs = 0;
+    let unclearDocs = 0;
+    learners.forEach((l: any) => {
+      const docs: { status: string }[] = l.learner_documents || [];
+      totalDocs += docs.length;
+      const present = docs.filter(d => d.status === 'present').length;
+      const missing = docs.filter(d => d.status === 'missing').length;
+      const unclear = docs.filter(d => d.status === 'unclear').length;
+      presentDocs += present;
+      missingDocs += missing;
+      unclearDocs += unclear;
+      if (docs.length > 0 && docs.every(d => d.status === 'present')) compliant++;
+    });
+    const complianceRate = total > 0 ? Math.round((compliant / total) * 100) : 0;
+    return { total, compliant, complianceRate, totalDocs, presentDocs, missingDocs, unclearDocs };
+  }, [learners]);
+
   if (isLoading) {
     return (
       <AppLayout>
@@ -416,6 +524,14 @@ export default function Reports() {
               <TabsTrigger value="evaluations" className="rounded-lg gap-1.5 text-xs sm:text-sm">
                 <GraduationCap className="h-4 w-4" />
                 Evals
+              </TabsTrigger>
+              <TabsTrigger value="moderation" className="rounded-lg gap-1.5 text-xs sm:text-sm">
+                <Briefcase className="h-4 w-4" />
+                Moderation
+              </TabsTrigger>
+              <TabsTrigger value="learners" className="rounded-lg gap-1.5 text-xs sm:text-sm">
+                <Users className="h-4 w-4" />
+                Learners
               </TabsTrigger>
             </TabsList>
           </div>
@@ -614,6 +730,12 @@ export default function Reports() {
 
           {/* ── Surveys Tab ───────────────────────────────────────────────── */}
           <TabsContent value="surveys" className="space-y-6 mt-6">
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={handleExportSurveyCSV} disabled={isExportingSurvey || surveys.length === 0}>
+                {isExportingSurvey ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                Export CSV
+              </Button>
+            </div>
             <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
               <KPIStat label="Total Surveys" value={surveyStats.total} icon={<MessageSquareHeart className="h-4 w-4" />} />
               <KPIStat label="Avg Overall" value={surveyStats.avgOverall > 0 ? `${surveyStats.avgOverall.toFixed(1)}/5` : 'N/A'} icon={<Star className="h-4 w-4" />} />
@@ -719,6 +841,12 @@ export default function Reports() {
 
           {/* ── Audits Tab ────────────────────────────────────────────────── */}
           <TabsContent value="audits" className="space-y-6 mt-6">
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={handleExportAuditCSV} disabled={isExportingAudit || audits.length === 0}>
+                {isExportingAudit ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                Export CSV
+              </Button>
+            </div>
             <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
               <KPIStat label="Total Audits" value={auditStats.total} icon={<ClipboardCheck className="h-4 w-4" />} />
               <KPIStat label="In Progress" value={auditStats.inProgress} icon={<Clock className="h-4 w-4" />} />
@@ -949,6 +1077,208 @@ export default function Reports() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ── Moderation Tab ──────────────────────────────────────────── */}
+          <TabsContent value="moderation" className="space-y-6 mt-6">
+            <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+              <KPIStat label="Total Requests" value={moderationStats.total} icon={<Briefcase className="h-4 w-4" />} />
+              <KPIStat label="Pending" value={moderationStats.pending} icon={<Clock className="h-4 w-4" />} alert={moderationStats.pending > 0} />
+              <KPIStat label="In Review" value={moderationStats.inReview} icon={<FileCheck className="h-4 w-4" />} />
+              <KPIStat label="Approved" value={moderationStats.approved} icon={<CheckCircle className="h-4 w-4" />} />
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="glass-card-solid border-0">
+                <CardHeader><CardTitle className="font-display text-base">By Assessment Type</CardTitle></CardHeader>
+                <CardContent>
+                  {Object.keys(moderationStats.byType).length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">No moderation data yet</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {Object.entries(moderationStats.byType).map(([type, count], i) => (
+                        <div key={type} className="space-y-1">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground capitalize">{type}</span>
+                            <span className="font-display font-semibold">{count as number}</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                            <div className="h-full rounded-full bg-foreground" style={{ width: `${moderationStats.total > 0 ? ((count as number) / moderationStats.total) * 100 : 0}%`, opacity: 1 - i * 0.15 }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="glass-card-solid border-0">
+                <CardHeader><CardTitle className="font-display text-base">By Assessment Result</CardTitle></CardHeader>
+                <CardContent>
+                  {Object.keys(moderationStats.byResult).length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">No moderation data yet</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {Object.entries(moderationStats.byResult).map(([result, count], i) => (
+                        <div key={result} className="space-y-1">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground capitalize">{result.replace(/_/g, ' ')}</span>
+                            <span className="font-display font-semibold">{count as number}</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                            <div className="h-full rounded-full bg-foreground" style={{ width: `${moderationStats.total > 0 ? ((count as number) / moderationStats.total) * 100 : 0}%`, opacity: 1 - i * 0.15 }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="glass-card-solid border-0">
+              <CardHeader><CardTitle className="font-display text-base">Recent Moderation Requests</CardTitle></CardHeader>
+              <CardContent>
+                {moderations.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">No moderation requests yet</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>ID</TableHead>
+                          <TableHead>Learner</TableHead>
+                          <TableHead>Course</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Result</TableHead>
+                          <TableHead>Submitted By</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Date</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {moderations.slice(0, 20).map(m => (
+                          <TableRow key={m.id}>
+                            <TableCell className="font-mono text-xs">{m.moderation_id}</TableCell>
+                            <TableCell className="font-medium">{m.learner_name || '—'}</TableCell>
+                            <TableCell className="text-muted-foreground text-sm">{(m.course as any)?.title || '—'}</TableCell>
+                            <TableCell><Badge variant="secondary" className="rounded-full text-xs capitalize">{m.assessment_type || '—'}</Badge></TableCell>
+                            <TableCell className="text-sm capitalize">{m.assessment_result?.replace(/_/g, ' ') || '—'}</TableCell>
+                            <TableCell className="text-muted-foreground text-sm">{(m.submitter as any)?.full_name || '—'}</TableCell>
+                            <TableCell>
+                              <Badge variant={m.status === 'approved' ? 'default' : 'secondary'} className="rounded-full text-xs capitalize">{m.status?.replace(/_/g, ' ')}</Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">{format(new Date(m.created_at), 'dd MMM yyyy')}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ── Learners Tab ────────────────────────────────────────────── */}
+          <TabsContent value="learners" className="space-y-6 mt-6">
+            <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+              <KPIStat label="Total Learners" value={learnerStats.total} icon={<Users className="h-4 w-4" />} />
+              <KPIStat label="Fully Compliant" value={learnerStats.compliant} icon={<CheckCircle className="h-4 w-4" />} />
+              <KPIStat label="Compliance Rate" value={learnerStats.total > 0 ? `${learnerStats.complianceRate}%` : 'N/A'} icon={<TrendingUp className="h-4 w-4" />} />
+              <KPIStat label="Total Documents" value={learnerStats.totalDocs} icon={<FileCheck className="h-4 w-4" />} />
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="glass-card-solid border-0">
+                <CardHeader><CardTitle className="font-display text-base">Document Status Breakdown</CardTitle></CardHeader>
+                <CardContent>
+                  {learnerStats.totalDocs === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">No document data yet</p>
+                  ) : (
+                    <div className="space-y-4 pt-2">
+                      {[
+                        { label: 'Present', value: learnerStats.presentDocs, color: '' },
+                        { label: 'Missing', value: learnerStats.missingDocs, color: '' },
+                        { label: 'Unclear', value: learnerStats.unclearDocs, color: '' },
+                      ].map((item, i) => (
+                        <div key={item.label} className="space-y-1">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{item.label}</span>
+                            <span className="font-display font-semibold">{item.value}</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                            <div className="h-full rounded-full bg-foreground" style={{ width: `${learnerStats.totalDocs > 0 ? (item.value / learnerStats.totalDocs) * 100 : 0}%`, opacity: 1 - i * 0.25 }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="glass-card-solid border-0 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Compliance Rate</span>
+                  <Users className="h-4 w-4 text-muted-foreground/50" />
+                </div>
+                <div className="text-5xl font-display font-bold tracking-tight">{learnerStats.complianceRate}%</div>
+                <p className="text-sm text-muted-foreground mt-2">{learnerStats.compliant} of {learnerStats.total} learners fully compliant</p>
+                <div className="mt-4 h-2 rounded-full bg-muted overflow-hidden">
+                  <div className="h-full rounded-full bg-foreground transition-all" style={{ width: `${learnerStats.complianceRate}%` }} />
+                </div>
+              </Card>
+            </div>
+
+            <Card className="glass-card-solid border-0">
+              <CardHeader><CardTitle className="font-display text-base">Learner Document Overview</CardTitle></CardHeader>
+              <CardContent>
+                {learners.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">No learners registered yet</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Learner No.</TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead>ID Number</TableHead>
+                          <TableHead className="text-center">Docs Present</TableHead>
+                          <TableHead className="text-center">Docs Missing</TableHead>
+                          <TableHead className="text-center">Docs Unclear</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {learners.slice(0, 30).map((l: any) => {
+                          const docs: { status: string }[] = l.learner_documents || [];
+                          const present = docs.filter(d => d.status === 'present').length;
+                          const missing = docs.filter(d => d.status === 'missing').length;
+                          const unclear = docs.filter(d => d.status === 'unclear').length;
+                          const isCompliant = docs.length > 0 && docs.every(d => d.status === 'present');
+                          return (
+                            <TableRow key={l.id}>
+                              <TableCell>
+                                <Link to={`/learners/${l.id}`} className="font-mono text-sm hover:underline">{l.learner_number}</Link>
+                              </TableCell>
+                              <TableCell className="font-medium">{l.full_name}</TableCell>
+                              <TableCell className="text-muted-foreground text-sm">{l.id_number || '—'}</TableCell>
+                              <TableCell className="text-center font-display font-semibold">{present}</TableCell>
+                              <TableCell className="text-center font-display font-semibold">{missing > 0 ? <span className="text-destructive">{missing}</span> : '0'}</TableCell>
+                              <TableCell className="text-center font-display font-semibold">{unclear > 0 ? <span className="text-amber-600">{unclear}</span> : '0'}</TableCell>
+                              <TableCell>
+                                <Badge variant={isCompliant ? 'default' : 'secondary'} className="rounded-full text-xs">
+                                  {isCompliant ? 'Compliant' : docs.length === 0 ? 'No Docs' : 'Incomplete'}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
                   </div>
                 )}
               </CardContent>

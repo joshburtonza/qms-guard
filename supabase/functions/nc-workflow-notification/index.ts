@@ -5,6 +5,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+// Escape HTML to prevent XSS in email templates
+function escapeHtml(str: string): string {
+  return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 // Email templates for different notification types
 const emailTemplates = {
   qa_classified: (nc: any, risk: string) => ({
@@ -27,7 +32,7 @@ const emailTemplates = {
           </div>
           
           <p><strong>Description:</strong></p>
-          <p style="background: white; padding: 10px; border-radius: 4px;">${nc.description}</p>
+          <p style="background: white; padding: 10px; border-radius: 4px;">${escapeHtml(nc.description)}</p>
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.vercel.app'}/nc/${nc.id}" 
@@ -88,7 +93,7 @@ const emailTemplates = {
           
           <div style="background: white; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <p><strong>NC Number:</strong> ${nc.nc_number}</p>
-            <p><strong>Description:</strong> ${nc.description}</p>
+            <p><strong>Description:</strong> ${escapeHtml(nc.description)}</p>
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
@@ -186,7 +191,7 @@ const emailTemplates = {
           
           <div style="background: white; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <p><strong>NC Number:</strong> ${nc.nc_number}</p>
-            <p><strong>Description:</strong> ${nc.description}</p>
+            <p><strong>Description:</strong> ${escapeHtml(nc.description)}</p>
             <p><strong>Decline Count:</strong> <span style="color: #DC2626; font-weight: bold;">${declineCount}</span></p>
           </div>
           
@@ -198,6 +203,61 @@ const emailTemplates = {
           </div>
           
           <p style="color: #666;">Please review the NC history and facilitate resolution.</p>
+        </div>
+      </div>
+    `,
+  }),
+
+  nc_submitted: (nc: any) => ({
+    subject: `[New NC] ${nc.nc_number} - Assigned to You`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #1E40AF; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">QMS Guard</h1>
+        </div>
+        <div style="padding: 20px; background: #f9fafb;">
+          <h2 style="color: #1E40AF;">New Non-Conformance Assigned</h2>
+          <p>A new non-conformance has been submitted and assigned to you for action.</p>
+
+          <div style="background: white; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <table style="width: 100%;">
+              <tr><td style="color: #666; padding: 5px 0;">NC Number:</td><td style="font-weight: bold;">${nc.nc_number}</td></tr>
+              <tr><td style="color: #666; padding: 5px 0;">Severity:</td><td style="font-weight: bold;">${nc.severity?.toUpperCase() || 'N/A'}</td></tr>
+              <tr><td style="color: #666; padding: 5px 0;">Due Date:</td><td style="font-weight: bold;">${nc.due_date}</td></tr>
+            </table>
+          </div>
+
+          <p><strong>Description:</strong></p>
+          <p style="background: white; padding: 10px; border-radius: 4px;">${escapeHtml(nc.description)}</p>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${Deno.env.get('FRONTEND_URL') || 'https://qms-guard.vercel.app'}/nc/${nc.id}"
+               style="background: #1E40AF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              View NC Details
+            </a>
+          </div>
+        </div>
+      </div>
+    `,
+  }),
+
+  nc_closed: (nc: any) => ({
+    subject: `[Closed] NC ${nc.nc_number} - Verified & Closed`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #059669; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">QMS Guard</h1>
+        </div>
+        <div style="padding: 20px; background: #f0fdf4;">
+          <h2 style="color: #059669;">✓ Non-Conformance Verified & Closed</h2>
+          <p>The corrective action for this NC has been verified and the NC is now closed.</p>
+
+          <div style="background: white; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>NC Number:</strong> ${nc.nc_number}</p>
+            <p><strong>Status:</strong> <span style="color: #059669; font-weight: bold;">CLOSED</span></p>
+          </div>
+
+          <p style="color: #666;">Thank you for your prompt attention to this matter.</p>
         </div>
       </div>
     `,
@@ -251,7 +311,7 @@ async function sendEmail(to: string, subject: string, html: string) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'QMS Guard <noreply@qms-guard.com>',
+        from: 'QMS Guard <noreply@resend.dev>',
         to: [to],
         subject,
         html,
@@ -295,7 +355,10 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { type, nc_id, risk_classification, decline_comments, decline_count } = await req.json();
+    const body = await req.json();
+    // Support both 'type' and 'notification_type' field names for backwards compat
+    const type = body.type || body.notification_type;
+    const { nc_id, risk_classification, decline_comments, decline_count, recipient_id } = body;
 
     console.log('Processing notification:', { type, nc_id });
 
@@ -404,6 +467,41 @@ Deno.serve(async (req) => {
           }
         }
         break;
+      }
+
+      case 'nc_submitted': {
+        // Notify responsible person that a new NC has been assigned
+        if (!nc.responsible_person) {
+          console.warn(`nc_submitted: NC ${nc.nc_number} has no responsible_person — skipping notification`);
+          break;
+        }
+        const rpEmail = await getEmailForUser(supabase, nc.responsible_person);
+        if (rpEmail) {
+          notifications.push({
+            to: rpEmail,
+            template: emailTemplates.nc_submitted(nc),
+          });
+        } else {
+          console.warn(`nc_submitted: No email found for responsible_person ${nc.responsible_person}`);
+        }
+        break;
+      }
+
+      case 'nc_closed': {
+        // Notify the original reporter that the NC has been closed
+        const targetUserId = recipient_id || nc.reported_by;
+        const reporterEmail = await getEmailForUser(supabase, targetUserId);
+        if (reporterEmail) {
+          notifications.push({
+            to: reporterEmail,
+            template: emailTemplates.nc_closed(nc),
+          });
+        }
+        break;
+      }
+
+      default: {
+        console.warn('Unknown notification type:', type);
       }
     }
 

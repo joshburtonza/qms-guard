@@ -31,6 +31,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Audit {
@@ -61,6 +62,7 @@ const RESULT_CONFIG: Record<string, { label: string; color: string }> = {
 
 export default function AuditList() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [audits, setAudits] = useState<Audit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,13 +74,22 @@ export default function AuditList() {
 
   async function fetchAudits() {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('audit_checklists')
-      .select('*, auditor:profiles!audit_checklists_auditor_id_fkey(full_name), department:departments(name)')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('audit_checklists')
+        .select('*, auditor:profiles!audit_checklists_auditor_id_fkey(full_name), department:departments(name)')
+        .order('created_at', { ascending: false });
 
-    if (data) setAudits(data as any);
-    setIsLoading(false);
+      if (error) {
+        toast({ variant: 'destructive', title: 'Failed to load audits', description: error.message });
+        return;
+      }
+      if (data) setAudits(data as any);
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Failed to load audits', description: 'An unexpected error occurred.' });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const filteredAudits = audits.filter((audit) => {

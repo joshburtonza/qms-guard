@@ -7,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SMARTSHEET_API_URL = "https://api.smartsheet.com/2.0";
+const SMARTSHEET_API_URL = "https://api.smartsheet.eu/2.0";
 
 interface SmartsheetColumn {
   id: number;
@@ -37,7 +37,8 @@ serve(async (req) => {
     console.log(`Smartsheet sync action: ${action}`, { tenantId, ncId, sheetId });
 
     // Resolve API key: request body → config table → env var (fallback)
-    let SMARTSHEET_API_KEY = bodyApiKey || Deno.env.get("SMARTSHEET_API_KEY") || "";
+    // Trim whitespace — common copy-paste issue
+    let SMARTSHEET_API_KEY = (bodyApiKey || Deno.env.get("SMARTSHEET_API_KEY") || "").trim();
 
     // For tenant-scoped actions, prefer the stored key from the config table
     if (tenantId && !bodyApiKey) {
@@ -116,9 +117,20 @@ async function testConnection(apiKey: string): Promise<Response> {
   });
 
   if (!response.ok) {
-    const error = await response.text();
+    const errorText = await response.text();
+    let parsed;
+    try { parsed = JSON.parse(errorText); } catch { parsed = null; }
+    const code = parsed?.errorCode;
+    let hint = "";
+    if (code === 1002) {
+      hint = " Make sure you're using a Personal Access Token (Account → Personal Settings → API Access), not an OAuth token. The token should be ~50 characters.";
+    } else if (code === 1003) {
+      hint = " Your Smartsheet account may not have API access enabled. Contact your Smartsheet admin.";
+    } else if (code === 1004) {
+      hint = " Too many API requests. Wait a minute and try again.";
+    }
     return new Response(
-      JSON.stringify({ success: false, error }),
+      JSON.stringify({ success: false, error: (parsed?.message || errorText) + hint }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
@@ -231,21 +243,27 @@ async function syncToSmartsheet(
     ncData = nc;
   }
 
-  // Build row cells based on column mapping
+  // Build row cells based on column mapping (skip null/empty values to avoid Smartsheet PICKLIST errors)
   const columnMapping = config.column_mapping as Record<string, string>;
   const cells = Object.entries(columnMapping)
     .filter(([_, columnId]) => columnId && !isNaN(parseInt(columnId)))
-    .map(([ncField, columnId]) => ({
-      columnId: parseInt(columnId),
-      value: getNCFieldValue(ncData, ncField),
-    }));
+    .map(([ncField, columnId]) => {
+      let value = getNCFieldValue(ncData, ncField);
+      // Truncate ISO timestamps to YYYY-MM-DD for Smartsheet DATE columns
+      if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+        value = value.substring(0, 10);
+      }
+      return { columnId: parseInt(columnId), value };
+    })
+    .filter(cell => cell.value !== null && cell.value !== undefined && cell.value !== "");
 
   const existingRowId = ncData.smartsheet_row_id;
   let syncType: "create" | "update" = existingRowId ? "update" : "create";
 
   let response;
+  const rowUrl = `${SMARTSHEET_API_URL}/sheets/${config.sheet_id}/rows?allowPartialSuccess=true`;
   if (existingRowId) {
-    response = await fetch(`${SMARTSHEET_API_URL}/sheets/${config.sheet_id}/rows`, {
+    response = await fetch(rowUrl, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -254,7 +272,7 @@ async function syncToSmartsheet(
       body: JSON.stringify([{ id: parseInt(existingRowId), cells }]),
     });
   } else {
-    response = await fetch(`${SMARTSHEET_API_URL}/sheets/${config.sheet_id}/rows`, {
+    response = await fetch(rowUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -548,7 +566,10 @@ async function manualFullSync(
 function getNCFieldValue(nc: any, field: string): any {
   switch (field) {
     case "nc_number": return nc.nc_number;
-    case "status": return nc.status;
+    case "status": {
+      const statusMap: Record<string, string> = { open: "Open", in_progress: "In Progress", pending_review: "Pending Review", pending_verification: "Pending Verification", closed: "Closed", rejected: "Rejected" };
+      return statusMap[nc.status] || nc.status;
+    }
     case "severity": return nc.severity;
     case "category": return nc.category === "other" ? nc.category_other : nc.category;
     case "description": return nc.description;
@@ -559,7 +580,11 @@ function getNCFieldValue(nc: any, field: string): any {
     case "date_occurred": return nc.date_occurred;
     case "site_location": return nc.site_location || "";
     case "immediate_action": return nc.immediate_action || "";
-    case "risk_classification": return nc.risk_classification || "";
+    case "risk_classification": {
+      const rc = nc.risk_classification || "";
+      const rcMap: Record<string, string> = { observation: "Observation", ofi: "OFI", minor: "Minor", major: "Major" };
+      return rcMap[rc] || rc;
+    }
     case "ai_risk_level": return nc.ai_risk_assessment?.risk_level || "";
     case "ai_category": return nc.ai_risk_assessment?.category || "";
     case "ai_suggested_owner": return nc.ai_risk_assessment?.suggested_owner || "";

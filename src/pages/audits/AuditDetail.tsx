@@ -83,25 +83,39 @@ export default function AuditDetail() {
     if (!id) return;
     setIsLoading(true);
 
-    const [auditRes, itemsRes] = await Promise.all([
-      supabase
-        .from('audit_checklists')
-        .select('*, auditor:profiles!audit_checklists_auditor_id_fkey(full_name), department:departments(name)')
-        .eq('id', id)
-        .single(),
-      supabase
-        .from('audit_checklist_items')
-        .select('*')
-        .eq('checklist_id', id)
-        .order('item_number'),
-    ]);
+    try {
+      const [auditRes, itemsRes] = await Promise.all([
+        supabase
+          .from('audit_checklists')
+          .select('*, auditor:profiles!audit_checklists_auditor_id_fkey(full_name), department:departments(name)')
+          .eq('id', id)
+          .single(),
+        supabase
+          .from('audit_checklist_items')
+          .select('*')
+          .eq('checklist_id', id)
+          .order('item_number'),
+      ]);
 
-    if (auditRes.data) {
-      setAudit(auditRes.data as any);
-      setSummaryNotes(auditRes.data.summary_notes || '');
+      if (auditRes.error) {
+        toast({ variant: 'destructive', title: 'Audit not found', description: 'This audit could not be loaded.' });
+        navigate('/audits');
+        return;
+      }
+      if (auditRes.data) {
+        setAudit(auditRes.data as any);
+        setSummaryNotes(auditRes.data.summary_notes || '');
+      }
+      if (itemsRes.error) {
+        toast({ variant: 'destructive', title: 'Failed to load checklist items', description: itemsRes.error.message });
+      }
+      if (itemsRes.data) setItems(itemsRes.data as any);
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Failed to load audit', description: 'An unexpected error occurred.' });
+      navigate('/audits');
+    } finally {
+      setIsLoading(false);
     }
-    if (itemsRes.data) setItems(itemsRes.data as any);
-    setIsLoading(false);
   }
 
   async function updateItem(itemId: string, field: string, value: string) {
@@ -193,13 +207,18 @@ export default function AuditDetail() {
     }
 
     // Link NC to audit item
-    await supabase
+    const { error: linkError } = await supabase
       .from('audit_checklist_items')
       .update({ nc_id: nc.id })
       .eq('id', item.id);
 
+    if (linkError) {
+      toast({ variant: 'destructive', title: 'NC link failed', description: `NC ${nc.nc_number} was created but could not be linked to this item.` });
+      return;
+    }
+
     setItems(items.map((i) => (i.id === item.id ? { ...i, nc_id: nc.id } : i)));
-    toast({ title: `NC ${nc.nc_number} created from finding` });
+    toast({ title: `NC ${nc.nc_number} created`, description: 'Non-conformance linked to this audit item.' });
   }
 
   if (isLoading || !audit) {

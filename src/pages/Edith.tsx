@@ -299,7 +299,10 @@ function ConversationGroup({
           <MessageSquare className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
           <div className="flex-1 min-w-0">
             <p className="truncate font-medium">
-              {conv.title || conv.conversationNumber}
+              {conv.title || (() => {
+                const num = conv.conversationNumber?.match(/-(\d+)$/)?.[1];
+                return num ? `Conversation #${parseInt(num, 10)}` : 'New Conversation';
+              })()}
             </p>
             <p className="text-xs text-muted-foreground truncate">
               {format(conv.updatedAt, 'MMM d, h:mm a')}

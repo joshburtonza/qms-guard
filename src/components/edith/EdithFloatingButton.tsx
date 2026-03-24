@@ -1,4 +1,5 @@
 import { Sparkles } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useEdith } from '@/hooks/useEdith';
 import { useEdithBadge } from '@/hooks/useEdithBadge';
@@ -7,6 +8,10 @@ import { cn } from '@/lib/utils';
 export function EdithFloatingButton() {
   const { toggleEdith, isOpen, isLoading } = useEdith();
   const badge = useEdithBadge();
+  const location = useLocation();
+
+  // Don't show the floating button on the dedicated Edith page
+  if (location.pathname === '/edith') return null;
 
   return (
     <div className="fixed bottom-24 right-6 z-50">

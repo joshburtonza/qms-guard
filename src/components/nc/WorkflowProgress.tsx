@@ -35,8 +35,8 @@ export function WorkflowProgress({ currentStep, className }: WorkflowProgressPro
 
         return (
           <div key={step.step} className="flex items-center flex-1">
-            <div className="flex flex-col items-center">
-                <div
+            <div className="flex flex-col items-center gap-2">
+              <div
                 className={cn(
                   'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-300',
                   status === 'complete' && 'bg-foreground border-foreground text-background',
@@ -52,7 +52,7 @@ export function WorkflowProgress({ currentStep, className }: WorkflowProgressPro
               </div>
               <span
                 className={cn(
-                  'mt-2 text-xs font-medium text-center',
+                  'text-xs font-medium text-center whitespace-nowrap',
                   status === 'complete' && 'text-foreground',
                   status === 'current' && 'text-foreground',
                   status === 'pending' && 'text-muted-foreground'
@@ -65,7 +65,7 @@ export function WorkflowProgress({ currentStep, className }: WorkflowProgressPro
             {!isLast && (
               <div
                 className={cn(
-                  'flex-1 h-0.5 mx-2 mt-[-20px]',
+                  'flex-1 h-0.5 mx-2 mb-6',
                   status === 'complete' ? 'bg-foreground' : 'bg-border'
                 )}
               />

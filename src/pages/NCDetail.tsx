@@ -6,6 +6,7 @@ import {
   Calendar,
   Clock,
   Download,
+  Eye,
   FileText,
   Image,
   User,
@@ -96,12 +97,21 @@ export default function NCDetail() {
 
       if (ncResult.error) throw ncResult.error;
       setNC(ncResult.data);
+
+      if (attachResult.error) console.error('Failed to load attachments:', attachResult.error);
       setAttachments(attachResult.data || []);
+
+      if (activityResult.error) console.error('Failed to load activity log:', activityResult.error);
       setActivities(activityResult.data || []);
+
+      if (caResult.error) console.error('Failed to load corrective action:', caResult.error);
       setCorrectiveAction(caResult.data || null);
+
+      if (approvalsResult.error) console.error('Failed to load approvals:', approvalsResult.error);
       setWorkflowApprovals(approvalsResult.data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching NC details:', error);
+      toast({ variant: 'destructive', title: 'NC not found', description: 'This non-conformance could not be loaded.' });
       navigate('/nc');
     } finally {
       setIsLoading(false);
@@ -136,30 +146,36 @@ export default function NCDetail() {
       a.download = attachment.file_name;
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
+    } catch (error) {
+      console.error('Failed to download attachment:', attachment.file_path, error);
       toast({
         title: 'Error',
-        description: 'Failed to download file',
+        description: `Failed to download "${attachment.file_name}".`,
         variant: 'destructive',
       });
     }
   }
 
-  async function openImageLightbox(attachment: any) {
+  async function viewAttachment(attachment: any) {
     try {
       const { data, error } = await supabase.storage
         .from('nc-attachments')
-        .download(attachment.file_path);
+        .createSignedUrl(attachment.file_path, 3600);
 
       if (error) throw error;
+      if (!data?.signedUrl) throw new Error('Signed URL was empty — the file may have been deleted.');
 
-      const url = URL.createObjectURL(data);
-      setLightboxUrl(url);
-      setLightboxName(attachment.file_name);
-    } catch {
+      if (isImageFile(attachment.file_name)) {
+        setLightboxUrl(data.signedUrl);
+        setLightboxName(attachment.file_name);
+      } else {
+        window.open(data.signedUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Failed to view attachment:', attachment.file_path, error);
       toast({
         title: 'Error',
-        description: 'Failed to load image',
+        description: `Failed to open "${attachment.file_name}". Please try downloading instead.`,
         variant: 'destructive',
       });
     }
@@ -299,8 +315,8 @@ export default function NCDetail() {
             <NCActionPanel nc={nc} onUpdate={handleRefresh} />
           </TabsContent>
 
-          <TabsContent value="details" className="mt-6">
-            <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+          <TabsContent value="details" className="mt-4 sm:mt-6">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-3">
               {/* Main Details */}
               <Card className="glass-card-solid border-0 lg:col-span-2">
                 <CardHeader>
@@ -548,16 +564,14 @@ export default function NCDetail() {
                               {(attachment.file_size / 1024).toFixed(0)} KB
                             </p>
                           </div>
-                          {isImage && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openImageLightbox(attachment)}
-                              title="View image"
-                            >
-                              <ZoomIn className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => viewAttachment(attachment)}
+                            title={isImage ? 'View image' : 'View file'}
+                          >
+                            {isImage ? <ZoomIn className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -580,7 +594,6 @@ export default function NCDetail() {
       {/* Image Lightbox */}
       <Dialog open={!!lightboxUrl} onOpenChange={(open) => {
         if (!open) {
-          if (lightboxUrl) URL.revokeObjectURL(lightboxUrl);
           setLightboxUrl(null);
           setLightboxName('');
         }
@@ -594,7 +607,6 @@ export default function NCDetail() {
                 size="icon"
                 className="h-7 w-7"
                 onClick={() => {
-                  if (lightboxUrl) URL.revokeObjectURL(lightboxUrl);
                   setLightboxUrl(null);
                   setLightboxName('');
                 }}

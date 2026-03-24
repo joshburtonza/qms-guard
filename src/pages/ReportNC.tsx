@@ -201,6 +201,8 @@ export default function ReportNC() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<Profile[]>([]);
   const [files, setFiles] = useState<File[]>([]);
+  const [deptManager, setDeptManager] = useState<string | null | undefined>(undefined);
+  const [deptVerifiers, setDeptVerifiers] = useState<string[]>([]);
   const [showDraftPrompt, setShowDraftPrompt] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [similarNCs, setSimilarNCs] = useState<SimilarNC[]>([]);
@@ -245,6 +247,47 @@ export default function ReportNC() {
   const selectedSource = form.watch('source');
   const selectedCategory = form.watch('category');
   const selectedSeverity = form.watch('severity');
+  const selectedDeptId = form.watch('department_id');
+
+  // Fetch manager and verifiers when department changes
+  useEffect(() => {
+    if (!selectedDeptId || !profile?.tenant_id) {
+      setDeptManager(undefined);
+      setDeptVerifiers([]);
+      return;
+    }
+    let cancelled = false;
+    async function fetchDeptInfo() {
+      try {
+        const [mappingResult, verifierResult] = await Promise.all([
+          supabase
+            .from('department_manager_mapping')
+            .select('training_manager:profiles!department_manager_mapping_training_manager_id_fkey(full_name)')
+            .eq('department_id', selectedDeptId)
+            .maybeSingle(),
+          supabase
+            .from('user_roles')
+            .select('profiles!inner(full_name)')
+            .eq('role', 'verifier')
+            .eq('tenant_id', profile!.tenant_id),
+        ]);
+        if (cancelled) return;
+        if (mappingResult.error) console.error('[ReportNC] manager fetch error:', mappingResult.error);
+        if (verifierResult.error) console.error('[ReportNC] verifier fetch error:', verifierResult.error);
+        const managerName = (mappingResult.data as any)?.training_manager?.full_name ?? null;
+        setDeptManager(managerName);
+        const verifierNames = ((verifierResult.data as any[]) || []).map((r: any) => r.profiles?.full_name).filter(Boolean);
+        setDeptVerifiers(verifierNames);
+      } catch (e) {
+        if (cancelled) return;
+        console.error('[ReportNC] fetchDeptInfo unexpected error:', e);
+        setDeptManager(null);
+        setDeptVerifiers([]);
+      }
+    }
+    fetchDeptInfo();
+    return () => { cancelled = true; };
+  }, [selectedDeptId, profile?.tenant_id]);
 
   // Check for saved draft on mount
   useEffect(() => {
@@ -270,8 +313,8 @@ export default function ReportNC() {
         // Only surface suggestions not already added
         const filtered = raw.filter((s) => !applicableClauses.includes(s));
         setClauseSuggestions(filtered);
-      } catch {
-        // Fail silently — fallback below handles it
+      } catch (e) {
+        console.error('[ReportNC] suggestIsoClauses error:', e);
       } finally {
         setIsSuggestingClauses(false);
         // If EDITH returned nothing, fall back to client-side keyword matching
@@ -292,17 +335,29 @@ export default function ReportNC() {
 
   // Fetch departments and users
   useEffect(() => {
+    if (!tenant?.id) return;
     async function fetchData() {
-      const [deptResult, usersResult] = await Promise.all([
-        supabase.from('departments').select('*').order('name'),
-        supabase.from('profiles').select('*').eq('is_active', true).order('full_name'),
-      ]);
-
-      if (deptResult.data) setDepartments(deptResult.data as Department[]);
-      if (usersResult.data) setUsers(usersResult.data as Profile[]);
+      try {
+        const [deptResult, usersResult] = await Promise.all([
+          supabase.from('departments').select('*').eq('tenant_id', tenant!.id).order('name'),
+          supabase.from('profiles').select('*').eq('tenant_id', tenant!.id).eq('is_active', true).order('full_name'),
+        ]);
+        if (deptResult.error) {
+          console.error('[ReportNC] departments fetch error:', deptResult.error);
+          toast({ variant: 'destructive', title: 'Failed to load departments', description: 'Please refresh the page and try again.' });
+        }
+        if (usersResult.error) {
+          console.error('[ReportNC] profiles fetch error:', usersResult.error);
+        }
+        if (deptResult.data) setDepartments(deptResult.data as Department[]);
+        if (usersResult.data) setUsers(usersResult.data as Profile[]);
+      } catch (e) {
+        console.error('[ReportNC] fetchData unexpected error:', e);
+        toast({ variant: 'destructive', title: 'Failed to load form data', description: 'Please refresh the page and try again.' });
+      }
     }
     fetchData();
-  }, []);
+  }, [tenant?.id]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selectedFiles = Array.from(e.target.files || []);
@@ -343,7 +398,8 @@ export default function ReportNC() {
       }
       
       return (data || []) as SimilarNC[];
-    } catch {
+    } catch (e) {
+      console.error('[ReportNC] checkDuplicates unexpected error:', e);
       return [];
     }
   }
@@ -398,26 +454,35 @@ export default function ReportNC() {
       if (ncError) throw ncError;
 
       // Upload attachments
+      let failedUploads = 0;
       for (const file of files) {
         const filePath = `${nc.id}/${Date.now()}-${file.name}`;
         const { error: uploadError } = await supabase.storage
           .from('nc-attachments')
           .upload(filePath, file);
 
-        if (!uploadError) {
-          await supabase.from('nc_attachments').insert({
-            nc_id: nc.id,
-            file_name: file.name,
-            file_path: filePath,
-            file_size: file.size,
-            file_type: file.type,
-            uploaded_by: profile.id,
-          });
+        if (uploadError) {
+          console.error('[ReportNC] File upload failed:', file.name, uploadError);
+          failedUploads++;
+          continue;
+        }
+
+        const { error: insertError } = await supabase.from('nc_attachments').insert({
+          nc_id: nc.id,
+          file_name: file.name,
+          file_path: filePath,
+          file_size: file.size,
+          file_type: file.type,
+          uploaded_by: profile.id,
+        });
+        if (insertError) {
+          console.error('[ReportNC] nc_attachments insert failed:', file.name, insertError);
+          failedUploads++;
         }
       }
 
       // Log activity
-      await supabase.from('nc_activity_log').insert({
+      const { error: activityError } = await supabase.from('nc_activity_log').insert({
         nc_id: nc.id,
         action: 'NC Submitted',
         details: {
@@ -426,6 +491,12 @@ export default function ReportNC() {
         },
         performed_by: profile.id,
       });
+      if (activityError) console.error('[ReportNC] activity log insert failed:', activityError);
+
+      // Notify stakeholders (fire-and-forget — does not block navigation)
+      supabase.functions.invoke('nc-workflow-notification', {
+        body: { type: 'nc_submitted', nc_id: nc.id },
+      }).catch((e) => console.error('[ReportNC] notification error:', e));
 
       // Trigger AI risk classification (fire-and-forget — does not block navigation)
       classifyRisk(nc.id, data.description, data.category, data.severity).catch(
@@ -439,6 +510,13 @@ export default function ReportNC() {
         title: 'NC Submitted Successfully',
         description: `Non-conformance ${nc.nc_number} has been created.${afterHours ? ' (After-hours submission flagged)' : ''}`,
       });
+      if (failedUploads > 0) {
+        toast({
+          variant: 'destructive',
+          title: `${failedUploads} attachment(s) failed to upload`,
+          description: 'Your NC record was saved. Please re-attach the files on the NC detail page.',
+        });
+      }
 
       navigate(`/nc/${nc.id}`);
     } catch (error: any) {
@@ -455,7 +533,7 @@ export default function ReportNC() {
 
   return (
     <AppLayout>
-      <div className="max-w-3xl mx-auto space-y-4 md:space-y-6">
+      <div className="max-w-3xl mx-auto space-y-6">
         {/* Draft Restore Prompt */}
         {showDraftPrompt && (
           <Alert className="border-border bg-muted/50">
@@ -551,6 +629,23 @@ export default function ReportNC() {
                     )}
                   />
                 </div>
+
+                {/* Department assignment info — shown after department is selected */}
+                {selectedDeptId && (deptManager !== undefined) && (
+                  <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm space-y-1">
+                    <p className="font-medium text-foreground text-xs uppercase tracking-wide mb-1">Who handles this NC</p>
+                    <div className="flex flex-wrap gap-x-6 gap-y-1 text-muted-foreground">
+                      <span>
+                        <span className="text-foreground font-medium">Department Manager: </span>
+                        {deptManager ?? <span className="italic">Not configured</span>}
+                      </span>
+                      <span>
+                        <span className="text-foreground font-medium">QA Verifiers: </span>
+                        {deptVerifiers.length > 0 ? deptVerifiers.join(', ') : <span className="italic">Not configured</span>}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 <FormField
                   control={form.control}
@@ -715,17 +810,17 @@ export default function ReportNC() {
                   name="severity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Severity Level *</FormLabel>
+                      <FormLabel>Severity Level * <span className="text-muted-foreground font-normal text-xs">(reference — QA Classification sets due date)</span></FormLabel>
                       <FormControl>
                         <RadioGroup
+                          value={field.value}
                           onValueChange={field.onChange}
-                          value={field.value ?? ''}
                           className="flex flex-col sm:flex-row gap-4"
                         >
                           {(Object.keys(NC_SEVERITY_LABELS) as NCSeverity[]).map((severity) => (
                             <label
                               key={severity}
-                              htmlFor={severity}
+                              htmlFor={`severity-${severity}`}
                               className={cn(
                                 'flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200',
                                 field.value === severity
@@ -737,7 +832,7 @@ export default function ReportNC() {
                                   : 'border-border hover:bg-muted/50'
                               )}
                             >
-                              <RadioGroupItem value={severity} id={severity} />
+                              <RadioGroupItem value={severity} id={`severity-${severity}`} />
                               <div>
                                 <span
                                   className={cn(
@@ -1093,7 +1188,7 @@ export default function ReportNC() {
             </Card>
 
             {/* Submit Button — sticky on mobile */}
-            <div className="sticky bottom-20 md:bottom-0 md:relative z-10 bg-background/95 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none rounded-xl md:rounded-none p-3 md:p-0 -mx-4 md:mx-0 shadow-lg md:shadow-none border-t border-border/50 md:border-0 flex flex-col-reverse sm:flex-row justify-end gap-3">
+            <div className="sticky bottom-20 md:bottom-0 md:relative z-10 bg-background/95 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none rounded-xl md:rounded-none p-4 md:p-0 -mx-4 md:mx-0 shadow-lg md:shadow-none border-t border-border/50 md:border-0 flex flex-col-reverse sm:flex-row justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => navigate(-1)} className="w-full sm:w-auto">
                 Cancel
               </Button>

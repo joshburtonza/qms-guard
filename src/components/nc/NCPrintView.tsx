@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import { Shield } from 'lucide-react';
 import {
   NC_CATEGORY_LABELS,
+  NC_SEVERITY_LABELS,
   NC_SOURCE_LABELS,
   NC_STATUS_LABELS,
   SHIFT_LABELS,
@@ -102,7 +103,7 @@ export function NCPrintView({
       </div>
 
       {/* Status Banner */}
-      <div className="bg-muted rounded-lg p-4 mb-6 flex justify-between items-center">
+      <div className="bg-muted rounded-lg p-4 mb-6 grid grid-cols-2 gap-3 sm:flex sm:justify-between sm:items-center">
         <div>
           <span className="text-sm text-muted-foreground">Status:</span>
           <span className="ml-2 font-semibold">
@@ -115,6 +116,12 @@ export function NCPrintView({
             {nc.risk_classification
               ? (RISK_CLASSIFICATION_LABELS[nc.risk_classification] || nc.risk_classification)
               : 'Pending QA Classification'}
+          </span>
+        </div>
+        <div>
+          <span className="text-sm text-muted-foreground">Severity (Ref):</span>
+          <span className="ml-2 font-semibold">
+            {NC_SEVERITY_LABELS[nc.severity as keyof typeof NC_SEVERITY_LABELS] || nc.severity}
           </span>
         </div>
         <div>

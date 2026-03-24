@@ -5,10 +5,9 @@ import {
   Search,
   Shield,
   RefreshCw,
-  User,
-  Building,
-  MapPin,
-  BadgeCheck,
+  Loader2,
+  AlertTriangle,
+  UserCog,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -31,11 +32,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ROLE_LABELS, AppRole } from '@/types/database';
-import { AlertTriangle } from 'lucide-react';
 
 interface UserWithRoles {
   id: string;
@@ -49,17 +58,28 @@ interface UserWithRoles {
   roles: AppRole[];
 }
 
+const ALL_ROLES: AppRole[] = ['super_admin', 'site_admin', 'manager', 'supervisor', 'verifier', 'worker'];
+
 export default function Users() {
-  const { isAdmin, isLoading: authLoading } = useAuth();
+  const { isAdmin, profile, roles: myRoles } = useAuth();
+  const { toast } = useToast();
   const [users, setUsers] = useState<UserWithRoles[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
 
+  // Manage user dialog
+  const [managingUser, setManagingUser] = useState<UserWithRoles | null>(null);
+  const [editRoles, setEditRoles] = useState<AppRole[]>([]);
+  const [editActive, setEditActive] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const isSuperAdmin = myRoles.includes('super_admin');
+
   useEffect(() => {
-    if (!authLoading && isAdmin()) fetchUsers();
-  }, [authLoading]);
+    if (isAdmin()) fetchUsers();
+  }, []);
 
   async function fetchUsers() {
     try {
@@ -76,7 +96,6 @@ export default function Users() {
       if (profilesResult.error) throw profilesResult.error;
       if (rolesResult.error) throw rolesResult.error;
 
-      // Group roles by user
       const roleMap = new Map<string, AppRole[]>();
       (rolesResult.data || []).forEach((r: any) => {
         const existing = roleMap.get(r.user_id) || [];
@@ -90,18 +109,88 @@ export default function Users() {
       }));
 
       setUsers(usersWithRoles);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching users:', error);
+      toast({ variant: 'destructive', title: 'Failed to load users', description: error.message || 'Please refresh the page.' });
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
   }
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    fetchUsers();
-  };
+  function openManageUser(user: UserWithRoles) {
+    setManagingUser(user);
+    setEditRoles([...user.roles]);
+    setEditActive(user.is_active !== false);
+  }
+
+  function toggleEditRole(role: AppRole) {
+    setEditRoles(prev =>
+      prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role]
+    );
+  }
+
+  async function saveUser() {
+    if (!managingUser || !profile?.tenant_id) return;
+    if (editRoles.length === 0) {
+      toast({ variant: 'destructive', title: 'At least one role required', description: 'A user must have at least one role.' });
+      return;
+    }
+    // Prevent admin from removing their own elevated role
+    if (managingUser.id === profile.id) {
+      const selfAdminRoles: AppRole[] = ['super_admin', 'site_admin'];
+      const losingAdminRole = selfAdminRoles.some(r => managingUser.roles.includes(r) && !editRoles.includes(r));
+      if (losingAdminRole) {
+        toast({ variant: 'destructive', title: 'Cannot remove your own admin role', description: 'Ask another admin to change your role.' });
+        return;
+      }
+    }
+    setIsSaving(true);
+    try {
+      // Update active status
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ is_active: editActive })
+        .eq('id', managingUser.id);
+      if (profileError) throw profileError;
+
+      // Safe role replacement: insert new roles first (on conflict do nothing),
+      // then delete only the roles that were removed. This avoids a window with zero roles.
+      const originalRoles = managingUser.roles;
+      const rolesToAdd = editRoles.filter(r => !originalRoles.includes(r));
+      const rolesToRemove = originalRoles.filter(r => !editRoles.includes(r));
+
+      if (rolesToAdd.length > 0) {
+        const { error: insertError } = await supabase
+          .from('user_roles')
+          .insert(rolesToAdd.map(role => ({
+            user_id: managingUser.id,
+            role,
+            tenant_id: profile.tenant_id,
+          })));
+        if (insertError) throw insertError;
+      }
+
+      if (rolesToRemove.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', managingUser.id)
+          .in('role', rolesToRemove);
+        if (deleteError) throw deleteError;
+      }
+
+      toast({ title: 'User updated', description: `${managingUser.full_name} has been updated successfully.` });
+      setManagingUser(null);
+      setIsRefreshing(true);
+      await fetchUsers();
+    } catch (e: any) {
+      console.error('[Users] saveUser error:', e);
+      toast({ variant: 'destructive', title: 'Save failed', description: e.message || 'An unexpected error occurred.' });
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   const getInitials = (name: string) =>
     name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -168,7 +257,7 @@ export default function Users() {
               View and manage platform users and their roles
             </p>
           </div>
-          <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
+          <Button variant="outline" onClick={() => { setIsRefreshing(true); fetchUsers(); }} disabled={isRefreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -247,7 +336,11 @@ export default function Users() {
                   </TableRow>
                 ) : (
                   filteredUsers.map(user => (
-                    <TableRow key={user.id}>
+                    <TableRow
+                      key={user.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => openManageUser(user)}
+                    >
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
@@ -298,9 +391,102 @@ export default function Users() {
         </Card>
 
         <p className="text-sm text-muted-foreground text-center">
-          Showing {filteredUsers.length} of {users.length} users
+          Showing {filteredUsers.length} of {users.length} users · Click a row to manage roles
         </p>
       </div>
+
+      {/* Manage User Dialog */}
+      <Dialog open={!!managingUser} onOpenChange={(open) => { if (!open) setManagingUser(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserCog className="h-5 w-5" />
+              Manage User
+            </DialogTitle>
+            <DialogDescription>
+              Update roles and access for {managingUser?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+
+          {managingUser && (
+            <div className="space-y-6 py-2">
+              {/* User info */}
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-foreground text-background text-sm font-medium rounded-xl">
+                    {getInitials(managingUser.full_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{managingUser.full_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {managingUser.employee_id ? `ID: ${managingUser.employee_id}` : 'No employee ID'}
+                    {managingUser.department?.name ? ` · ${managingUser.department.name}` : ''}
+                  </p>
+                </div>
+              </div>
+
+              {/* Active toggle */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-medium">Account Active</Label>
+                  <p className="text-xs text-muted-foreground">Inactive users cannot log in</p>
+                </div>
+                <Switch
+                  checked={editActive}
+                  onCheckedChange={setEditActive}
+                  disabled={managingUser.id === profile?.id}
+                />
+              </div>
+
+              {/* Roles */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Roles</Label>
+                <p className="text-xs text-muted-foreground">Select all roles that apply</p>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  {ALL_ROLES.map(role => {
+                    // Only super_admin can assign super_admin role
+                    const cantAssignSuperAdmin = role === 'super_admin' && !isSuperAdmin;
+                    // Cannot remove your own admin role
+                    const isSelf = managingUser?.id === profile?.id;
+                    const isOwnAdminRole = isSelf && ['super_admin', 'site_admin'].includes(role) && managingUser?.roles.includes(role);
+                    const disabled = cantAssignSuperAdmin || isOwnAdminRole;
+                    const selected = editRoles.includes(role);
+                    return (
+                      <button
+                        key={role}
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => !disabled && toggleEditRole(role)}
+                        className={[
+                          'flex items-center gap-2 rounded-xl px-3 py-2 text-sm border transition-colors text-left',
+                          selected
+                            ? 'bg-foreground text-background border-foreground'
+                            : 'border-border hover:bg-muted/50',
+                          disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer',
+                        ].join(' ')}
+                      >
+                        <Shield className="h-3.5 w-3.5 flex-shrink-0" />
+                        {ROLE_LABELS[role]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setManagingUser(null)} disabled={isSaving}>
+              Cancel
+            </Button>
+            <Button onClick={saveUser} disabled={isSaving || editRoles.length === 0}>
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

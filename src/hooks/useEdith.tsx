@@ -47,7 +47,14 @@ export function EdithProvider({ children }: { children: ReactNode }) {
         .eq('tenant_id', profile.tenant_id)
         .single();
 
-      if (!error && data) {
+      if (error) {
+        // PGRST116 = no rows (tenant has no custom config — use defaults, not an error)
+        if (error.code !== 'PGRST116') {
+          console.error('[useEdith] loadConfig error:', error);
+        }
+        return;
+      }
+      if (data) {
         setConfig({
           id: data.id,
           tenantId: data.tenant_id,
@@ -159,11 +166,13 @@ export function EdithProvider({ children }: { children: ReactNode }) {
 
   // Open Edith
   const openEdith = useCallback(() => {
-    setState(prev => ({ ...prev, isOpen: true }));
-    if (!state.currentConversation) {
-      startNewConversation();
-    }
-  }, [state.currentConversation, startNewConversation]);
+    setState(prev => {
+      if (!prev.currentConversation) {
+        setTimeout(() => startNewConversation(), 0);
+      }
+      return { ...prev, isOpen: true };
+    });
+  }, [startNewConversation]);
 
   // Close Edith
   const closeEdith = useCallback(() => {

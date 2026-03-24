@@ -10,11 +10,14 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
-  if (!RESEND_API_KEY) return false;
+  if (!RESEND_API_KEY) {
+    console.error('[nc-scheduled-tasks] RESEND_API_KEY not configured — email notifications disabled');
+    return false;
+  }
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_API_KEY}` },
-    body: JSON.stringify({ from: 'QMS Guard <noreply@qms-guard.vercel.app>', to: [to], subject, html }),
+    body: JSON.stringify({ from: 'QMS Guard <noreply@resend.dev>', to: [to], subject, html }),
   });
   return res.ok;
 }
@@ -29,6 +32,11 @@ async function supabaseQuery(path: string, options: RequestInit = {}) {
       ...options.headers,
     },
   });
+  if (!res.ok) {
+    const body = await res.text();
+    console.error(`[nc-scheduled-tasks] supabaseQuery ${res.status} on ${path}:`, body);
+    throw new Error(`Supabase query failed (${res.status}): ${path}`);
+  }
   return res.json();
 }
 
@@ -42,7 +50,8 @@ async function getUserEmail(userId: string): Promise<string | null> {
     });
     const data = await res.json();
     return data?.email || null;
-  } catch {
+  } catch (error) {
+    console.error('[nc-scheduled-tasks] getUserEmail failed for', userId, error);
     return null;
   }
 }
@@ -164,7 +173,7 @@ serve(async (req) => {
 
       // Always send to responsible person
       if (rpEmail) {
-        const email = buildReminderEmail(nc, name, daysOverdue, daysOverdue > 0 ? 'reminder' : 'reminder');
+        const email = buildReminderEmail(nc, name, daysOverdue, tier);
         if (await sendEmail(rpEmail, email.subject, email.html)) sent++;
       }
 
@@ -197,7 +206,7 @@ serve(async (req) => {
       // Senior tier (14+ days): additional escalation logging
       if (tier === 'senior') {
         // Log escalation in activity log via REST
-        await fetch(`${SUPABASE_URL}/rest/v1/nc_activity_log`, {
+        const logRes = await fetch(`${SUPABASE_URL}/rest/v1/nc_activity_log`, {
           method: 'POST',
           headers: {
             'apikey': SUPABASE_SERVICE_ROLE_KEY,
@@ -212,6 +221,9 @@ serve(async (req) => {
             tenant_id: nc.tenant_id,
           }),
         });
+        if (!logRes.ok) {
+          console.error('[nc-scheduled-tasks] Failed to log senior escalation for NC', nc.id, await logRes.text());
+        }
       }
     }
 

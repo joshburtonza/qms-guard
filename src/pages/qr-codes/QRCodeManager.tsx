@@ -110,17 +110,33 @@ export default function QRCodeManager() {
 
   async function fetchData() {
     setIsLoading(true);
-    const [locationsRes, deptRes] = await Promise.all([
-      supabase
-        .from('qr_locations')
-        .select('*, department:departments(name)')
-        .order('created_at', { ascending: false }),
-      supabase.from('departments').select('*').order('name'),
-    ]);
+    try {
+      const [locationsRes, deptRes] = await Promise.all([
+        supabase
+          .from('qr_locations')
+          .select('*, department:departments(name)')
+          .order('created_at', { ascending: false }),
+        supabase.from('departments').select('*').order('name'),
+      ]);
 
-    if (locationsRes.data) setLocations(locationsRes.data as any);
-    if (deptRes.data) setDepartments(deptRes.data);
-    setIsLoading(false);
+      if (locationsRes.error) {
+        console.error('Failed to load QR locations:', locationsRes.error);
+        toast({ variant: 'destructive', title: 'Failed to load QR codes', description: locationsRes.error.message });
+      } else {
+        setLocations(locationsRes.data as any);
+      }
+
+      if (deptRes.error) {
+        console.error('Failed to load departments:', deptRes.error);
+      } else {
+        setDepartments(deptRes.data);
+      }
+    } catch (error) {
+      console.error('fetchData failed:', error);
+      toast({ variant: 'destructive', title: 'Failed to load data', description: 'Please refresh the page.' });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function generateQRData(data: QRFormData): string {
@@ -202,12 +218,19 @@ export default function QRCodeManager() {
 
   function downloadQR(location: QRLocation) {
     const svg = document.getElementById(`qr-${location.id}`);
-    if (!svg) return;
+    if (!svg) {
+      toast({ variant: 'destructive', title: 'Download failed', description: 'QR code element not found. Please refresh the page.' });
+      return;
+    }
 
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
+
+    img.onerror = () => {
+      toast({ variant: 'destructive', title: 'Download failed', description: 'Could not render QR code image.' });
+    };
 
     img.onload = () => {
       canvas.width = 300;
@@ -224,10 +247,17 @@ export default function QRCodeManager() {
 
   function printQR(location: QRLocation) {
     const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    if (!printWindow) {
+      toast({ variant: 'destructive', title: 'Print blocked', description: 'Your browser blocked the print window. Please allow popups for this site.' });
+      return;
+    }
 
     const svg = document.getElementById(`qr-${location.id}`);
-    if (!svg) return;
+    if (!svg) {
+      toast({ variant: 'destructive', title: 'Print failed', description: 'QR code element not found. Please refresh the page.' });
+      printWindow.close();
+      return;
+    }
 
     printWindow.document.write(`
       <html>
@@ -247,6 +277,7 @@ export default function QRCodeManager() {
       </html>
     `);
     printWindow.document.close();
+    printWindow.onafterprint = () => printWindow.close();
     printWindow.print();
   }
 
@@ -271,7 +302,7 @@ export default function QRCodeManager() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/settings')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
@@ -487,8 +518,8 @@ export default function QRCodeManager() {
         </Dialog>
 
         {/* QR Preview Dialog */}
-        <Dialog open={!!previewQR} onOpenChange={() => setPreviewQR(null)}>
-          <DialogContent className="text-center">
+        <Dialog open={!!previewQR} onOpenChange={(open) => { if (!open) setPreviewQR(null); }}>
+          <DialogContent className="text-center max-w-sm">
             <DialogHeader>
               <DialogTitle>{previewQR?.name}</DialogTitle>
               <DialogDescription>{previewQR?.site_location}</DialogDescription>
@@ -508,11 +539,11 @@ export default function QRCodeManager() {
                     <Printer className="h-4 w-4 mr-2" />
                     Print
                   </Button>
-                  <Button variant="secondary" onClick={() => setPreviewQR(null)}>
-                    <X className="h-4 w-4 mr-2" />
-                    Close
-                  </Button>
                 </div>
+                <Button variant="ghost" className="w-full" onClick={() => setPreviewQR(null)}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to QR Codes
+                </Button>
               </div>
             )}
           </DialogContent>

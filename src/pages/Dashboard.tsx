@@ -17,6 +17,7 @@ import {
   GraduationCap,
   MessageSquareHeart,
   Briefcase,
+  Users,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
@@ -36,6 +37,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
   NonConformance,
@@ -56,6 +58,7 @@ import {
 
 export default function Dashboard() {
   const { profile, roles } = useAuth();
+  const { toast } = useToast();
   const [allNCs, setAllNCs] = useState<any[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     open: 0,
@@ -77,6 +80,8 @@ export default function Dashboard() {
     contractorEvalsPending: 0,
     moderationPending: 0,
     courseEvalsThisMonth: 0,
+    totalLearners: 0,
+    learnersCompliant: 0,
   });
 
   useEffect(() => {
@@ -144,8 +149,9 @@ export default function Dashboard() {
       ).slice(0, 5);
 
       setMyTasks(myTasksList);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching dashboard data:', error);
+      toast({ variant: 'destructive', title: 'Failed to load dashboard', description: 'Please refresh the page.' });
     } finally {
       setIsLoading(false);
     }
@@ -157,7 +163,7 @@ export default function Dashboard() {
     const monthEnd = endOfMonth(now).toISOString();
 
     try {
-      const [surveys, auditsInProgress, auditsDone, facilitatorPending, contractorPending, moderationPending, courseEvals] = await Promise.all([
+      const [surveys, auditsInProgress, auditsDone, facilitatorPending, contractorPending, moderationPending, courseEvals, learnersAll] = await Promise.all([
         supabase
           .from('customer_satisfaction_surveys')
           .select('rating_overall')
@@ -190,6 +196,9 @@ export default function Dashboard() {
           .select('id', { count: 'exact', head: true })
           .gte('created_at', monthStart)
           .lte('created_at', monthEnd),
+        supabase
+          .from('learners')
+          .select('id, learner_documents(status)'),
       ]);
 
       const surveyData = surveys.data || [];
@@ -197,6 +206,12 @@ export default function Dashboard() {
       const avgRating = ratingsWithValues.length > 0
         ? ratingsWithValues.reduce((sum, s) => sum + (s.rating_overall || 0), 0) / ratingsWithValues.length
         : 0;
+
+      const learnerRows = learnersAll.data || [];
+      const compliantLearners = learnerRows.filter((l: any) => {
+        const docs: { status: string }[] = l.learner_documents || [];
+        return docs.length > 0 && docs.every(d => d.status === 'present');
+      }).length;
 
       setPhase2Stats({
         surveysThisMonth: surveyData.length,
@@ -207,6 +222,8 @@ export default function Dashboard() {
         contractorEvalsPending: contractorPending.count || 0,
         moderationPending: moderationPending.count || 0,
         courseEvalsThisMonth: courseEvals.count || 0,
+        totalLearners: learnerRows.length,
+        learnersCompliant: compliantLearners,
       });
     } catch (error) {
       console.error('Error fetching Phase 2 stats:', error);
@@ -529,7 +546,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Platform Overview</h2>
           </div>
-          <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             {/* Surveys */}
             <Link to="/surveys" className="group">
               <Card className="glass-card border-0 p-4 transition-all duration-200 group-hover:shadow-md">
@@ -585,6 +602,22 @@ export default function Dashboard() {
                 </div>
                 <div className="text-2xl font-display font-bold">{phase2Stats.moderationPending}</div>
                 <p className="text-xs text-muted-foreground mt-0.5">Moderation pending</p>
+              </Card>
+            </Link>
+
+            {/* Learner Tracking */}
+            <Link to="/learners" className="group">
+              <Card className="glass-card border-0 p-4 transition-all duration-200 group-hover:shadow-md">
+                <div className="flex items-center justify-between mb-2">
+                  <Users className="h-5 w-5 text-muted-foreground/60" />
+                  {phase2Stats.totalLearners > 0 && phase2Stats.learnersCompliant > 0 && (
+                    <Badge variant="secondary" className="rounded-full text-[10px] px-1.5 py-0">
+                      {Math.round((phase2Stats.learnersCompliant / phase2Stats.totalLearners) * 100)}% compliant
+                    </Badge>
+                  )}
+                </div>
+                <div className="text-2xl font-display font-bold">{phase2Stats.totalLearners}</div>
+                <p className="text-xs text-muted-foreground mt-0.5">Active learners</p>
               </Card>
             </Link>
           </div>

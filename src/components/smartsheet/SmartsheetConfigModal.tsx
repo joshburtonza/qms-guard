@@ -110,9 +110,9 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
     enabled: open && !!apiKey,
   });
 
-  // Load columns when sheet is selected
+  // Load columns when sheet is selected (skip placeholder values)
   useEffect(() => {
-    if (selectedSheet) {
+    if (selectedSheet && selectedSheet !== 'pending') {
       loadColumns(selectedSheet);
     }
   }, [selectedSheet]);
@@ -243,7 +243,7 @@ export function SmartsheetConfigModal({ open, onOpenChange }: SmartsheetConfigMo
                 type={showApiKey ? 'text' : 'password'}
                 placeholder="Enter your Smartsheet Personal Access Token"
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                onChange={(e) => setApiKey(e.target.value.trim())}
                 className="pr-10"
               />
               <button

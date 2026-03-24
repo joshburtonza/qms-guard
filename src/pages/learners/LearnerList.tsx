@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, Plus, Search, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { GraduationCap, Plus, Search, CheckCircle, AlertTriangle, XCircle, FileBarChart2 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -101,10 +101,16 @@ export default function LearnerList() {
             </h1>
             <p className="text-muted-foreground text-sm">{filtered.length} of {learners.length} learners</p>
           </div>
-          <Button size="sm" onClick={() => navigate('/learners/new')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Learner
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => navigate('/learners/audit')}>
+              <FileBarChart2 className="h-4 w-4 mr-2" />
+              Audit Report
+            </Button>
+            <Button size="sm" onClick={() => navigate('/learners/new')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Learner
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}

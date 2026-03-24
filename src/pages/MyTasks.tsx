@@ -11,9 +11,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { ListTodo, Clock, CheckCircle, AlertTriangle, RefreshCw, Calendar } from 'lucide-react';
 import { isOverdue } from '@/types/database';
+import { useToast } from '@/hooks/use-toast';
 
 export default function MyTasks() {
   const { profile, hasRole } = useAuth();
+  const { toast } = useToast();
   const [tasks, setTasks] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -61,8 +63,9 @@ export default function MyTasks() {
       });
       
       setTasks(filteredTasks);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching tasks:', error);
+      toast({ variant: 'destructive', title: 'Failed to load tasks', description: error.message || 'Please refresh the page.' });
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

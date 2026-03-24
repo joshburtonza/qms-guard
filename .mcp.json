@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "markplane": {
+      "type": "stdio",
+      "command": "markplane",
+      "args": ["mcp"]
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,10 +38,13 @@ export default function Auth() {
   const { toast } = useToast();
 
   // Redirect if already logged in
-  if (user) {
-    navigate('/', { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
+
+  if (user) return null;
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -127,6 +130,9 @@ export default function Auth() {
           <CardDescription>
             Sign in to access the QMS platform
           </CardDescription>
+          <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+            This is a separate platform from Microsoft 365. Use your Ascend LC QMS password, not your Windows or email password.
+          </p>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'login' | 'signup')}>
@@ -192,10 +198,13 @@ export default function Auth() {
                     )}
                   </Button>
 
-                  <div className="text-center">
+                  <div className="text-center space-y-1">
                     <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-foreground">
                       Forgot password?
                     </Link>
+                    <p className="text-xs text-muted-foreground">
+                      A reset link will be sent to your Ascend LC work email.
+                    </p>
                   </div>
                 </form>
               </Form>

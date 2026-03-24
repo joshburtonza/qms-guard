@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Download, Loader2, FileSpreadsheet } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, subDays, startOfYear } from 'date-fns';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { NCListItem } from '@/components/nc/NCListItem';
 import { SmartsheetSyncModal } from '@/components/smartsheet';
@@ -17,7 +17,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
-import { NCStatus, NC_STATUS_LABELS, NC_CATEGORY_LABELS, NCCategory, NC_SOURCE_LABELS, SHIFT_LABELS, isOverdue } from '@/types/database';
+import { NCStatus, NCSeverity, NCSource, NC_STATUS_LABELS, NC_CATEGORY_LABELS, NC_SEVERITY_LABELS, NC_SOURCE_LABELS, NCCategory, SHIFT_LABELS, isOverdue } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 
 export default function NCList() {
@@ -30,6 +30,9 @@ export default function NCList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [severityFilter, setSeverityFilter] = useState<string>('all');
+  const [periodFilter, setPeriodFilter] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<string>('all');
 
   useEffect(() => {
     fetchNCs();
@@ -37,7 +40,7 @@ export default function NCList() {
 
   useEffect(() => {
     filterNCs();
-  }, [ncs, searchQuery, statusFilter, categoryFilter]);
+  }, [ncs, searchQuery, statusFilter, categoryFilter, severityFilter, periodFilter, sourceFilter]);
 
   async function fetchNCs() {
     try {
@@ -53,8 +56,9 @@ export default function NCList() {
 
       if (error) throw error;
       setNCs(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching NCs:', error);
+      toast({ variant: 'destructive', title: 'Failed to load NCs', description: error.message || 'Please refresh the page.' });
     } finally {
       setIsLoading(false);
     }
@@ -87,6 +91,27 @@ export default function NCList() {
       filtered = filtered.filter((nc) => nc.category === categoryFilter);
     }
 
+    // Severity filter
+    if (severityFilter !== 'all') {
+      filtered = filtered.filter((nc) => nc.severity === severityFilter);
+    }
+
+    // Source filter
+    if (sourceFilter !== 'all') {
+      filtered = filtered.filter((nc) => nc.source === sourceFilter);
+    }
+
+    // Period filter
+    if (periodFilter !== 'all') {
+      const now = new Date();
+      let cutoff: Date;
+      if (periodFilter === '7d') cutoff = subDays(now, 7);
+      else if (periodFilter === '30d') cutoff = subDays(now, 30);
+      else if (periodFilter === '90d') cutoff = subDays(now, 90);
+      else cutoff = startOfYear(now); // 'ytd'
+      filtered = filtered.filter((nc) => new Date(nc.created_at) >= cutoff);
+    }
+
     setFilteredNCs(filtered);
   }
 
@@ -115,6 +140,9 @@ export default function NCList() {
           reported:reported_by(full_name),
           responsible:responsible_person(full_name),
           department:department_id(name),
+          qa_classifier:qa_classified_by(full_name),
+          manager_reviewer:manager_reviewed_by(full_name),
+          verifier:verified_by(full_name),
           corrective_actions(root_cause, corrective_action, completion_date, submitted_at),
           workflow_approvals(step, action, comments, approved_at, approver:approved_by(full_name))
         `)
@@ -138,6 +166,8 @@ export default function NCList() {
         'Severity',
         'Risk Classification',
         'QA Classification Comments',
+        'QA Classified By',
+        'QA Classified At',
         'Status',
         'Current Step',
         'Reported By',
@@ -149,6 +179,13 @@ export default function NCList() {
         'Root Cause',
         'Corrective Action',
         'CA Target Completion',
+        'Manager Review Comments',
+        'Manager Reviewed By',
+        'Manager Reviewed At',
+        'Verification Notes',
+        'Verified By',
+        'Verified At',
+        'Applicable Clauses',
         'Approvals / Signatures',
       ];
 
@@ -196,6 +233,8 @@ export default function NCList() {
           escapeCSV(nc.severity),
           escapeCSV(nc.risk_classification ? (RISK_CLASSIFICATION_LABELS[nc.risk_classification] || nc.risk_classification) : ''),
           escapeCSV(nc.qa_classification_comments || ''),
+          escapeCSV(nc.qa_classifier?.full_name || ''),
+          escapeCSV(nc.qa_classified_at ? format(new Date(nc.qa_classified_at), 'yyyy-MM-dd') : ''),
           escapeCSV(isOverdue(nc.due_date, nc.status as NCStatus) ? `${NC_STATUS_LABELS[nc.status as NCStatus] || nc.status} (Overdue)` : (NC_STATUS_LABELS[nc.status as NCStatus] || nc.status)),
           escapeCSV(String(nc.current_step || 1)),
           escapeCSV(nc.reported?.full_name || ''),
@@ -207,6 +246,13 @@ export default function NCList() {
           escapeCSV(ca?.root_cause || ''),
           escapeCSV(ca?.corrective_action || ''),
           escapeCSV(ca?.completion_date ? format(new Date(ca.completion_date), 'yyyy-MM-dd') : ''),
+          escapeCSV(nc.manager_review_comments || ''),
+          escapeCSV(nc.manager_reviewer?.full_name || ''),
+          escapeCSV(nc.manager_reviewed_at ? format(new Date(nc.manager_reviewed_at), 'yyyy-MM-dd') : ''),
+          escapeCSV(nc.verification_notes || ''),
+          escapeCSV(nc.verifier?.full_name || ''),
+          escapeCSV(nc.verified_at ? format(new Date(nc.verified_at), 'yyyy-MM-dd') : ''),
+          escapeCSV(Array.isArray(nc.applicable_clauses) && nc.applicable_clauses.length > 0 ? nc.applicable_clauses.join('; ') : ''),
           escapeCSV(approvalSummary),
         ];
       });
@@ -310,8 +356,8 @@ export default function NCList() {
         />
 
         {/* Filters */}
-        <Card className="glass-card-solid border-0 p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <Card className="glass-card-solid border-0 p-3 sm:p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -350,6 +396,47 @@ export default function NCList() {
                 ))}
               </SelectContent>
             </Select>
+
+            <Select value={severityFilter} onValueChange={setSeverityFilter}>
+              <SelectTrigger className="w-full sm:w-36">
+                <SelectValue placeholder="Severity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Severities</SelectItem>
+                {(Object.keys(NC_SEVERITY_LABELS) as NCSeverity[]).map((sev) => (
+                  <SelectItem key={sev} value={sev}>
+                    {NC_SEVERITY_LABELS[sev]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={sourceFilter} onValueChange={setSourceFilter}>
+              <SelectTrigger className="w-full sm:w-44">
+                <SelectValue placeholder="Source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sources</SelectItem>
+                {(Object.keys(NC_SOURCE_LABELS) as NCSource[]).map((src) => (
+                  <SelectItem key={src} value={src}>
+                    {NC_SOURCE_LABELS[src]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={periodFilter} onValueChange={setPeriodFilter}>
+              <SelectTrigger className="w-full sm:w-36">
+                <SelectValue placeholder="Period" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="7d">Last 7 days</SelectItem>
+                <SelectItem value="30d">Last 30 days</SelectItem>
+                <SelectItem value="90d">Last 90 days</SelectItem>
+                <SelectItem value="ytd">Year to date</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </Card>
 
@@ -357,13 +444,16 @@ export default function NCList() {
         {filteredNCs.length === 0 ? (
           <Card className="glass-card-solid border-0 p-12 text-center">
             <p className="text-muted-foreground">No non-conformances found</p>
-            {searchQuery || statusFilter !== 'all' || categoryFilter !== 'all' ? (
+            {searchQuery || statusFilter !== 'all' || categoryFilter !== 'all' || severityFilter !== 'all' || periodFilter !== 'all' || sourceFilter !== 'all' ? (
               <Button
                 variant="link"
                 onClick={() => {
                   setSearchQuery('');
                   setStatusFilter('all');
                   setCategoryFilter('all');
+                  setSeverityFilter('all');
+                  setPeriodFilter('all');
+                  setSourceFilter('all');
                 }}
               >
                 Clear filters

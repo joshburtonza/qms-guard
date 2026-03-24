@@ -29,7 +29,7 @@ export function SmartsheetWidget() {
     enabled: !!tenant?.id,
   });
 
-  const isConfigured = !!config;
+  const isConfigured = !!config && config.sheet_id !== 'pending';
   const lastSyncStatus = config?.last_sync_status;
 
   return (
